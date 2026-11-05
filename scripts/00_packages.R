@@ -33,11 +33,10 @@ missing_bioc <- setdiff(bioc_packages, installed)
 invisible(lapply(c(cran_packages, bioc_packages),
                  library, character.only = TRUE))
 
-rm(list = ls())
 
 # Project configuration
 # 1. Project configuration -----------------------------------
-project_dir <- path.expand("~/github/projects/bulk_rna_seq/dox_chemobrain")
+project_dir <- path.expand("~/github/bulk-rna-seq/")
 setwd(project_dir)
 
 dir.create("data", showWarnings = FALSE)
