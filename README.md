@@ -40,20 +40,19 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 
 - **Quality control:** PCA (VST), count density, boxplot, dispersion plot, Cook's distance
   
-<img width="2400" height="1500" alt="boxplot" src="https://github.com/user-attachments/assets/bb0a4e49-9cbf-48d2-8e07-2a539bd6287c" />
+<img width="1200" alt="boxplot" src="https://github.com/user-attachments/assets/bb0a4e49-9cbf-48d2-8e07-2a539bd6287c" />
 
 - **Differential expression:** volcano plot, MA plot, heatmap, FDR histogram, QQ plot
 
-[volcano.pdf](https://github.com/user-attachments/files/34449798/volcano.pdf)
-
+<img width="1200" alt="volcano" src="https://github.com/user-attachments/assets/52692b2d-18ab-4610-b139-f3e4234ab2da" />
   
 - **Functional enrichment:** GO and KEGG dotplots, enrichment maps, gene-concept networks, ridgeplots, GSEA plots
 
-<img width="2100" height="3600" alt="dotplot_GO" src="https://github.com/user-attachments/assets/bfb27a9e-41e2-497a-aab0-d221e8aad49b" />
+<img width="1000" alt="dotplot_GO" src="https://github.com/user-attachments/assets/bfb27a9e-41e2-497a-aab0-d221e8aad49b" />
 
 - **Pathway visualization:** pathview maps (e.g. mmu04668, TNF signaling pathway)
 
-<img width="2700" height="2100" alt="gsea_kegg" src="https://github.com/user-attachments/assets/c6e4201f-6ff2-4797-b672-87173a0fd0cc" />
+<img width="1200" alt="gsea_kegg" src="https://github.com/user-attachments/assets/c6e4201f-6ff2-4797-b672-87173a0fd0cc" />
 
 
 ## Requirements
