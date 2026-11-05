@@ -56,7 +56,7 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 ## Requirements
 
 - R (>= 4.0)
-- Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `ggplot2` (the full list is in `sessionInfo.txt`)
+- Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `ggplot2` (the full list is in [`sessionInfo.txt`](sessionInfo.txt)
 
 ## Usage
 
