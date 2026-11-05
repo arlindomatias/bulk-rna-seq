@@ -39,14 +39,27 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 ## Outputs
 
 - **Quality control:** PCA (VST), count density, boxplot, dispersion plot, Cook's distance
+  
+<img width="2400" height="1500" alt="boxplot" src="https://github.com/user-attachments/assets/bb0a4e49-9cbf-48d2-8e07-2a539bd6287c" />
+
 - **Differential expression:** volcano plot, MA plot, heatmap, FDR histogram, QQ plot
+
+[volcano.pdf](https://github.com/user-attachments/files/34449798/volcano.pdf)
+
+  
 - **Functional enrichment:** GO and KEGG dotplots, enrichment maps, gene-concept networks, ridgeplots, GSEA plots
+
+<img width="2100" height="3600" alt="dotplot_GO" src="https://github.com/user-attachments/assets/bfb27a9e-41e2-497a-aab0-d221e8aad49b" />
+
 - **Pathway visualization:** pathview maps (e.g. mmu04668, TNF signaling pathway)
+
+<img width="2700" height="2100" alt="gsea_kegg" src="https://github.com/user-attachments/assets/c6e4201f-6ff2-4797-b672-87173a0fd0cc" />
+
 
 ## Requirements
 
 - R (>= 4.0)
-- Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `ggplot2` (the full list is in `scripts/00_packages.R`)
+- Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `ggplot2` (the full list is in `sessionInfo.txt`)
 
 ## Usage
 
@@ -64,4 +77,4 @@ The analysis uses the public dataset [GSE178812](https://www.ncbi.nlm.nih.gov/ge
 
 ## Author
 
-Arlindo César Matias Pereira Filho
+Arlindo César Matias Pereira
