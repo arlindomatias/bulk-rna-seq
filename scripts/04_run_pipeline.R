@@ -1,5 +1,5 @@
 # Main RNA-seq pipeline
-project_dir <- path.expand("~/github/bulk-rna-seq/")
+project_dir <- path.expand("~/github/bulk-rna-seq")
 setwd(project_dir)
 
 scripts <- c(

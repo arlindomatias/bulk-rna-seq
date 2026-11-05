@@ -18,8 +18,6 @@ tt$SYMBOL <- rownames(tt)
 
 write.csv(tt, "data/top_table.csv") # Export TT
 
-tt_entrez <- merge(keytable, tt, by = "SYMBOL")
-
 tt_filtered <- subset(tt, padj < 0.05 & abs(log2FoldChange) > 0.5)
 tt_filtered_up <- subset(tt, padj < 0.05 & log2FoldChange > 0.5)
 tt_filtered_down <- subset(tt, padj < 0.05 & log2FoldChange < - 0.5)

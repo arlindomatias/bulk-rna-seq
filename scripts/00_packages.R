@@ -36,7 +36,7 @@ invisible(lapply(c(cran_packages, bioc_packages),
 
 # Project configuration
 # 1. Project configuration -----------------------------------
-project_dir <- path.expand("~/github/bulk-rna-seq/")
+project_dir <- path.expand("~/github/bulk-rna-seq")
 setwd(project_dir)
 
 dir.create("data", showWarnings = FALSE)
