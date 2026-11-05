@@ -72,7 +72,7 @@ vp <- EnhancedVolcano(tt,
                      max.overlaps = 15)
 
 vp
-ggsave("plots/volcano.pdf", plot = vp, width = 8, height = 7,
+ggsave("plots/volcano.png", plot = vp, width = 8, height = 7,
        units = "in", dpi = 300)
 
 # Heatmap
@@ -93,8 +93,8 @@ hm <- pheatmap(deg_counts,
                     cellheight = 12)
 
 hm
-ggsave("plots/heatmap.pdf", plot = hm, 
-       width = 4, height = 12, units = "in", dpi = 300)
+ggsave("plots/heatmap.png", plot = hm, 
+       width = 4, height = 12, units = "in", dpi = 300, bg = "white")
 
 # FDR histogram 
 histo <- ggplot(tt, aes(x = padj)) +
