@@ -95,36 +95,24 @@ ggsave("plots/volcano.png", plot = vp, width = 8, height = 7,
 
 # Heatmap of DEGs (VST-transformed counts, row-scaled)
 deg_genes <- tt_filtered$SYMBOL[tt_filtered$SYMBOL %in% rownames(vsd)]
+deg_mat <- assay(vsd)[deg_genes, , drop = FALSE]
+heat_legend <- data.frame(Group = colData(dds)$group,
+                          row.names = colnames(dds))
+heat_colors <- list(Group = c(VEH = "#3399FF", CHEM = "#CC0000"))
 
-if (length(deg_genes) >= 2) {
-  
-  deg_mat <- assay(vsd)[deg_genes, , drop = FALSE]
-  
-  # Column annotation: group only, ordered like the matrix columns
-  heat_legend <- data.frame(Group = colData(dds)$group,
-                            row.names = colnames(dds))
-  heat_colors <- list(Group = c(VEH = "#3399FF", CHEM = "#CC0000"))
-  
-  # Height grows with the number of genes (cellheight = 12 pt per row)
-  hm_height <- max(4, 1.5 + length(deg_genes) * 12 / 72)
-  
-  png("plots/heatmap.png", width = 4, height = hm_height,
-      units = "in", res = 300, bg = "white")
-  pheatmap(deg_mat,
-           annotation_col    = heat_legend,
-           annotation_colors = heat_colors,
-           show_rownames = TRUE,
-           cluster_rows  = TRUE,
-           cluster_cols  = TRUE,
-           scale         = "row",
-           fontsize      = 8,
-           cellwidth     = 10,
-           cellheight    = 12)
-  dev.off()
-  
-} else {
-  message("Fewer than 2 DEGs; skipping heatmap.")
-}
+hm <- pheatmap(deg_mat,
+               annotation_col    = heat_legend,
+               annotation_colors = heat_colors,
+               show_rownames = TRUE,
+               cluster_rows  = TRUE,
+               cluster_cols  = TRUE,
+               scale         = "row",
+               fontsize      = 8,
+               cellwidth     = 10,
+               cellheight    = 12)
+
+ggsave("plots/heatmap.png", plot = hm, 
+       width = 4, height = 12, units = "in", dpi = 300, bg = "white")
 
 # FDR histogram 
 histo <- ggplot(tt, aes(x = padj)) +
