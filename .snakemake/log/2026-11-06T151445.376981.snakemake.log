@@ -1,0 +1,51 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job             count
+------------  -------
+all                 1
+differential        1
+enrichment          1
+total               3
+
+Select jobs to execute...
+
+[Fri Nov  6 15:14:45 2026]
+rule differential:
+    input: data/counts.csv, data/colData.csv
+    output: results/top_table.csv, plots/pca_vst.png, plots/volcano.png, plots/heatmap.png, plots/fdr_histogram.png, plots/boxplot.png, plots/QQPlot.png, plots/MAplot.png, plots/dispersion_plot.png, plots/density_counts.png, plots/cooks_distance.png
+    jobid: 3
+    reason: Missing output files: plots/QQPlot.png, plots/fdr_histogram.png, plots/density_counts.png, results/top_table.csv, plots/boxplot.png, plots/heatmap.png, plots/cooks_distance.png, plots/pca_vst.png, plots/MAplot.png, plots/dispersion_plot.png, plots/volcano.png
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 15:15:29 2026]
+Finished job 3.
+1 of 3 steps (33%) done
+Select jobs to execute...
+
+[Fri Nov  6 15:15:29 2026]
+rule enrichment:
+    input: results/top_table.csv, data/counts.csv, data/colData.csv
+    output: results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/edges_PPI.csv, results/nodes_PPI.csv, sessionInfo.txt
+    jobid: 4
+    reason: Input files updated by another job: results/top_table.csv
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 15:16:50 2026]
+Error in rule enrichment:
+    jobid: 4
+    input: results/top_table.csv, data/counts.csv, data/colData.csv
+    output: results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/edges_PPI.csv, results/nodes_PPI.csv, sessionInfo.txt
+    shell:
+        
+        Rscript scripts/03_enrichment.R
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job enrichment since they might be corrupted:
+results/GSEA_GO_all_full.csv
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2026-11-06T151445.376981.snakemake.log

@@ -1,0 +1,37 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job           count
+----------  -------
+all               1
+enrichment        1
+total             2
+
+Select jobs to execute...
+
+[Fri Nov  6 15:22:15 2026]
+rule enrichment:
+    input: results/top_table.csv, data/counts.csv, data/colData.csv
+    output: results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/edges_PPI.csv, results/nodes_PPI.csv, sessionInfo.txt
+    jobid: 4
+    reason: Missing output files: results/GSEA_GO_all_full.csv, results/edges_PPI.csv, results/GSEA_KEGG_full.csv, sessionInfo.txt, results/enrichment_STRING_full.csv, results/nodes_PPI.csv
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 15:26:46 2026]
+Finished job 4.
+1 of 2 steps (50%) done
+Select jobs to execute...
+
+[Fri Nov  6 15:26:46 2026]
+localrule all:
+    input: data/counts.csv, data/colData.csv, results/top_table.csv, plots/pca_vst.png, plots/volcano.png, plots/heatmap.png, plots/fdr_histogram.png, plots/boxplot.png, plots/QQPlot.png, plots/MAplot.png, plots/dispersion_plot.png, plots/density_counts.png, plots/cooks_distance.png, results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/edges_PPI.csv, results/nodes_PPI.csv, sessionInfo.txt
+    jobid: 0
+    reason: Input files updated by another job: results/GSEA_GO_all_full.csv, results/edges_PPI.csv, results/GSEA_KEGG_full.csv, sessionInfo.txt, results/enrichment_STRING_full.csv, results/nodes_PPI.csv
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 15:26:46 2026]
+Finished job 0.
+2 of 2 steps (100%) done
+Complete log: .snakemake/log/2026-11-06T152215.442603.snakemake.log

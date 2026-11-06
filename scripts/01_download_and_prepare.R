@@ -105,3 +105,5 @@ write.csv(counts, "data/counts.csv", row.names = F)
 write.csv(colData, "data/colData.csv", row.names = F)
 
 gc()
+
+# ============================================================

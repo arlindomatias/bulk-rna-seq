@@ -1,0 +1,36 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job             count
+------------  -------
+all                 1
+differential        1
+enrichment          1
+total               3
+
+Select jobs to execute...
+
+[Fri Nov  6 14:51:48 2026]
+rule differential:
+    input: data/counts.csv, data/colData.csv
+    output: results/top_table.csv, plots/pca_vst.png, plots/volcano.png, plots/heatmap.png, plots/fdr_histogram.png, plots/boxplot.png, plots/QQPlot.png, plots/MAplot.png, plots/dispersion_plot.png, plots/density_counts.png, plots/cooks_distance.png
+    jobid: 3
+    reason: Missing output files: plots/pca_vst.png, plots/density_counts.png, plots/volcano.png, plots/boxplot.png, plots/fdr_histogram.png, results/top_table.csv, plots/QQPlot.png, plots/dispersion_plot.png, plots/cooks_distance.png, plots/MAplot.png, plots/heatmap.png
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 14:51:49 2026]
+Error in rule differential:
+    jobid: 3
+    input: data/counts.csv, data/colData.csv
+    output: results/top_table.csv, plots/pca_vst.png, plots/volcano.png, plots/heatmap.png, plots/fdr_histogram.png, plots/boxplot.png, plots/QQPlot.png, plots/MAplot.png, plots/dispersion_plot.png, plots/density_counts.png, plots/cooks_distance.png
+    shell:
+        
+        Rscript scripts/02_differential_expression_and_qc.R
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2026-11-06T145148.509587.snakemake.log
