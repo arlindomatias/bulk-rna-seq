@@ -1,10 +1,9 @@
 # ============================================================
 # SCRIPT 02: RNA-SEQ QUALITY CONTROL AND DIFFERENTIAL ANALYSIS
-# Load organized data from Script 01 if necessary ---------
 # ============================================================
 source("scripts/00_packages.R")
 
-cat("Importing count data and colData")
+message("Importing count data and colData")
 colData <- as.data.frame(read_csv("data/colData.csv", show_col_types = FALSE))
 colData$group <- factor(colData$group, levels = c("VEH", "CHEM"))
 
@@ -14,13 +13,11 @@ counts$SYMBOL <- NULL
 
 colnames(counts) <- colData$GEO_ID
 
-all(counts == round(counts))  # Should return True
-any(counts < 0)               # Should return False
-anyNA(counts)                 # Should return False
+stopifnot(all(counts == round(counts)), !any(counts < 0), !anyNA(counts))
 
 ### 1. Create DDS object and Top Table --------------------------
 # DESeq2 object: load from disk if it already exists, otherwise create and save it
-cat("Creating or loading DESeq2 object \n")
+message("Creating or loading DESeq2 object \n")
 dds_file <- file.path("data", "dds.rds")
 
 if (file.exists(dds_file)) {
@@ -28,30 +25,24 @@ if (file.exists(dds_file)) {
   dds <- readRDS(dds_file)
 } else {
   message("Creating DESeq2 object (this may take a while)...")
-  dds <- DESeqDataSetFromMatrix(countData = counts,
-                                colData = colData,
-                                design = ~ group)
-  dds <- DESeq(dds, fitType = "local")
-  
-  # Keep genes with >= 10 counts in at least 3 samples
+  dds <- DESeqDataSetFromMatrix(countData = counts, colData = colData, design = ~ group)
   keep <- rowSums(counts(dds) >= 10) >= 3
-  dds <- dds[keep, ]
-  
-  saveRDS(dds, dds_file)
+  dds  <- dds[keep, ]
+  dds  <- DESeq(dds, fitType = "local")
 }
 
 resultsNames(dds)
 
-tt <- data.frame(results(dds, contrast = c("group", "VEH", "CHEM")))  # Top table
+tt <- data.frame(results(dds, contrast = c("group", "CHEM", "VEH"))) # Top table
 tt$SYMBOL <- rownames(tt)
 tt_filtered <- subset(tt, padj < 0.05 & abs(log2FoldChange) > 0.5)
 
-cat("Saving top table")
+message("Saving top table")
 write.csv(tt, "results/top_table.csv", row.names = F)  # Export top table
 
 
 ### 1. Create DEG and QC plots ---------------------------------------
-cat("Creating QC and DEG plots")
+message("Creating QC and DEG plots")
 
 # PCA
 vsd <- vst(dds, blind = TRUE)
@@ -67,7 +58,6 @@ pca <- ggplot(pca_data, aes(x = PC1, y = PC2, color = group)) +
   coord_fixed() +
   theme_bw(base_size = 12)
 
-pca
 ggsave("plots/pca_vst.png", plot = pca,
        width = 6, height = 5, dpi = 300)
 
@@ -100,30 +90,41 @@ vp <- EnhancedVolcano(tt,
                      widthConnectors = 0.3,
                      max.overlaps = 15)
 
-vp
 ggsave("plots/volcano.png", plot = vp, width = 8, height = 7,
        units = "in", dpi = 300)
 
-# Heatmap
-deg_counts <- counts
-deg_counts <- deg_counts[rownames(counts) %in% tt_filtered$SYMBOL, ]
-heat_legend <- colData
-rownames(heat_legend) <- heat_legend$GEO_ID
-heat_legend$GEO_ID <- NULL
-heat_legend$condition <- NULL
+# Heatmap of DEGs (VST-transformed counts, row-scaled)
+deg_genes <- tt_filtered$SYMBOL[tt_filtered$SYMBOL %in% rownames(vsd)]
 
-hm <- pheatmap(deg_counts, 
-                    annotation_col = heat_legend, 
-                    show_rownames = T, 
-                    cluster_cols = T, 
-                    scale = "row",
-                    fontsize = 8,
-                    cellwidth = 10,
-                    cellheight = 12)
-
-hm
-ggsave("plots/heatmap.png", plot = hm, 
-       width = 4, height = 12, units = "in", dpi = 300, bg = "white")
+if (length(deg_genes) >= 2) {
+  
+  deg_mat <- assay(vsd)[deg_genes, , drop = FALSE]
+  
+  # Column annotation: group only, ordered like the matrix columns
+  heat_legend <- data.frame(Group = colData(dds)$group,
+                            row.names = colnames(dds))
+  heat_colors <- list(Group = c(VEH = "#3399FF", CHEM = "#CC0000"))
+  
+  # Height grows with the number of genes (cellheight = 12 pt per row)
+  hm_height <- max(4, 1.5 + length(deg_genes) * 12 / 72)
+  
+  png("plots/heatmap.png", width = 4, height = hm_height,
+      units = "in", res = 300, bg = "white")
+  pheatmap(deg_mat,
+           annotation_col    = heat_legend,
+           annotation_colors = heat_colors,
+           show_rownames = TRUE,
+           cluster_rows  = TRUE,
+           cluster_cols  = TRUE,
+           scale         = "row",
+           fontsize      = 8,
+           cellwidth     = 10,
+           cellheight    = 12)
+  dev.off()
+  
+} else {
+  message("Fewer than 2 DEGs; skipping heatmap.")
+}
 
 # FDR histogram 
 histo <- ggplot(tt, aes(x = padj)) +
@@ -132,26 +133,29 @@ histo <- ggplot(tt, aes(x = padj)) +
   labs(title = "FDR distribution", x = "padj", y = "Number of genes") +
   theme_classic()
 
-histo
 ggsave("plots/fdr_histogram.png", plot = histo,
        width = 8, height = 5, units = "in", dpi = 300)
 
-# Box plot
-df_long <- as.data.frame(counts) %>%
+# Box plot of normalized counts, colored by group
+norm_counts <- counts(dds, normalized = TRUE)
+
+meta <- data.frame(sample = colnames(dds),
+                   group  = colData(dds)$group)
+
+df_long <- as.data.frame(norm_counts) %>%
   rownames_to_column("SYMBOL") %>%
-  pivot_longer(-SYMBOL, names_to = "sample", values_to = "expression")
+  pivot_longer(-SYMBOL, names_to = "sample", values_to = "expression") %>%
+  left_join(meta, by = "sample") %>%
+  mutate(sample = factor(sample, levels = meta$sample[order(meta$group)]))
 
-bp <- ggplot(df_long, aes(x = sample, y = log2(expression + 1), fill = sample)) +
+bp <- ggplot(df_long, aes(x = sample, y = log2(expression + 1), fill = group)) +
   geom_boxplot(width = 0.6, outlier.shape = NA) +
-  scale_fill_manual(values = c("#3399FF", "#3399FF", "#3399FF",
-                               "#CC0000", "#CC0000", "#CC0000")) +
+  scale_fill_manual(values = c("VEH" = "#3399FF", "CHEM" = "#CC0000")) +
   labs(title = "Normalized expression",
-       x = NULL, y = "log2(normalized counts + 1)") +
+       x = NULL, y = "log2(normalized counts + 1)", fill = "Group") +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-        legend.position = "none")
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-bp
 ggsave("plots/boxplot.png", plot = bp,
        width = 8, height = 5, units = "in", dpi = 300)
 
@@ -184,7 +188,6 @@ p_ma <- ggplot(ma_df, aes(x = baseMean, y = log2FoldChange, color = sig)) +
   coord_cartesian(ylim = c(-3, 3)) +
   theme_classic(base_size = 12)
 
-p_ma
 ggsave("plots/MAplot.png", plot = p_ma,
        width = 6, height = 5, dpi = 300)
 
@@ -200,8 +203,6 @@ norm_counts <- counts(dds, normalized = TRUE)
 df_dens <- as.data.frame(log2(norm_counts + 1)) %>%
   pivot_longer(everything(), names_to = "amostra", values_to = "log2_expr")
 
-norm_counts <- counts(dds, normalized = TRUE)
-
 df_dens <- as.data.frame(log2(norm_counts + 1)) %>%
   pivot_longer(everything(), names_to = "amostra", values_to = "log2_expr")
 meta <- data.frame(amostra = colnames(dds), group = colData(dds)$group)
@@ -212,8 +213,6 @@ p_dens <- ggplot(df_dens, aes(x = log2_expr, color = amostra, linetype = group))
   labs(x = "log2(normalized counts + 1)", y = "Density",
        title = "Density of normalized counts") +
   theme_classic(base_size = 12)
-
-p_dens
 
 ggsave("plots/density_counts.png", plot = p_dens,
        width = 7, height = 5, dpi = 300)

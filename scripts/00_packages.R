@@ -34,25 +34,24 @@ missing_bioc <- setdiff(bioc_packages, installed)
 invisible(lapply(c(cran_packages, bioc_packages),
                  library, character.only = TRUE))
 
-rm(list = ls())
-
 # Project configuration
 # 1. Project configuration -----------------------------------
-project_dir <- path.expand("~/github/bulk-rna-seq")
-setwd(project_dir)
+if (!file.exists("scripts/00_packages.R")) {
+  setwd(path.expand("~/github/bulk-rna-seq"))
+}
+project_dir <- getwd()
 
-dir.create("data", showWarnings = FALSE)
-dir.create("plots", showWarnings = FALSE)
-dir.create("results", showWarnings = FALSE)
+for (d in c("data", "plots", "results", "cache")) {
+  dir.create(d, recursive = TRUE, showWarnings = FALSE)
+}
 
 geo_accession <- "GSE178812"
 options(timeout = 600)
-
-options(device = "RStudioGD")
+options(lifecycle_verbosity = "quiet")
 
 # Rscript has no default graphics device; open a null one so print(<ggplot>)
 # works under make. ggsave()/png()/pdf() calls are unaffected.
 if (!interactive()) pdf(NULL)
 
-writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
+
 

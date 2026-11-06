@@ -42,6 +42,7 @@
 *_cache/
 *_files/
 .quarto/
+cache/
 
 # ---- OS and editor files ----------------------------------
 .DS_Store

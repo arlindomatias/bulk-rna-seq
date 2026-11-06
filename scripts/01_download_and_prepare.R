@@ -90,17 +90,17 @@ duplicated_symbol_values <- length(unique(
   ]
 ))
 
-cat("Missing symbols:", missing_symbols, "|" ,"Duplicated symbols:", duplicated_symbol_values, "\n")
+message("Missing symbols:", missing_symbols, "|" ,"Duplicated symbols:", duplicated_symbol_values, "\n")
 
 counts <- counts_raw[!duplicated(counts_raw$SYMBOL),]
 counts <- counts[!is.na(counts$SYMBOL),]
 counts <- as.data.frame(counts)
 
-cat("Missing and duplicated rows removed \n")
+message("Missing and duplicated rows removed \n")
 
 
 # 5. Export organized data ------------------------------------
-cat("Exporting counts and colData \n")
+message("Exporting counts and colData \n")
 write.csv(counts, "data/counts.csv", row.names = F)
 write.csv(colData, "data/colData.csv", row.names = F)
 

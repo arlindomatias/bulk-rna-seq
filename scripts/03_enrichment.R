@@ -1,10 +1,9 @@
 # ============================================================
 # SCRIPT 03: ENRICHMENT ANALYSIS
-# Load organized data from Script 02 if necessary ---------
 # ============================================================
 source("scripts/00_packages.R")
 
-cat("Importing count data and colData")
+message("Importing count data and colData")
 colData <- as.data.frame(read_csv("data/colData.csv", show_col_types = FALSE))
 colData$group <- factor(colData$group, levels = c("VEH", "CHEM"))
 
@@ -15,8 +14,6 @@ colnames(counts) <- colData$GEO_ID
 
 tt <- as.data.frame(read_csv("results/top_table.csv", show_col_types = FALSE))
 tt_filtered <- subset(tt, padj < 0.05 & abs(log2FoldChange) > 0.5)
-tt_filtered_up <- subset(tt, padj < 0.05 & log2FoldChange > 0.5)
-tt_filtered_down <- subset(tt, padj < 0.05 & log2FoldChange < - 0.5)
 
 ### 1. Prepare count matrix with SYMBOLS -------------------------------------------
 counts_raw <- counts
@@ -25,17 +22,17 @@ counts_raw <- merge(tt, counts_raw, by = "SYMBOL")
 
 counts_sig <- counts_raw[counts_raw$SYMBOL %in% tt_filtered$SYMBOL, ]
 
-# Prepare ranking list for GSEA
-gene_list <- counts_raw$log2FoldChange
-names(gene_list) <- counts_raw$SYMBOL
-
+# Ranking for GSEA: Wald statistic
+gene_list <- setNames(tt$stat, tt$SYMBOL)
 gene_list <- gene_list[!is.na(gene_list) & !is.na(names(gene_list))]
-gene_list <- gene_list[!duplicated(names(gene_list))]
-gene_list <- sort(gene_list, decreasing = TRUE)
+gene_list <- sort(gene_list[!duplicated(names(gene_list))], decreasing = TRUE)
+
+# log2FC kept only for display (cnetplot / pathview colors)
+fc_list <- setNames(tt$log2FoldChange, tt$SYMBOL)[names(gene_list)]
 
 ### 2. GSEA Analysis ---------------------------------------------------------------
 # GSEA with GO
-cat("Performing GSEA")
+message("Performing GSEA")
 gse_GO_all <- gseGO(geneList= gene_list, 
                     ont ="ALL", # BP, CC, MF
                     keyType = "SYMBOL", 
@@ -45,7 +42,17 @@ gse_GO_all <- gseGO(geneList= gene_list,
                     verbose = TRUE, 
                     OrgDb = "org.Mm.eg.db",
                     pAdjustMethod = "fdr")
-gse_GO_all <- pairwise_termsim(gse_GO_all) 
+if (nrow(gse_GO_all@result) >= 2) {
+  gse_GO_all <- pairwise_termsim(gse_GO_all)
+  # dotplot, ridge, cnet, emap, gsea ...
+}
+
+gse_df <- as.data.frame(gse_GO_all) |>
+  mutate(direction = ifelse(NES > 0, "activated", "suppressed")) |>
+  arrange(p.adjust)
+
+# Export table
+write.csv(gse_df, "results/GSEA_GO_all_full.csv", row.names = FALSE)
 
 # Dotplot
 dot <- dotplot(gse_GO_all,
@@ -54,7 +61,6 @@ dot <- dotplot(gse_GO_all,
                         font.size = 12) +
   facet_grid(ONTOLOGY ~ .sign, scales = "free_y", space = "free_y")
 
-dot
 ggsave("plots/dotplot_GO.png", plot = dot, width = 7, height = 12, dpi = 300)
 
 # Ridgeplot
@@ -70,13 +76,11 @@ make_ridge <- function(obj, ont, n = 10) {
     ggtitle(ont)
 }
 
-onts <- c("BP", "CC", "MF")
-onts <- onts[onts %in% gse_GO_all@result$ONTOLOGY]
+onts <- names(which(table(gse_GO_all@result$ONTOLOGY) >= 2))
 ridge_list <- lapply(onts, make_ridge, obj = gse_GO_all)
 names(ridge_list) <- onts
 
 ridge_all <- wrap_plots(ridge_list, ncol = 1)
-ridge_all
 ggsave("plots/ridge.png", plot = ridge_all, width = 7, height = 12, dpi = 300)
 
 # Cnetplot
@@ -93,7 +97,7 @@ make_cnet <- function(obj, ont, n = 20) {
            color_edge = "grey",
            size_edge = 0.5,
            node_label = "category",
-           foldChange = gene_list,
+           foldChange = fc_list,
            hilight = "none",
            hilight_alpha = 0.3) +
     ggtitle(ont)
@@ -102,7 +106,6 @@ cnet_list <- lapply(onts, make_cnet, obj = gse_GO_all)
 names(cnet_list) <- onts
 cnet_all <- wrap_plots(cnet_list, ncol = 1)
 
-cnet_all
 ggsave("plots/cnet.png", plot = cnet_all, width = 10, height = 10, dpi = 300)
 
 # Emaplot
@@ -128,44 +131,46 @@ ema_list <- lapply(onts, make_ema, obj = gse_GO_all)
 names(ema_list) <- onts
 ema_all <- wrap_plots(ema_list, ncol = 1)
 
-ema_all
 ggsave("plots/emaplot.png", plot = ema_all, width = 9, height = 40, dpi = 300)
 
 # Single pathway GSEA plot
-go_sets <- data.frame(gse_GO_all@result[["Description"]])
-id_go = 4 # Choose pathway of interest
-
-gsea <- gseaplot2(gse_GO_all, 
-          geneSetID = id_go,
-          pvalue_table = TRUE,
-          title = gse_GO_all$Description[id_go],
-          color = c("#E495A5", "#86B875", "#7DB0DD"), 
-          ES_geom = "line")
-gsea
-ggsave("plots/gsea.png", plot = gsea, width = 9, height = 7, dpi = 300)
+# GO: top term
+gsea <- gseaplot2(gse_GO_all, geneSetID = 1, pvalue_table = TRUE,
+                  title = gse_GO_all$Description[1],
+                  color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line")
+ggsave("plots/gsea.png", gsea, width = 9, height = 7, dpi = 300)
 
 ### 3. Convert gene_list to Entrez ID for further analyzes ---------------------
-map <- bitr(names(gene_list),
-            fromType = "SYMBOL",
-            toType   = "ENTREZID",
-            OrgDb    = org.Mm.eg.db)
+map <- bitr(names(gene_list), fromType = "SYMBOL", toType = "ENTREZID",
+            OrgDb = org.Mm.eg.db)
+map <- map[!duplicated(map$SYMBOL) & !duplicated(map$ENTREZID), ]
 
-gene_list_entrez <- gene_list[map$SYMBOL]
-names(gene_list_entrez) <- map$ENTREZID
+gene_list_entrez <- sort(setNames(gene_list[map$SYMBOL], map$ENTREZID),
+                         decreasing = TRUE)
+fc_entrez <- setNames(fc_list[map$SYMBOL], map$ENTREZID)
 
-gene_list_entrez <- gene_list_entrez[!is.na(names(gene_list_entrez))]
-gene_list_entrez <- gene_list_entrez[!duplicated(names(gene_list_entrez))]
-gene_list_entrez <- sort(gene_list_entrez, decreasing = TRUE)
+gse_kegg <- gseKEGG(geneList = gene_list_entrez, keyType = "kegg",
+                    organism = "mmu", minGSSize = 3, maxGSSize = 800,
+                    pvalueCutoff = 0.05, pAdjustMethod = "BH")
 
-gse_kegg <- gseKEGG(geneList = gene_list_entrez,
-                    keyType = "kegg",
-                    nPerm = 10000,
-                    organism = "mmu",
-                    minGSSize = 3,
-                    maxGSSize = 800,
-                    pvalueCutoff = 0.05,
-                    pAdjustMethod = "none")
-gse_kegg <- pairwise_termsim(gse_kegg)
+# Export table
+has_kegg <- nrow(gse_kegg@result) > 0
+if (has_kegg) {
+  gse_kegg_sym <- setReadable(gse_kegg, OrgDb = org.Mm.eg.db, keyType = "ENTREZID")
+  kegg_df <- as.data.frame(gse_kegg_sym) |>
+    mutate(Description = sub(" - Mus musculus.*$", "", Description),
+           direction   = ifelse(NES > 0, "activated", "suppressed")) |>
+    arrange(p.adjust)
+  write.csv(kegg_df, "results/GSEA_KEGG_full.csv", row.names = FALSE)
+}
+if (!has_kegg) {
+  write.csv(data.frame(), "results/GSEA_KEGG_full.csv", row.names = FALSE)
+  message("No significant KEGG pathways; wrote an empty table.")
+}
+if (has_kegg && nrow(gse_kegg@result) >= 2) {
+  gse_kegg <- pairwise_termsim(gse_kegg)
+  # dotplot_k, emakegg, cnetkegg, ridgekegg ...
+}
 
 # Dotplot KEGG
 dot_k <- dotplot(gse_kegg,
@@ -174,13 +179,11 @@ dot_k <- dotplot(gse_kegg,
                  font.size = 12) +
   facet_grid(. ~ .sign)
 
-dot_k
-ggsave("plots/dotplot_kegg.png", plot = dot, width = 7, height = 12, dpi = 300)
+ggsave("plots/dotplot_kegg.png", plot = dot_k, width = 7, height = 12, dpi = 300)
 
 # Emaplot KEGG
 emakegg <- emapplot(gse_kegg)
 
-emakegg
 ggsave("plots/ema_kegg.png", plot = emakegg, width = 8, height = 9, 
        dpi = 300, bg = "white")
 
@@ -194,10 +197,10 @@ cnetkegg <- cnetplot(gse_kegg,
                      color_edge = "grey",
                      size_edge = 0.5,
                      node_label = "category",
-                     foldChange = gene_list_entrez,
+                     foldChange = fc_entrez,
                      hilight = "none",
                      hilight_alpha = 0.3)
-cnetkegg
+
 ggsave("plots/cnet_kegg.png", plot = cnetkegg, width = 7, height = 5, 
        dpi = 300, bg = "white")
 
@@ -209,68 +212,35 @@ ridgekegg <- ridgeplot(gse_kegg,
           label_format = 30
 ) + labs(x = "enrichment distribution")
 
-ridgekegg
 ggsave("plots/ridge_kegg.png", plot = ridgekegg, width = 7, height = 5, dpi = 300)
 
 # Pathview
-kegg_sets <- data.frame(Description = gse_kegg@result[["Description"]],
-                        ID = gse_kegg@result[["ID"]])
+pv_dir <- normalizePath(file.path("plots", "pathview"), mustWork = FALSE)
+dir.create(pv_dir, showWarnings = FALSE, recursive = TRUE)
+pv_dir <- normalizePath(pv_dir)
 
-run_pathview <- function(pathway_id, out_dir = file.path(project_dir, "plots", "pathview"), ...) {
-  dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+run_pathview <- function(pathway_id, out_dir = pv_dir, ...) {
   old_wd <- setwd(out_dir)
-  on.exit(setwd(old_wd))  
-  pathview(gene.data = gene_list_entrez, pathway.id = pathway_id,
-           species = "mmu", gene.idtype = "ENTREZ", kegg.dir = out_dir, ...)
+  on.exit(setwd(old_wd))
+  pathview(gene.data = fc_entrez, pathway.id = pathway_id, species = "mmu",
+           gene.idtype = "ENTREZ", kegg.dir = out_dir, ...)
 }
-run_pathview("mmu04668", limit = list(gene = 1, cpd = 1),
-             out.suffix = "log2FC")
 
-id_kegg = 8
-gsea_kegg <- gseaplot2(gse_kegg, 
-          geneSetID = id_kegg,
-          pvalue_table = TRUE,
-          title = gse_kegg$Description[id_kegg],
-          color = c("#E495A5", "#86B875", "#7DB0DD"), 
-          ES_geom = "line")
-
-gsea_kegg
-ggsave("plots/gsea_kegg.png", plot = gsea_kegg, width = 9, height = 7, dpi = 300)
-
-### 4. Save enrichment tables ---------------------------------------------------
-cat("Saving enrichment tables")
-fdr_cut <- 0.05
-
-# Full result table (core_enrichment = leading-edge genes, separated by "/")
-gse_df <- as.data.frame(gse_GO_all) |>
-  mutate(direction = ifelse(NES > 0, "activated", "suppressed")) |>
-  arrange(p.adjust)
-
-write.csv(gse_df, "results/GSEA_GO_all_full.csv", row.names = FALSE)
-
-# Significant terms only
-gse_sig <- gse_df |> filter(p.adjust < fdr_cut)
-write.csv(gse_sig, "results/GSEA_GO_all_significant.csv", row.names = FALSE)
-
-# Convert leading-edge genes from Entrez IDs to gene symbols
-gse_kegg_sym <- setReadable(gse_kegg, OrgDb = org.Mm.eg.db, keyType = "ENTREZID")
-
-# Full result table (core_enrichment = leading-edge genes, separated by "/")
-kegg_df <- as.data.frame(gse_kegg_sym) |>
-  mutate(
-    Description = sub(" - Mus musculus.*$", "", Description),  # drop organism suffix
-    direction   = ifelse(NES > 0, "activated", "suppressed")
-  ) |>
-  arrange(p.adjust)
-
-write.csv(kegg_df, "results/GSEA_KEGG_full.csv", row.names = FALSE)
+# KEGG: fixed pathway, independent of rank order
+id_kegg <- which(gse_kegg@result$ID == "mmu04668")
+if (length(id_kegg) == 1) {
+  gsea_kegg <- gseaplot2(gse_kegg, geneSetID = id_kegg, pvalue_table = TRUE,
+                         title = gse_kegg$Description[id_kegg],
+                         color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line")
+  ggsave("plots/gsea_kegg.png", gsea_kegg, width = 9, height = 7, dpi = 300)
+}
 
 ### 4. String Analysis----------------------------------------------------------
-cat("Performing STRING analysis")
+message("Performing STRING analysis")
 
-string_db <- STRINGdb$new(version = "12.0", species = 10090, # 10090 = mouse
-                          score_threshold = 700, # 400 = medium, 700 = high
-                          network_type = "full", input_directory = "")
+string_db <- STRINGdb$new(version = "12.0", species = 10090,
+                          score_threshold = 700, network_type = "full",
+                          input_directory = "cache/")
 
 mapped <- string_db$map(tt_filtered, "SYMBOL", removeUnmappedRows = TRUE)
 mapped <- mapped[!duplicated(mapped$SYMBOL), ]    # one STRING_id per gene
@@ -308,16 +278,12 @@ string_db$set_background(universe$STRING_id)   # must be set before get_enrichme
 enrich <- string_db$get_enrichment(hits)
 write.csv(enrich, "results/enrichment_STRING_full.csv", row.names = FALSE)
 
-print(table(enrich$category))
 
 # Drop literature/network categories, which are mostly noise here
 keep_cats <- c("Process", "Function", "Component", "KEGG", "RCTM",
                "WikiPathways", "MPO")
 enrich_sig <- enrich |>
-  filter(category %in% keep_cats, fdr < fdr_cut)
-
-write.csv(enrich_sig, "results/enrichment_STRING_significant.csv",
-          row.names = FALSE)
+  filter(category %in% keep_cats, fdr < 0.05)
 
 # ---- Plot helper ------------------------------------------
 plot_enrichment <- function(df, cat, title, n = 15) {
@@ -349,7 +315,6 @@ reac <- plot_enrichment(enrich_sig, "RCTM", "Reactome enrichment")
 wp   <- plot_enrichment(enrich_sig, "WikiPathways", "WikiPathways enrichment")
 
 if (!is.null(reac)) {
-  print(reac)
   ggsave("plots/reactome.png", reac, width = 8, height = 4, dpi = 300)
 }
 if (!is.null(wp)) {
@@ -362,7 +327,7 @@ mpo <- enrich_sig |> filter(category == "MPO")
 print(mpo[, c("term", "description", "number_of_genes",
               "number_of_genes_in_background", "fdr")])
 
-# ---- Combined plot (all significant categories) ----------
+# ---- Combined plot (all significant categories) ------------------------
 if (nrow(enrich_sig) > 0) {
   multi_df <- enrich_sig |>
     group_by(category) |>
@@ -382,3 +347,6 @@ if (nrow(enrich_sig) > 0) {
   ggsave("plots/enrichment_combined.png", comb,
          width = 9, height = 8, dpi = 300)
 }
+
+### 5. Save session info ---------------------------------------------------
+writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
