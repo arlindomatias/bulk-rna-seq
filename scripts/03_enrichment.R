@@ -564,7 +564,4 @@ if (nrow(enrich_sig) > 0) {
          width = 9, height = 8, dpi = 300)
 }
 
-### 5. Save session info ---------------------------------------------------
-writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
-
 # ============================================================
