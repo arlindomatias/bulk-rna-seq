@@ -2,27 +2,56 @@
 # SCRIPT 02: RNA-SEQ QUALITY CONTROL AND DIFFERENTIAL ANALYSIS
 # Load organized data from Script 01 if necessary ---------
 # ============================================================
+source("scripts/00_packages.R")
+
+cat("Importing count data and colData")
+colData <- as.data.frame(read_csv("data/colData.csv", show_col_types = FALSE))
+colData$group <- factor(colData$group, levels = c("VEH", "CHEM"))
+
+counts <- as.data.frame(read_csv("data/counts.csv", show_col_types = FALSE))
+rownames(counts) <- counts$SYMBOL
+counts$SYMBOL <- NULL
+
+colnames(counts) <- colData$GEO_ID
+
+all(counts == round(counts))  # Should return True
+any(counts < 0)               # Should return False
+anyNA(counts)                 # Should return False
 
 ### 1. Create DDS object and Top Table --------------------------
-dds <- DESeqDataSetFromMatrix(countData = counts,
-                              colData = colData,
-                              design = ~ group)
-dds <- DESeq(dds, fitType = "local")
+# DESeq2 object: load from disk if it already exists, otherwise create and save it
+cat("Creating or loading DESeq2 object \n")
+dds_file <- file.path("data", "dds.rds")
+
+if (file.exists(dds_file)) {
+  message("Loading existing DESeq2 object: ", dds_file)
+  dds <- readRDS(dds_file)
+} else {
+  message("Creating DESeq2 object (this may take a while)...")
+  dds <- DESeqDataSetFromMatrix(countData = counts,
+                                colData = colData,
+                                design = ~ group)
+  dds <- DESeq(dds, fitType = "local")
+  
+  # Keep genes with >= 10 counts in at least 3 samples
+  keep <- rowSums(counts(dds) >= 10) >= 3
+  dds <- dds[keep, ]
+  
+  saveRDS(dds, dds_file)
+}
+
 resultsNames(dds)
 
-keep <- rowSums(counts(dds) >= 10) >= 3   # >= 10 counts in at least 3 samples
-dds <- dds[keep, ]
-
-tt <- data.frame(results(dds)) # Top Table
+tt <- data.frame(results(dds, contrast = c("group", "VEH", "CHEM")))  # Top table
 tt$SYMBOL <- rownames(tt)
-
-write.csv(tt, "data/top_table.csv") # Export TT
-
 tt_filtered <- subset(tt, padj < 0.05 & abs(log2FoldChange) > 0.5)
-tt_filtered_up <- subset(tt, padj < 0.05 & log2FoldChange > 0.5)
-tt_filtered_down <- subset(tt, padj < 0.05 & log2FoldChange < - 0.5)
+
+cat("Saving top table")
+write.csv(tt, "results/top_table.csv", row.names = F)  # Export top table
+
 
 ### 1. Create DEG and QC plots ---------------------------------------
+cat("Creating QC and DEG plots")
 
 # PCA
 vsd <- vst(dds, blind = TRUE)

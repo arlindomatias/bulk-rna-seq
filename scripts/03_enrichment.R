@@ -2,8 +2,23 @@
 # SCRIPT 03: ENRICHMENT ANALYSIS
 # Load organized data from Script 02 if necessary ---------
 # ============================================================
+source("scripts/00_packages.R")
 
-### 1. Prepare count matrix with SYMBOLS --------------------
+cat("Importing count data and colData")
+colData <- as.data.frame(read_csv("data/colData.csv", show_col_types = FALSE))
+colData$group <- factor(colData$group, levels = c("VEH", "CHEM"))
+
+counts <- as.data.frame(read_csv("data/counts.csv", show_col_types = FALSE))
+rownames(counts) <- counts$SYMBOL
+counts$SYMBOL <- NULL
+colnames(counts) <- colData$GEO_ID
+
+tt <- as.data.frame(read_csv("results/top_table.csv", show_col_types = FALSE))
+tt_filtered <- subset(tt, padj < 0.05 & abs(log2FoldChange) > 0.5)
+tt_filtered_up <- subset(tt, padj < 0.05 & log2FoldChange > 0.5)
+tt_filtered_down <- subset(tt, padj < 0.05 & log2FoldChange < - 0.5)
+
+### 1. Prepare count matrix with SYMBOLS -------------------------------------------
 counts_raw <- counts
 counts_raw$"SYMBOL" <- rownames(counts)
 counts_raw <- merge(tt, counts_raw, by = "SYMBOL")
@@ -18,8 +33,9 @@ gene_list <- gene_list[!is.na(gene_list) & !is.na(names(gene_list))]
 gene_list <- gene_list[!duplicated(names(gene_list))]
 gene_list <- sort(gene_list, decreasing = TRUE)
 
-### 2. GSEA Analysis ----------------------------------------
+### 2. GSEA Analysis ---------------------------------------------------------------
 # GSEA with GO
+cat("Performing GSEA")
 gse_GO_all <- gseGO(geneList= gene_list, 
                     ont ="ALL", # BP, CC, MF
                     keyType = "SYMBOL", 
@@ -128,7 +144,7 @@ gsea <- gseaplot2(gse_GO_all,
 gsea
 ggsave("plots/gsea.png", plot = gsea, width = 9, height = 7, dpi = 300)
 
-### 3. Convert gene_list to Entrez ID for further analyzes --------
+### 3. Convert gene_list to Entrez ID for further analyzes ---------------------
 map <- bitr(names(gene_list),
             fromType = "SYMBOL",
             toType   = "ENTREZID",
@@ -220,3 +236,149 @@ gsea_kegg <- gseaplot2(gse_kegg,
 
 gsea_kegg
 ggsave("plots/gsea_kegg.png", plot = gsea_kegg, width = 9, height = 7, dpi = 300)
+
+### 4. Save enrichment tables ---------------------------------------------------
+cat("Saving enrichment tables")
+fdr_cut <- 0.05
+
+# Full result table (core_enrichment = leading-edge genes, separated by "/")
+gse_df <- as.data.frame(gse_GO_all) |>
+  mutate(direction = ifelse(NES > 0, "activated", "suppressed")) |>
+  arrange(p.adjust)
+
+write.csv(gse_df, "results/GSEA_GO_all_full.csv", row.names = FALSE)
+
+# Significant terms only
+gse_sig <- gse_df |> filter(p.adjust < fdr_cut)
+write.csv(gse_sig, "results/GSEA_GO_all_significant.csv", row.names = FALSE)
+
+# Convert leading-edge genes from Entrez IDs to gene symbols
+gse_kegg_sym <- setReadable(gse_kegg, OrgDb = org.Mm.eg.db, keyType = "ENTREZID")
+
+# Full result table (core_enrichment = leading-edge genes, separated by "/")
+kegg_df <- as.data.frame(gse_kegg_sym) |>
+  mutate(
+    Description = sub(" - Mus musculus.*$", "", Description),  # drop organism suffix
+    direction   = ifelse(NES > 0, "activated", "suppressed")
+  ) |>
+  arrange(p.adjust)
+
+write.csv(kegg_df, "results/GSEA_KEGG_full.csv", row.names = FALSE)
+
+### 4. String Analysis----------------------------------------------------------
+cat("Performing STRING analysis")
+
+string_db <- STRINGdb$new(version = "12.0", species = 10090, # 10090 = mouse
+                          score_threshold = 700, # 400 = medium, 700 = high
+                          network_type = "full", input_directory = "")
+
+mapped <- string_db$map(tt_filtered, "SYMBOL", removeUnmappedRows = TRUE)
+mapped <- mapped[!duplicated(mapped$SYMBOL), ]    # one STRING_id per gene
+mapped <- mapped[!duplicated(mapped$STRING_id), ] # and one gene per STRING_id
+
+message("Mapped to STRING: ", nrow(mapped), " of ", nrow(tt_filtered))
+hits <- mapped$STRING_id
+
+# ---- PPI network ------------------------------------------
+colored <- string_db$add_diff_exp_color(mapped, logFcColStr = "log2FoldChange")
+payload <- string_db$post_payload(colored$STRING_id, colors = colored$color)
+
+png("plots/rede_PPI.png", width = 3000, height = 3000, res = 300)
+string_db$plot_network(hits, payload_id = payload)
+dev.off()
+
+# Export for Cytoscape (edges and node attributes with gene symbols)
+edges <- string_db$get_interactions(hits)
+edges$from <- mapped$SYMBOL[match(edges$from, mapped$STRING_id)]
+edges$to   <- mapped$SYMBOL[match(edges$to,   mapped$STRING_id)]
+write.csv(edges, "results/edges_PPI.csv", row.names = FALSE)
+write.csv(mapped[, c("SYMBOL", "log2FoldChange", "padj")],
+          "results/nodes_PPI.csv", row.names = FALSE)
+
+# Genes with no interaction at this score threshold (isolated nodes)
+connected <- unique(c(edges$from, edges$to))
+message("Genes with at least one interaction: ", length(connected),
+        " of ", nrow(mapped))
+
+# ---- Enrichment (background = all tested genes) -----------
+universe <- string_db$map(tt, "SYMBOL", removeUnmappedRows = TRUE)
+universe <- universe[!duplicated(universe$STRING_id), ]
+string_db$set_background(universe$STRING_id)   # must be set before get_enrichment()
+
+enrich <- string_db$get_enrichment(hits)
+write.csv(enrich, "results/enrichment_STRING_full.csv", row.names = FALSE)
+
+print(table(enrich$category))
+
+# Drop literature/network categories, which are mostly noise here
+keep_cats <- c("Process", "Function", "Component", "KEGG", "RCTM",
+               "WikiPathways", "MPO")
+enrich_sig <- enrich |>
+  filter(category %in% keep_cats, fdr < fdr_cut)
+
+write.csv(enrich_sig, "results/enrichment_STRING_significant.csv",
+          row.names = FALSE)
+
+# ---- Plot helper ------------------------------------------
+plot_enrichment <- function(df, cat, title, n = 15) {
+  d <- df |> filter(category == cat)
+  if (nrow(d) == 0) {
+    message("No significant terms for ", cat, "; skipping plot.")
+    return(invisible(NULL))
+  }
+  d <- d |>
+    arrange(fdr) |>
+    slice_head(n = n) |>
+    mutate(
+      gene_ratio  = number_of_genes / length(hits),
+      description = str_wrap(description, 50),
+      description = factor(description, levels = rev(unique(description)))
+    )
+  
+  ggplot(d, aes(x = gene_ratio, y = description,
+                size = number_of_genes, color = fdr)) +
+    geom_point() +
+    scale_color_gradient(low = "red", high = "blue") +
+    labs(x = "Gene ratio", y = NULL, color = "FDR",
+         size = "Gene count", title = title) +
+    theme_bw(base_size = 12)
+}
+
+# ---- Reactome, WikiPathways ------------------------------
+reac <- plot_enrichment(enrich_sig, "RCTM", "Reactome enrichment")
+wp   <- plot_enrichment(enrich_sig, "WikiPathways", "WikiPathways enrichment")
+
+if (!is.null(reac)) {
+  print(reac)
+  ggsave("plots/reactome.png", reac, width = 8, height = 4, dpi = 300)
+}
+if (!is.null(wp)) {
+  ggsave("plots/wikipathways.png", wp, width = 8, height = 4, dpi = 300)
+}
+
+# ---- Mammalian Phenotype (MPO) ---------------------------
+# Few terms expected; report as a table instead of a plot when n < 3
+mpo <- enrich_sig |> filter(category == "MPO")
+print(mpo[, c("term", "description", "number_of_genes",
+              "number_of_genes_in_background", "fdr")])
+
+# ---- Combined plot (all significant categories) ----------
+if (nrow(enrich_sig) > 0) {
+  multi_df <- enrich_sig |>
+    group_by(category) |>
+    slice_min(fdr, n = 8, with_ties = FALSE) |>
+    ungroup() |>
+    mutate(description = str_wrap(description, 45))
+  
+  comb <- ggplot(multi_df, aes(x = -log10(fdr),
+                               y = reorder(description, -fdr),
+                               fill = category)) +
+    geom_col() +
+    facet_grid(category ~ ., scales = "free_y", space = "free_y") +
+    labs(x = expression(-log[10](FDR)), y = NULL) +
+    theme_bw(base_size = 11) +
+    theme(legend.position = "none")
+  
+  ggsave("plots/enrichment_combined.png", comb,
+         width = 9, height = 8, dpi = 300)
+}

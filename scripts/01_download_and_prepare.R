@@ -2,12 +2,10 @@
 # SCRIPT 01: DATA ACQUISITION AND ORGANIZATION
 # Dataset: GSE178812
 # ============================================================
+source("scripts/00_packages.R")
 
 ### 1. Configure used files -----------------------------------
-matrix_file <- file.path(
-  data,
-  "GSE178812_Doxo-counts.xlsx"
-)
+matrix_file <- file.path("data/GSE178812_Doxo-counts.xlsx")
 
 matrix_url <- "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178812/suppl/GSE178812%5FDoxo%2Dcounts%2Exlsx"
 
@@ -32,7 +30,7 @@ if (!file.exists(matrix_file)) {
 }
 
 counts_raw <- read_excel( # Import count matrix
-  file.path(data, "GSE178812_Doxo-counts.xlsx"))
+  file.path("data/GSE178812_Doxo-counts.xlsx"))
 colnames(counts_raw)[1] <- c("SYMBOL")
 
 ### 2. Retrieve GEO metadata -------------------------------------
@@ -76,8 +74,9 @@ group <- ifelse(
     NA_character_
   )) 
 
-colData$group <- factor(group) 
+colData$group <- group
 colData$group <- factor(colData$group, levels = c("VEH", "CHEM"))
+
 counts_raw <- counts_raw %>% dplyr::select(SYMBOL, all_of(colData$condition))
 
 ### 4. Inspect gene identifiers ---------------------------------
@@ -91,25 +90,17 @@ duplicated_symbol_values <- length(unique(
   ]
 ))
 
-cat("Missing symbols:", missing_symbols, "|" ,"Duplicated symbols:", duplicated_symbol_values)
+cat("Missing symbols:", missing_symbols, "|" ,"Duplicated symbols:", duplicated_symbol_values, "\n")
 
-counts <- counts_raw[
-  !duplicated(counts_raw$SYMBOL),
-]
-
+counts <- counts_raw[!duplicated(counts_raw$SYMBOL),]
+counts <- counts[!is.na(counts$SYMBOL),]
 counts <- as.data.frame(counts)
 
-rownames(counts) <- counts$SYMBOL
+cat("Missing and duplicated rows removed \n")
 
-counts$SYMBOL <- NULL
-
-colnames(counts) <- colData$GEO_ID
-
-all(counts == round(counts))  # Should return True
-any(counts < 0)               # Should return False
-anyNA(counts)                 # Should return False
 
 # 5. Export organized data ------------------------------------
+cat("Exporting counts and colData \n")
 write.csv(counts, "data/counts.csv", row.names = F)
 write.csv(colData, "data/colData.csv", row.names = F)
 
