@@ -50,5 +50,9 @@ options(timeout = 600)
 
 options(device = "RStudioGD")
 
+# Rscript has no default graphics device; open a null one so print(<ggplot>)
+# works under make. ggsave()/png()/pdf() calls are unaffected.
+if (!interactive()) pdf(NULL)
+
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
 

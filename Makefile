@@ -1,33 +1,35 @@
+# Bulk RNA-seq pipeline (GSE178812)
+# Run from the repository root: make
+
 RSCRIPT := Rscript
+PKGS    := scripts/00_packages.R
 
-# One representative output file per pipeline stage
-COUNTS    := data/counts.csv
-TOP_TABLE := data/top_table.csv
-ENRICH    := plots/gsea_kegg.png
+.PHONY: all clean cleanall
 
-.PHONY: all clean help
+all: results/GSEA_KEGG_full.csv results/enrichment_STRING_full.csv
 
-all: $(ENRICH)
-
-# Step 1: download and prepare the data
-$(COUNTS): scripts/00_packages.R scripts/01_download_and_prepare.R
+# 01 - download and prepare counts / sample metadata
+data/counts.csv data/colData.csv &: scripts/01_download_and_prepare.R $(PKGS)
+	@mkdir -p data
 	$(RSCRIPT) scripts/01_download_and_prepare.R
 
-# Step 2: quality control and differential expression
-$(TOP_TABLE): $(COUNTS) data/colData.csv scripts/00_packages.R scripts/02_differential_expression_and_qc.R
+# 02 - differential expression and QC
+data/dds.rds results/top_table.csv plots/volcano.png &: \
+		scripts/02_differential_expression_and_qc.R \
+		data/counts.csv data/colData.csv $(PKGS)
+	@mkdir -p results plots
 	$(RSCRIPT) scripts/02_differential_expression_and_qc.R
 
-# Step 3: functional enrichment
-$(ENRICH): $(TOP_TABLE) scripts/00_packages.R scripts/03_enrichment.R
+# 03 - network and enrichment (STRING, GSEA GO/KEGG)
+results/GSEA_KEGG_full.csv results/enrichment_STRING_full.csv &: \
+		scripts/03_enrichment.R results/top_table.csv data/dds.rds $(PKGS)
+	@mkdir -p results plots
 	$(RSCRIPT) scripts/03_enrichment.R
 
-# Remove generated results (scripts are kept)
+# Remove only intermediate objects (results/ and plots/ are kept)
 clean:
-	rm -f $(TOP_TABLE) $(ENRICH)
-	rm -f plots/*.png plots/*.pdf
-	rm -rf plots/pathview
+	rm -f data/dds.rds
 
-help:
-	@echo "make        run the full pipeline (only outdated steps)"
-	@echo "make -n     show what would run, without running it"
-	@echo "make clean  delete generated results"
+# Remove everything generated, INCLUDING results and plots
+cleanall: clean
+	rm -rf results plots
