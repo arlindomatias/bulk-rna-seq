@@ -1,0 +1,79 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job             count
+------------  -------
+all                 1
+differential        1
+enrichment          1
+packages            1
+prepare             1
+total               5
+
+Select jobs to execute...
+
+[Fri Nov  6 17:42:28 2026]
+rule packages:
+    output: .pipeline/packages.done
+    jobid: 2
+    reason: Forced execution
+    resources: tmpdir=/tmp
+
+Touching output file .pipeline/packages.done.
+[Fri Nov  6 17:42:41 2026]
+Finished job 2.
+1 of 5 steps (20%) done
+Select jobs to execute...
+
+[Fri Nov  6 17:42:41 2026]
+rule prepare:
+    input: .pipeline/packages.done
+    output: data/counts.csv, data/colData.csv
+    jobid: 1
+    reason: Missing output files: data/colData.csv, data/counts.csv; Input files updated by another job: .pipeline/packages.done
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 17:43:07 2026]
+Finished job 1.
+2 of 5 steps (40%) done
+Select jobs to execute...
+
+[Fri Nov  6 17:43:07 2026]
+rule differential:
+    input: data/counts.csv, data/colData.csv
+    output: results/top_table.csv, plots/pca_vst.png, plots/volcano.png, plots/heatmap.png, plots/fdr_histogram.png, plots/boxplot.png, plots/QQPlot.png, plots/MAplot.png, plots/dispersion_plot.png, plots/density_counts.png, plots/cooks_distance.png
+    jobid: 3
+    reason: Missing output files: results/top_table.csv, plots/MAplot.png, plots/cooks_distance.png, plots/pca_vst.png, plots/heatmap.png, plots/dispersion_plot.png, plots/volcano.png, plots/fdr_histogram.png, plots/density_counts.png, plots/boxplot.png, plots/QQPlot.png; Input files updated by another job: data/colData.csv, data/counts.csv
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 17:43:52 2026]
+Finished job 3.
+3 of 5 steps (60%) done
+Select jobs to execute...
+
+[Fri Nov  6 17:43:52 2026]
+rule enrichment:
+    input: results/top_table.csv, data/counts.csv, data/colData.csv
+    output: results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/edges_PPI.csv, results/nodes_PPI.csv, sessionInfo.txt
+    jobid: 4
+    reason: Missing output files: results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/nodes_PPI.csv, results/edges_PPI.csv; Input files updated by another job: data/colData.csv, data/counts.csv, results/top_table.csv
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 17:50:16 2026]
+Finished job 4.
+4 of 5 steps (80%) done
+Select jobs to execute...
+
+[Fri Nov  6 17:50:16 2026]
+localrule all:
+    input: data/counts.csv, data/colData.csv, results/top_table.csv, plots/pca_vst.png, plots/volcano.png, plots/heatmap.png, plots/fdr_histogram.png, plots/boxplot.png, plots/QQPlot.png, plots/MAplot.png, plots/dispersion_plot.png, plots/density_counts.png, plots/cooks_distance.png, results/GSEA_GO_all_full.csv, results/GSEA_KEGG_full.csv, results/enrichment_STRING_full.csv, results/edges_PPI.csv, results/nodes_PPI.csv, sessionInfo.txt
+    jobid: 0
+    reason: Input files updated by another job: results/nodes_PPI.csv, results/top_table.csv, plots/MAplot.png, results/GSEA_GO_all_full.csv, plots/pca_vst.png, plots/heatmap.png, plots/dispersion_plot.png, plots/volcano.png, sessionInfo.txt, results/enrichment_STRING_full.csv, plots/fdr_histogram.png, results/edges_PPI.csv, plots/QQPlot.png, plots/cooks_distance.png, results/GSEA_KEGG_full.csv, data/colData.csv, data/counts.csv, plots/density_counts.png, plots/boxplot.png
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 17:50:16 2026]
+Finished job 0.
+5 of 5 steps (100%) done
+Complete log: .snakemake/log/2026-11-06T174228.030261.snakemake.log
