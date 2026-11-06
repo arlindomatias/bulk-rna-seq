@@ -1,0 +1,37 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job             count
+------------  -------
+all                 1
+differential        1
+enrichment          1
+packages            1
+prepare             1
+total               5
+
+Select jobs to execute...
+
+[Fri Nov  6 17:12:04 2026]
+rule packages:
+    output: .pipeline/packages.done
+    jobid: 2
+    reason: Missing output files: .pipeline/packages.done
+    resources: tmpdir=/tmp
+
+[Fri Nov  6 17:12:11 2026]
+Error in rule packages:
+    jobid: 2
+    output: .pipeline/packages.done
+    shell:
+        
+        mkdir -p .pipeline
+        Rscript scripts/00_packages.R
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2026-11-06T171204.418474.snakemake.log

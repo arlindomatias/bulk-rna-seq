@@ -1,29 +1,45 @@
 name: rna-seq
+
 channels:
   - conda-forge
   - bioconda
-  - defaults
+
 dependencies:
-  - bioconductor-deseq2
-  - r-base
+  # R
+  - r-base=4.5.3
+
+  # CRAN
   - r-ggplot2
   - r-readr
-  - bioconductor-enhancedvolcano
   - r-dplyr
-  - bioconductor-geoquery
   - r-tidyr
-  - bioconductor-stringdb
-  - bioconductor-enrichplot
   - r-pheatmap
-  - bioconductor-clusterprofiler
-  - bioconductor-dose
   - r-readxl
-  - bioconductor-apeglm
-  - bioconductor-org.mm.eg.db
   - r-gridextra
   - r-shadowtext
   - r-qqman
+  - r-ggridges
+  - r-ggrepel
+  - r-tibble
+  - r-ggforce
+  - r-stringr
+  - r-patchwork
+  - r-igraph
+  - r-ggtangle=0.1.4
+  
+  # Bioconductor
+  - bioconductor-deseq2
+  - bioconductor-enhancedvolcano
+  - bioconductor-geoquery
+  - bioconductor-stringdb
+  - bioconductor-enrichplot
+  - bioconductor-clusterprofiler
+  - bioconductor-dose
+  - bioconductor-apeglm
+  - bioconductor-org.mm.eg.db
   - bioconductor-pathview
   - bioconductor-reactomepa
-  - r-ggridges
-prefix: /home/arlindo/miniconda3/envs/rna-seq
+  - bioconductor-summarizedexperiment
+
+  # Verificar disponibilidade do pacote nos canais
+  - r-ggtangle

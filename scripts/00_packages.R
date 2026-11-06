@@ -1,30 +1,71 @@
 # ============================================================
-# SCRIPT 00: Project Configuration and Package Loading
+# SCRIPT 00: PACKAGE CHECK AND PROJECT CONFIGURATION
 # ============================================================
-
-# CRAN packages
-cran_packages <- c(
-  "readr", "dplyr", "tidyr", "ggplot2", "gridExtra",
-  "pheatmap", "ggrepel", "readxl", "tibble", "ggforce",
-  "shadowtext", "stringr", "qqman", "patchwork", "ggtangle",
-  "igraph"
+### 1. Required packages
+required_packages <- c(
+  # CRAN
+  "readr",
+  "dplyr",
+  "tidyr",
+  "ggplot2",
+  "gridExtra",
+  "pheatmap",
+  "ggrepel",
+  "readxl",
+  "tibble",
+  "ggforce",
+  "shadowtext",
+  "stringr",
+  "qqman",
+  "patchwork",
+  "ggtangle",
+  "igraph",
+  "ggridges",
+  
+  # Bioconductor
+  "GEOquery",
+  "DESeq2",
+  "clusterProfiler",
+  "org.Mm.eg.db",
+  "EnhancedVolcano",
+  "enrichplot",
+  "pathview",
+  "apeglm",
+  "SummarizedExperiment",
+  "STRINGdb",
+  "ReactomePA"
 )
 
-# Bioconductor packages
-bioc_packages <- c(
-  "GEOquery", "DESeq2", "clusterProfiler", "org.Mm.eg.db",
-  "EnhancedVolcano", "enrichplot", "pathview", "apeglm",
-  "SummarizedExperiment", "STRINGdb", "ReactomePA"
-)
+# Check missing packages
+missing_packages <- required_packages[
+  !vapply(
+    required_packages,
+    requireNamespace,
+    logical(1),
+    quietly = TRUE
+  )
+]
+
+if (length(missing_packages) > 0) {
+  
+  stop(
+    "Missing packages: ",
+    paste(missing_packages, collapse = ", "),
+    "\nPlease recreate the Conda environment using 'conda env create -f environment.yml'",
+  )
+  
+}
 
 # Load packages
-invisible(lapply(
-  c(cran_packages, bioc_packages),
-  library,
-  character.only = TRUE
-))
+invisible(
+  lapply(
+    required_packages,
+    library,
+    character.only = TRUE
+  )
+)
 
-# Project configuration
+### 2. Project configuration
 if (!file.exists("scripts/00_packages.R")) {
   setwd(path.expand("~/github/bulk-rna-seq"))
 }
@@ -41,5 +82,4 @@ options(lifecycle_verbosity = "quiet")
 
 set.seed(123)
 
-# Graphics device for non-interactive execution
 if (!interactive()) pdf(NULL)
