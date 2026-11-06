@@ -48,6 +48,7 @@ for (d in c("data", "plots", "results", "cache")) {
 geo_accession <- "GSE178812"
 options(timeout = 600)
 options(lifecycle_verbosity = "quiet")
+set.seed(123)
 
 # Rscript has no default graphics device; open a null one so print(<ggplot>)
 # works under make. ggsave()/png()/pdf() calls are unaffected.

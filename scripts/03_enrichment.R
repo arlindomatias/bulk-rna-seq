@@ -15,14 +15,7 @@ colnames(counts) <- colData$GEO_ID
 tt <- as.data.frame(read_csv("results/top_table.csv", show_col_types = FALSE))
 tt_filtered <- subset(tt, padj < 0.05 & abs(log2FoldChange) > 0.5)
 
-### 1. Prepare count matrix with SYMBOLS -------------------------------------------
-counts_raw <- counts
-counts_raw$"SYMBOL" <- rownames(counts)
-counts_raw <- merge(tt, counts_raw, by = "SYMBOL")
-
-counts_sig <- counts_raw[counts_raw$SYMBOL %in% tt_filtered$SYMBOL, ]
-
-# Ranking for GSEA: Wald statistic
+### 1. Ranking for GSEA: Wald statistic----------------------------------------
 gene_list <- setNames(tt$stat, tt$SYMBOL)
 gene_list <- gene_list[!is.na(gene_list) & !is.na(names(gene_list))]
 gene_list <- sort(gene_list[!duplicated(names(gene_list))], decreasing = TRUE)
@@ -41,7 +34,7 @@ gse_GO_all <- gseGO(geneList= gene_list,
                     pvalueCutoff = 0.05, 
                     verbose = TRUE, 
                     OrgDb = "org.Mm.eg.db",
-                    pAdjustMethod = "fdr")
+                    pAdjustMethod = "BH")
 if (nrow(gse_GO_all@result) >= 2) {
   gse_GO_all <- pairwise_termsim(gse_GO_all)
   # dotplot, ridge, cnet, emap, gsea ...
@@ -61,7 +54,7 @@ dot <- dotplot(gse_GO_all,
                         font.size = 12) +
   facet_grid(ONTOLOGY ~ .sign, scales = "free_y", space = "free_y")
 
-ggsave("plots/dotplot_GO.png", plot = dot, width = 7, height = 12, dpi = 300)
+ggsave("plots/dotplot_GO.png", plot = dot, width = 7, height = 15, dpi = 300)
 
 # Ridgeplot
 make_ridge <- function(obj, ont, n = 10) {
@@ -227,13 +220,12 @@ run_pathview <- function(pathway_id, out_dir = pv_dir, ...) {
 }
 
 # KEGG: fixed pathway, independent of rank order
-id_kegg <- which(gse_kegg@result$ID == "mmu04668")
-if (length(id_kegg) == 1) {
-  gsea_kegg <- gseaplot2(gse_kegg, geneSetID = id_kegg, pvalue_table = TRUE,
-                         title = gse_kegg$Description[id_kegg],
-                         color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line")
-  ggsave("plots/gsea_kegg.png", gsea_kegg, width = 9, height = 7, dpi = 300)
-}
+gsea_kegg <- gseaplot2(gse_kegg, geneSetID = 1, pvalue_table = TRUE,
+                        title = gse_kegg$Description[1],
+                        color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line")
+
+ggsave("plots/gsea_kegg.png", gsea_kegg, width = 9, height = 7, dpi = 300)
+
 
 ### 4. String Analysis----------------------------------------------------------
 message("Performing STRING analysis")
