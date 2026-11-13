@@ -1,0 +1,16 @@
+reading in files with read_tsv
+1 2 3 4 5 6 7 8 9 10 11 
+summarizing abundance
+summarizing counts
+summarizing length
+reading in files with read_tsv
+1 2 3 4 5 6 7 8 9 10 11 
+summarizing abundance
+summarizing counts
+summarizing length
+56065 genes x 11 amostras
+Reads atribuídos por amostra:
+SRR33247676 SRR33247677 SRR33247678 SRR33247679 SRR33247680 SRR33247681 
+   37658101    35020861    32298162    36365570    30234278    28445255 
+SRR33247682 SRR33247683 SRR33247684 SRR33247685 SRR33247686 
+   36727248    35945590    36869975    34486669    33494488 

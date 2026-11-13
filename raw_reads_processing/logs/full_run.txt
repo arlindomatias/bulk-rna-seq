@@ -1,0 +1,726 @@
+Assuming unrestricted shared filesystem usage.
+
+SNAKEMAKE
+=========
+  Date: 2026-11-12 16:54:59
+  Workflow ID: d3e994eb-a5bf-47a2-a079-91342154bd37
+  Platform: Linux-7.0.0-43-generic-x86_64-desconhecido-with-glibc2.43
+  Host: arlindo-B450M-GAMING
+  User: arlindo
+  Snakemake version: 9.24.0
+  Python version: 3.12.16 (main, Oct 26 2026, 11:37:43) [GCC 15.3.0]
+  Command: /home/arlindo/anaconda3/envs/genomic-variants/bin/snakemake --use-conda --cores 8 --rerun-incomplete --rerun-triggers mtime --keep-going --resources download=3 scratch_dump=1
+  Snakefile: /home/arlindo/github/projects/salmon/Snakefile
+  Base directory: /home/arlindo/github/projects/salmon
+  Run directory: /home/arlindo/github/projects/salmon
+  Working directory: /home/arlindo/github/projects/salmon
+  Config file(s): ['config.yaml']
+  Config MD5: e80976737ae61c42e46fd8c1f11f9a21
+
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: download=Resource("download", 3), scratch_dump=Resource("scratch_dump", 1)
+Job stats:
+job                   count
+------------------  -------
+fasterq_dump              8
+fastqc                   16
+salmon_quant              8
+check_mapping_rate        8
+multiqc                   1
+qc_summary                1
+tximport                  1
+all                       1
+total                    44
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Nov 12 16:55:02 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247678.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq
+    log: logs/fasterq_dump/SRR33247678.log
+    jobid: 12
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq
+    wildcards: run=SRR33247678
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+Select jobs to execute...
+[Thu Nov 12 17:00:09 2026]
+Finished jobid: 12 (Rule: fasterq_dump)
+1 of 44 steps (2%) done
+Execute 3 jobs...
+
+[Thu Nov 12 17:00:09 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247678.log
+    jobid: 11
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/aux_info/meta_info.json; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq
+    wildcards: run=SRR33247678
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+
+[Thu Nov 12 17:00:09 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_2_fastqc.zip
+    log: logs/fastqc/SRR33247678_2.log
+    jobid: 56
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq
+    wildcards: run=SRR33247678, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 17:00:09 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_1_fastqc.zip
+    log: logs/fastqc/SRR33247678_1.log
+    jobid: 55
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq
+    wildcards: run=SRR33247678, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+Select jobs to execute...
+[Thu Nov 12 17:04:57 2026]
+Finished jobid: 56 (Rule: fastqc)
+2 of 44 steps (5%) done
+[Thu Nov 12 17:05:02 2026]
+Finished jobid: 55 (Rule: fastqc)
+3 of 44 steps (7%) done
+[Thu Nov 12 17:06:41 2026]
+Finished jobid: 11 (Rule: salmon_quant)
+4 of 44 steps (9%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247678_2.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247678_1.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 17:06:41 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247678.log
+    jobid: 40
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/aux_info/meta_info.json
+    wildcards: run=SRR33247678
+    resources: tmpdir=/tmp
+[Thu Nov 12 17:06:41 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247685.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq
+    log: logs/fasterq_dump/SRR33247685.log
+    jobid: 33
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq
+    wildcards: run=SRR33247685
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+Select jobs to execute...
+[Thu Nov 12 17:06:44 2026]
+Finished jobid: 40 (Rule: check_mapping_rate)
+5 of 44 steps (11%) done
+[Thu Nov 12 17:13:05 2026]
+Finished jobid: 33 (Rule: fasterq_dump)
+6 of 44 steps (14%) done
+Execute 3 jobs...
+
+[Thu Nov 12 17:13:06 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_2_fastqc.zip
+    log: logs/fastqc/SRR33247685_2.log
+    jobid: 70
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq
+    wildcards: run=SRR33247685, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 17:13:06 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247685.log
+    jobid: 32
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/lib_format_counts.json; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq
+    wildcards: run=SRR33247685
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+
+[Thu Nov 12 17:13:06 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_1_fastqc.zip
+    log: logs/fastqc/SRR33247685_1.log
+    jobid: 69
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq
+    wildcards: run=SRR33247685, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+Select jobs to execute...
+[Thu Nov 12 17:17:52 2026]
+Finished jobid: 70 (Rule: fastqc)
+7 of 44 steps (16%) done
+[Thu Nov 12 17:17:55 2026]
+Finished jobid: 69 (Rule: fastqc)
+8 of 44 steps (18%) done
+[Thu Nov 12 17:19:04 2026]
+Finished jobid: 32 (Rule: salmon_quant)
+9 of 44 steps (20%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247685_1.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247685_2.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 17:19:04 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247685.log
+    jobid: 47
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/aux_info/meta_info.json
+    wildcards: run=SRR33247685
+    resources: tmpdir=/tmp
+[Thu Nov 12 17:19:04 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247683.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq
+    log: logs/fasterq_dump/SRR33247683.log
+    jobid: 27
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq
+    wildcards: run=SRR33247683
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+Select jobs to execute...
+[Thu Nov 12 17:19:06 2026]
+Finished jobid: 47 (Rule: check_mapping_rate)
+10 of 44 steps (23%) done
+[Thu Nov 12 17:25:35 2026]
+Finished jobid: 27 (Rule: fasterq_dump)
+11 of 44 steps (25%) done
+Execute 3 jobs...
+
+[Thu Nov 12 17:25:35 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247683.log
+    jobid: 26
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/quant.sf; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq
+    wildcards: run=SRR33247683
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+
+[Thu Nov 12 17:25:36 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_2_fastqc.zip
+    log: logs/fastqc/SRR33247683_2.log
+    jobid: 66
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq
+    wildcards: run=SRR33247683, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 17:25:36 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_1_fastqc.zip
+    log: logs/fastqc/SRR33247683_1.log
+    jobid: 65
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq
+    wildcards: run=SRR33247683, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+Select jobs to execute...
+[Thu Nov 12 17:30:30 2026]
+Finished jobid: 66 (Rule: fastqc)
+12 of 44 steps (27%) done
+[Thu Nov 12 17:30:33 2026]
+Finished jobid: 65 (Rule: fastqc)
+13 of 44 steps (30%) done
+[Thu Nov 12 17:32:17 2026]
+Finished jobid: 26 (Rule: salmon_quant)
+14 of 44 steps (32%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247683_2.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247683_1.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 17:32:18 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247681.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq
+    log: logs/fasterq_dump/SRR33247681.log
+    jobid: 21
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq
+    wildcards: run=SRR33247681
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+
+[Thu Nov 12 17:32:18 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247683.log
+    jobid: 45
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/aux_info/meta_info.json
+    wildcards: run=SRR33247683
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Thu Nov 12 17:32:20 2026]
+Finished jobid: 45 (Rule: check_mapping_rate)
+15 of 44 steps (34%) done
+[Thu Nov 12 17:37:38 2026]
+Finished jobid: 21 (Rule: fasterq_dump)
+16 of 44 steps (36%) done
+Execute 3 jobs...
+
+[Thu Nov 12 17:37:38 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_2_fastqc.zip
+    log: logs/fastqc/SRR33247681_2.log
+    jobid: 62
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq
+    wildcards: run=SRR33247681, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 17:37:38 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247681.log
+    jobid: 20
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/aux_info/meta_info.json; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq
+    wildcards: run=SRR33247681
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+
+[Thu Nov 12 17:37:38 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_1_fastqc.zip
+    log: logs/fastqc/SRR33247681_1.log
+    jobid: 61
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq
+    wildcards: run=SRR33247681, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+Select jobs to execute...
+[Thu Nov 12 17:41:45 2026]
+Finished jobid: 62 (Rule: fastqc)
+17 of 44 steps (39%) done
+[Thu Nov 12 17:41:46 2026]
+Finished jobid: 61 (Rule: fastqc)
+18 of 44 steps (41%) done
+[Thu Nov 12 17:43:25 2026]
+Finished jobid: 20 (Rule: salmon_quant)
+19 of 44 steps (43%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247681_2.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247681_1.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 17:43:25 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247681.log
+    jobid: 43
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/aux_info/meta_info.json
+    wildcards: run=SRR33247681
+    resources: tmpdir=/tmp
+[Thu Nov 12 17:43:25 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247677.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq
+    log: logs/fasterq_dump/SRR33247677.log
+    jobid: 9
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq
+    wildcards: run=SRR33247677
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+Select jobs to execute...
+[Thu Nov 12 17:43:28 2026]
+Finished jobid: 43 (Rule: check_mapping_rate)
+20 of 44 steps (45%) done
+[Thu Nov 12 17:49:34 2026]
+Finished jobid: 9 (Rule: fasterq_dump)
+21 of 44 steps (48%) done
+Execute 3 jobs...
+
+[Thu Nov 12 17:49:34 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_2_fastqc.zip
+    log: logs/fastqc/SRR33247677_2.log
+    jobid: 54
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq
+    wildcards: run=SRR33247677, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 17:49:34 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_1_fastqc.zip
+    log: logs/fastqc/SRR33247677_1.log
+    jobid: 53
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq
+    wildcards: run=SRR33247677, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 17:49:34 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247677.log
+    jobid: 8
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/lib_format_counts.json; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq
+    wildcards: run=SRR33247677
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+Select jobs to execute...
+[Thu Nov 12 17:54:31 2026]
+Finished jobid: 54 (Rule: fastqc)
+22 of 44 steps (50%) done
+[Thu Nov 12 17:54:34 2026]
+Finished jobid: 53 (Rule: fastqc)
+23 of 44 steps (52%) done
+[Thu Nov 12 17:56:12 2026]
+Finished jobid: 8 (Rule: salmon_quant)
+24 of 44 steps (55%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247677_1.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247677_2.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 17:56:12 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247684.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq
+    log: logs/fasterq_dump/SRR33247684.log
+    jobid: 30
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq
+    wildcards: run=SRR33247684
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+
+[Thu Nov 12 17:56:12 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247677.log
+    jobid: 39
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/aux_info/meta_info.json
+    wildcards: run=SRR33247677
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Thu Nov 12 17:56:15 2026]
+Finished jobid: 39 (Rule: check_mapping_rate)
+25 of 44 steps (57%) done
+[Thu Nov 12 18:03:28 2026]
+Finished jobid: 30 (Rule: fasterq_dump)
+26 of 44 steps (59%) done
+Execute 3 jobs...
+
+[Thu Nov 12 18:03:28 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_2_fastqc.zip
+    log: logs/fastqc/SRR33247684_2.log
+    jobid: 68
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq
+    wildcards: run=SRR33247684, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 18:03:28 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_1_fastqc.zip
+    log: logs/fastqc/SRR33247684_1.log
+    jobid: 67
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq
+    wildcards: run=SRR33247684, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 18:03:28 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247684.log
+    jobid: 29
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/quant.sf; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq
+    wildcards: run=SRR33247684
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+Select jobs to execute...
+[Thu Nov 12 18:08:45 2026]
+Finished jobid: 68 (Rule: fastqc)
+27 of 44 steps (61%) done
+[Thu Nov 12 18:08:53 2026]
+Finished jobid: 67 (Rule: fastqc)
+28 of 44 steps (64%) done
+[Thu Nov 12 18:10:22 2026]
+Finished jobid: 29 (Rule: salmon_quant)
+29 of 44 steps (66%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247684_2.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247684_1.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 18:10:22 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247680.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq
+    log: logs/fasterq_dump/SRR33247680.log
+    jobid: 18
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq
+    wildcards: run=SRR33247680
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+
+[Thu Nov 12 18:10:22 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247684.log
+    jobid: 46
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/aux_info/meta_info.json
+    wildcards: run=SRR33247684
+    resources: tmpdir=/tmp
+Select jobs to execute...
+[Thu Nov 12 18:10:25 2026]
+Finished jobid: 46 (Rule: check_mapping_rate)
+30 of 44 steps (68%) done
+[Thu Nov 12 18:15:41 2026]
+Finished jobid: 18 (Rule: fasterq_dump)
+31 of 44 steps (70%) done
+Execute 3 jobs...
+
+[Thu Nov 12 18:15:41 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_1_fastqc.zip
+    log: logs/fastqc/SRR33247680_1.log
+    jobid: 59
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq
+    wildcards: run=SRR33247680, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 18:15:41 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_2_fastqc.zip
+    log: logs/fastqc/SRR33247680_2.log
+    jobid: 60
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq
+    wildcards: run=SRR33247680, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 18:15:41 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247680.log
+    jobid: 17
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/quant.sf; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq
+    wildcards: run=SRR33247680
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+Select jobs to execute...
+[Thu Nov 12 18:19:59 2026]
+Finished jobid: 60 (Rule: fastqc)
+32 of 44 steps (73%) done
+[Thu Nov 12 18:20:00 2026]
+Finished jobid: 59 (Rule: fastqc)
+33 of 44 steps (75%) done
+[Thu Nov 12 18:21:53 2026]
+Finished jobid: 17 (Rule: salmon_quant)
+34 of 44 steps (77%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247680_2.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247680_1.fastq.
+Execute 2 jobs...
+
+[Thu Nov 12 18:21:53 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247680.log
+    jobid: 42
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/aux_info/meta_info.json
+    wildcards: run=SRR33247680
+    resources: tmpdir=/tmp
+[Thu Nov 12 18:21:53 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247682.sra
+    output: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq
+    log: logs/fasterq_dump/SRR33247682.log
+    jobid: 24
+    reason: Missing output files: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq
+    wildcards: run=SRR33247682
+    threads: 4
+    resources: tmpdir=/tmp, scratch_dump=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+[Thu Nov 12 18:21:56 2026]
+Finished jobid: 42 (Rule: check_mapping_rate)
+35 of 44 steps (80%) done
+[Thu Nov 12 18:29:02 2026]
+Finished jobid: 24 (Rule: fasterq_dump)
+36 of 44 steps (82%) done
+Select jobs to execute...
+Execute 3 jobs...
+
+[Thu Nov 12 18:29:02 2026]
+localrule salmon_quant:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247682.log
+    jobid: 23
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/lib_format_counts.json; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq, /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq
+    wildcards: run=SRR33247682
+    priority: 10
+    threads: 6
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+
+[Thu Nov 12 18:29:02 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_1_fastqc.zip
+    log: logs/fastqc/SRR33247682_1.log
+    jobid: 63
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_1_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq
+    wildcards: run=SRR33247682, read=1
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 18:29:02 2026]
+localrule fastqc:
+    input: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_2_fastqc.zip
+    log: logs/fastqc/SRR33247682_2.log
+    jobid: 64
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_2_fastqc.zip; Input files updated by another job: /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq
+    wildcards: run=SRR33247682, read=2
+    priority: 5
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+[Thu Nov 12 18:34:11 2026]
+Finished jobid: 64 (Rule: fastqc)
+37 of 44 steps (84%) done
+[Thu Nov 12 18:34:14 2026]
+Finished jobid: 63 (Rule: fastqc)
+38 of 44 steps (86%) done
+[Thu Nov 12 18:35:44 2026]
+Finished jobid: 23 (Rule: salmon_quant)
+39 of 44 steps (89%) done
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247682_1.fastq.
+Removing temporary output /home/arlindo/scratch/GSE295281/fastq/SRR33247682_2.fastq.
+Select jobs to execute...
+Execute 3 jobs...
+
+[Thu Nov 12 18:35:44 2026]
+localrule qc_summary:
+    input: samples.tsv, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247679/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247686/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247679/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247686/lib_format_counts.json
+    output: results/qc_summary.tsv
+    log: logs/qc_summary/qc_summary.log
+    jobid: 49
+    reason: Missing output files: results/qc_summary.tsv; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/lib_format_counts.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/aux_info/meta_info.json
+    resources: tmpdir=/tmp
+[Thu Nov 12 18:35:44 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247682.log
+    jobid: 44
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/aux_info/meta_info.json
+    wildcards: run=SRR33247682
+    resources: tmpdir=/tmp
+[Thu Nov 12 18:35:44 2026]
+localrule multiqc:
+    input: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247679_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247679_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247686_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247686_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247679/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247686/quant.sf
+    output: results/multiqc_report.html
+    log: logs/multiqc/multiqc.log
+    jobid: 50
+    reason: Missing output files: results/multiqc_report.html; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247682_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247683_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247681_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247685_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247678_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247680_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247677_2_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247684_1_fastqc.zip, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/quant.sf
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+[Thu Nov 12 18:35:45 2026]
+Finished jobid: 49 (Rule: qc_summary)
+40 of 44 steps (91%) done
+[Thu Nov 12 18:35:47 2026]
+Finished jobid: 44 (Rule: check_mapping_rate)
+41 of 44 steps (93%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Nov 12 18:35:47 2026]
+localrule tximport:
+    input: samples.tsv, results/tx2gene.tsv, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247679/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247686/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247679/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247686/mapping_ok.txt
+    output: results/counts_gene.tsv, results/counts_gene_lengthScaledTPM.tsv, results/tpm_gene.tsv, results/length_gene.tsv, results/txi_gene.rds
+    log: logs/tximport/tximport.log
+    jobid: 1
+    reason: Missing output files: results/tpm_gene.tsv, results/counts_gene_lengthScaledTPM.tsv, results/counts_gene.tsv; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247678/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247681/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247685/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247684/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/mapping_ok.txt, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247680/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247677/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247682/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247683/quant.sf
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/31dd88e84f23340231f6c36502534a57_
+[Thu Nov 12 18:35:56 2026]
+Finished jobid: 50 (Rule: multiqc)
+42 of 44 steps (95%) done
+[Thu Nov 12 18:36:04 2026]
+Finished jobid: 1 (Rule: tximport)
+43 of 44 steps (98%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Nov 12 18:36:04 2026]
+localrule all:
+    input: results/counts_gene.tsv, results/counts_gene_lengthScaledTPM.tsv, results/tpm_gene.tsv, results/qc_summary.tsv, results/multiqc_report.html
+    jobid: 0
+    reason: Input files updated by another job: results/multiqc_report.html, results/tpm_gene.tsv, results/counts_gene_lengthScaledTPM.tsv, results/counts_gene.tsv, results/qc_summary.tsv
+    resources: tmpdir=/tmp
+[Thu Nov 12 18:36:04 2026]
+Finished jobid: 0 (Rule: all)
+44 of 44 steps (100%) done
+Complete log(s): /home/arlindo/github/projects/salmon/.snakemake/log/2026-11-12T165459.512656.snakemake.log

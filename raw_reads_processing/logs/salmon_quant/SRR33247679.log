@@ -1,0 +1,32 @@
+[2m2026-11-12T18:48:13.902638Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m Loading SSHash dictionary from /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35/index.ssi
+[2m2026-11-12T18:48:14.722607Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m   k=31, 881032 strings
+[2m2026-11-12T18:48:14.722639Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m Loading contig table from /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35/index.ctab
+[2m2026-11-12T18:48:14.858166Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m   881032 contigs, 4480242 entries, entry_width=36 bits
+[2m2026-11-12T18:48:14.858193Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m Loading reference info from /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35/index.refinfo
+[2m2026-11-12T18:48:14.889426Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m   147556 references, max_ref_len=123179
+[2m2026-11-12T18:48:14.889478Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m Loading equivalence class table from /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35/index.ectab
+[2m2026-11-12T18:48:14.967423Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m   881032 tiles, 595771 ECs, 3602888 label entries
+[2m2026-11-12T18:48:14.967476Z[0m [32m INFO[0m [2mpiscem_rs::index::reference_index[0m[2m:[0m   ref_shift=18, pos_mask=0x1ffff
+[2m2026-11-12T18:48:18.867315Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"index_load" [3melapsed_s[0m[2m=[0m4.990104064
+[2m2026-11-12T18:48:18.942081Z[0m [32m INFO[0m [2mpiscem_rs::io::calibrate[0m[2m:[0m using the serial decoder: 6 threads for 0 gzip input(s) is below the 50 threads per input needed before parallel decoding adds concurrency the serial path does not already have
+[2m2026-11-12T18:48:18.955664Z[0m [32m INFO[0m [2msalmon_quant::decode[0m[2m:[0m thread execution plan [3mrequested_budget[0m[2m=[0m6 [3meffective_budget[0m[2m=[0m6 [3mmapping_threads[0m[2m=[0m6 [3mdecode_slots[0m[2m=[0m0 [3mparallel_decode[0m[2m=[0mfalse [3mreason[0m[2m=[0mPolicyDeclined
+[2m2026-11-12T18:48:18.955703Z[0m [32m INFO[0m [2msalmon_quant[0m[2m:[0m mapping reads (selective-alignment mode, 6 threads)
+[2m2026-11-12T18:58:49.877591Z[0m [32m INFO[0m [2msalmon_quant[0m[2m:[0m mapped 36628780 / 39583646 fragments (92.54%)
+[2m2026-11-12T18:58:49.877740Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"mapping" [3melapsed_s[0m[2m=[0m631.010431176
+[2m2026-11-12T18:58:49.879368Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"eff_length_collapse" [3melapsed_s[0m[2m=[0m0.001625121
+[2m2026-11-12T18:58:52.535807Z[0m [32m INFO[0m [2msalmon_quant[0m[2m:[0m EM: 11 iterations to seed the bias models
+[2m2026-11-12T18:58:53.086476Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"em_bias" [3melapsed_s[0m[2m=[0m3.207104996
+[2m2026-11-12T18:58:53.138453Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"posterior" [3melapsed_s[0m[2m=[0m0.051979701
+[2m2026-11-12T18:58:53.147750Z[0m [32m INFO[0m [2msalmon_quant[0m[2m:[0m writing results to /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247679
+[2m2026-11-12T18:58:53.158525Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"output" [3melapsed_s[0m[2m=[0m0.020072635
+[2m2026-11-12T18:58:53.182019Z[0m [32m INFO[0m [2msalmon[0m[2m:[0m deterministic: mapped 36628780 / 39583646 fragments (92.54%); quantifying from intermediate RAD
+[2m2026-11-12T18:58:56.681775Z[0m [32m INFO[0m [2msalmon_align::rad[0m[2m:[0m quantifying from RAD (salmon SA), 147556 references
+[2m2026-11-12T18:58:56.682799Z[0m [32m INFO[0m [2msalmon_align::rad[0m[2m:[0m using fragment-length distribution baked in the RAD header
+[2m2026-11-12T18:58:56.683394Z[0m [32m INFO[0m [2msalmon_align::rad[0m[2m:[0m library format under `-l A`: ISR (baked in RAD header)
+[2m2026-11-12T18:59:21.734752Z[0m [32m INFO[0m [2msalmon_align::rad[0m[2m:[0m mapped 36365570 / 39583646 fragments from RAD
+[2m2026-11-12T18:59:23.361418Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"rad_read" [3melapsed_s[0m[2m=[0m26.98785647
+[2m2026-11-12T19:00:58.842278Z[0m [32m INFO[0m [2msalmon_align::rad[0m[2m:[0m EM: 7758 connected components, each iterated until it converged (median 50 iterations, most 2638)
+[2m2026-11-12T19:00:58.842403Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"em_bias" [3melapsed_s[0m[2m=[0m95.480989299
+[2m2026-11-12T19:00:58.858220Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"posterior" [3melapsed_s[0m[2m=[0m0.015813404
+[2m2026-11-12T19:00:58.988517Z[0m [32m INFO[0m [2msalmon::timing[0m[2m:[0m phase complete [3mphase[0m[2m=[0m"output" [3melapsed_s[0m[2m=[0m0.130298012
+[2m2026-11-12T19:00:59.069108Z[0m [32m INFO[0m [2msalmon[0m[2m:[0m 39583646 fragments from intermediate RAD, 36365570 quantified (91.87%); 769164 equivalence classes

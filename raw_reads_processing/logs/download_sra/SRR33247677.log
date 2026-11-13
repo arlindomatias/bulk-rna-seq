@@ -1,0 +1,9 @@
+2026-11-12T17:49:53 vdb-validate.3.4.1 info: Database 'SRR33247677.sra.part' metadata: md5 ok
+2026-11-12T17:49:53 vdb-validate.3.4.1 info: Table 'SEQUENCE' metadata: md5 ok
+2026-11-12T17:49:53 vdb-validate.3.4.1 info: Column 'ALTREAD': md5 ok
+2026-11-12T17:51:08 vdb-validate.3.4.1 info: Column 'ORIGINAL_QUALITY': md5 ok
+2026-11-12T17:54:06 vdb-validate.3.4.1 info: Column 'READ': md5 ok
+2026-11-12T17:54:13 vdb-validate.3.4.1 info: Column 'SPOT_GROUP': md5 ok
+2026-11-12T17:54:14 vdb-validate.3.4.1 info: Column 'X': md5 ok
+2026-11-12T17:54:17 vdb-validate.3.4.1 info: Column 'Y': md5 ok
+2026-11-12T17:54:17 vdb-validate.3.4.1 info: Database 'SRR33247677.sra.part' is consistent

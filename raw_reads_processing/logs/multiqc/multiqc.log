@@ -1,0 +1,12 @@
+
+/// MultiQC 🔍 v1.35
+
+       file_search | Search path: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc
+       file_search | Search path: /mnt/sda2/HD/Datasets/GSE295281/salmon
+            salmon | Found 11 meta reports
+            salmon | Found 11 fragment length distributions
+            salmon | Found 11 library format counts reports
+            fastqc | Found 22 reports
+     write_results | Data        : None
+     write_results | Report      : results/multiqc_report.html
+           multiqc | MultiQC complete

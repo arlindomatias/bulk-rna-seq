@@ -1,0 +1,161 @@
+Assuming unrestricted shared filesystem usage.
+
+SNAKEMAKE
+=========
+  Date: 2026-11-12 13:21:24
+  Workflow ID: 511daaca-b637-4756-bbb5-921f34c76299
+  Platform: Linux-7.0.0-43-generic-x86_64-desconhecido-with-glibc2.43
+  Host: arlindo-B450M-GAMING
+  User: arlindo
+  Snakemake version: 9.24.0
+  Python version: 3.12.16 (main, Oct 26 2026, 11:37:43) [GCC 15.3.0]
+  Command: /home/arlindo/anaconda3/envs/genomic-variants/bin/snakemake results/tx2gene.tsv /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/mapping_ok.txt /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_1_fastqc.zip /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_2_fastqc.zip --use-conda --cores 8 --resources download=3
+  Snakefile: /home/arlindo/github/projects/salmon/Snakefile
+  Base directory: /home/arlindo/github/projects/salmon
+  Run directory: /home/arlindo/github/projects/salmon
+  Working directory: /home/arlindo/github/projects/salmon
+  Config file(s): ['config.yaml']
+  Config MD5: dcb174067977074dd3a223a2f97d4516
+
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: download=Resource("download", 3)
+Job stats:
+job                   count
+------------------  -------
+download_sra              1
+salmon_index              1
+tx2gene                   1
+fasterq_dump              1
+fastqc                    2
+salmon_quant              1
+check_mapping_rate        1
+total                     8
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Nov 12 13:21:28 2026]
+localrule salmon_index:
+    input: /mnt/sda2/HD/Datasets/GSE295281/ref/gencode.vM35.transcripts.fa.gz
+    output: /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    log: logs/salmon_index/index.log
+    jobid: 7
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    threads: 8
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+Select jobs to execute...
+[Thu Nov 12 13:21:59 2026]
+Finished jobid: 7 (Rule: salmon_index)
+1 of 8 steps (12%) done
+Execute 2 jobs...
+
+[Thu Nov 12 13:21:59 2026]
+localrule download_sra:
+    output: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247676.sra
+    log: logs/download_sra/SRR33247676.log
+    jobid: 2
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247676.sra
+    wildcards: run=SRR33247676
+    resources: tmpdir=/tmp, download=1
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+
+[Thu Nov 12 13:21:59 2026]
+localrule tx2gene:
+    input: /mnt/sda2/HD/Datasets/GSE295281/ref/gencode.vM35.transcripts.fa.gz
+    output: results/tx2gene.tsv
+    log: logs/tx2gene/tx2gene.log
+    jobid: 3
+    reason: Missing output files: results/tx2gene.tsv
+    resources: tmpdir=/tmp
+[Thu Nov 12 13:22:02 2026]
+Finished jobid: 3 (Rule: tx2gene)
+2 of 8 steps (25%) done
+[Thu Nov 12 13:28:25 2026]
+Finished jobid: 2 (Rule: download_sra)
+3 of 8 steps (38%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Nov 12 13:28:25 2026]
+localrule fasterq_dump:
+    input: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247676.sra
+    output: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq, /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq
+    log: logs/fasterq_dump/SRR33247676.log
+    jobid: 1
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq, /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/sra/SRR33247676.sra
+    wildcards: run=SRR33247676
+    threads: 4
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/9491939f903a496223defe7607ab4720_
+[Thu Nov 12 13:52:30 2026]
+Finished jobid: 1 (Rule: fasterq_dump)
+4 of 8 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Nov 12 13:52:30 2026]
+localrule salmon_quant:
+    input: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq, /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/quant.sf, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/aux_info/meta_info.json, /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/lib_format_counts.json
+    log: logs/salmon_quant/SRR33247676.log
+    jobid: 6
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/aux_info/meta_info.json; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq, /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq, /mnt/sda2/HD/Datasets/GSE295281/ref/salmon_index_gencode_vM35
+    wildcards: run=SRR33247676
+    threads: 8
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/7f1222cd1d5fac1ba420f90d14218625_
+Select jobs to execute...
+[Thu Nov 12 14:01:30 2026]
+Finished jobid: 6 (Rule: salmon_quant)
+5 of 8 steps (62%) done
+Execute 3 jobs...
+
+[Thu Nov 12 14:01:31 2026]
+localrule fastqc:
+    input: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_2_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_2_fastqc.zip
+    log: logs/fastqc/SRR33247676_2.log
+    jobid: 8
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_2_fastqc.zip; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq
+    wildcards: run=SRR33247676, read=2
+    threads: 2
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 14:01:31 2026]
+localrule fastqc:
+    input: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq
+    output: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_1_fastqc.html, /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_1_fastqc.zip
+    log: logs/fastqc/SRR33247676_1.log
+    jobid: 0
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/qc/fastqc/SRR33247676_1_fastqc.zip; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq
+    wildcards: run=SRR33247676, read=1
+    threads: 2
+    resources: tmpdir=/tmp
+Activating conda environment: .snakemake/conda/901d52699097b87189604141ab110c80_
+
+[Thu Nov 12 14:01:31 2026]
+localrule check_mapping_rate:
+    input: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/aux_info/meta_info.json
+    output: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/mapping_ok.txt
+    log: logs/check_mapping_rate/SRR33247676.log
+    jobid: 5
+    reason: Missing output files: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/mapping_ok.txt; Input files updated by another job: /mnt/sda2/HD/Datasets/GSE295281/salmon/SRR33247676/aux_info/meta_info.json
+    wildcards: run=SRR33247676
+    resources: tmpdir=/tmp
+[Thu Nov 12 14:01:33 2026]
+Finished jobid: 5 (Rule: check_mapping_rate)
+6 of 8 steps (75%) done
+[Thu Nov 12 14:09:59 2026]
+Finished jobid: 8 (Rule: fastqc)
+7 of 8 steps (88%) done
+Removing temporary output /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_2.fastq.
+[Thu Nov 12 14:10:00 2026]
+Finished jobid: 0 (Rule: fastqc)
+8 of 8 steps (100%) done
+Removing temporary output /mnt/sda2/HD/Datasets/GSE295281/fastq/SRR33247676_1.fastq.
+Complete log(s): /home/arlindo/github/projects/salmon/.snakemake/log/2026-11-12T132124.617732.snakemake.log

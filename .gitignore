@@ -13,8 +13,9 @@
 *.rda
 
 # ---- Stray figures in the project root --------------------
-/analysis-from-geo-data/*.png
-/analysis-from-geo-data/*.pdf
+/analysis_from_geo_data/*.png
+/analysis_from_geo_data/*.pdf
+/analysis_from_geo_data/logs/
 
 # ---- Large raw data (never version) -----------------------
 *.fastq
@@ -51,3 +52,5 @@ Thumbs.db
 *~
 .vscode/
 .idea/
+# ---- Claude Code notes ------------------------------------
+CLAUDE*
