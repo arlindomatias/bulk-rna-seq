@@ -10,7 +10,7 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 
 ```
 .
-├── Makefile                          # Runs the whole pipeline
+├── snakefile                         # Snakemake workflow that runs the whole pipeline
 ├── data/
 │   ├── colData.csv                   # Sample metadata
 │   ├── counts.csv                    # Raw count matrix (gene symbols)
@@ -35,7 +35,7 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 ```
 ## Pipeline
 
-Each script reads its inputs from disk and writes its outputs to disk, so steps can be run independently or chained with `make`.
+Each script reads its inputs from disk and writes its outputs to disk, so steps can be run independently or chained with Snakemake (`snakefile`).
 
 | Script | Description | Main outputs |
 |---|---|---|
@@ -71,7 +71,7 @@ Each script reads its inputs from disk and writes its outputs to disk, so steps 
 ## Requirements
 
 - R (>= 4.0)
-- GNU Make (>= 4.3)
+- Snakemake (>= 7.32)
 - Internet connection (GEO, STRING and KEGG are queried at run time)
 - Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `STRINGdb`, `ReactomePA`, `ggplot2` (missing packages are installed automatically by `00_packages.R`; the full list of versions is in [`sessionInfo.txt`](sessionInfo.txt))
 
@@ -79,11 +79,11 @@ Each script reads its inputs from disk and writes its outputs to disk, so steps 
 
 ```bash
 git clone git@github.com:arlindomatias/bulk-rna-seq.git
-cd bulk-rna-seq
-make
+cd bulk-rna-seq/analysis-from-geo-data
+snakemake --cores 1
 ```
 
-Run all commands from the repository root.
+Run all commands from the `analysis-from-geo-data/` folder.
 Figures are saved to `plots/` and result tables to `results/`.
 
 ## Data

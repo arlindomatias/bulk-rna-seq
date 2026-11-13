@@ -13,8 +13,8 @@
 *.rda
 
 # ---- Stray figures in the project root --------------------
-/*.png
-/*.pdf
+/analysis-from-geo-data/*.png
+/analysis-from-geo-data/*.pdf
 
 # ---- Large raw data (never version) -----------------------
 *.fastq

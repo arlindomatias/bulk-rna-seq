@@ -66,7 +66,7 @@ invisible(
 
 ### 2. Project configuration
 if (!file.exists("scripts/00_packages.R")) {
-  setwd(path.expand("~/github/bulk-rna-seq"))
+  setwd(path.expand("~/github/bulk-rna-seq/analysis-from-geo-data"))
 }
 project_dir <- getwd()
 
