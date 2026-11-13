@@ -54,3 +54,6 @@ Thumbs.db
 .idea/
 # ---- Claude Code notes ------------------------------------
 CLAUDE*
+
+# ---- Snakemake state and conda envs (regenerated) --------
+.snakemake/
