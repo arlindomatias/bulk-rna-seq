@@ -103,7 +103,7 @@ r.figure(f"{P}/boxplot.png", "Normalized log counts per sample, colored by group
 r.h3("Sample similarity")
 r.figure(f"{P}/pca_vst.png", "PCA of variance-stabilized counts (VST).", width="80%", optional=True)
 r.figure(f"{P}/sample_distances.png", "Euclidean distances between samples (VST).", width="75%", optional=True)
-if os.path.exists(f"{P}/marker_genes.png"):
+if snakemake.config.get("plots", {}).get("marker_genes"):  # noqa: F821
     r.h3("Marker genes")
     r.figure(f"{P}/marker_genes.png",
              "Normalized counts of sex and cell-type marker genes per sample.", optional=True)

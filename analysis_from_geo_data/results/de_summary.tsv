@@ -1,0 +1,2 @@
+contrast	design	samples	genes_tested	padj_cutoff	lfc_cutoff	deg_up	deg_down	padj_only
+CHEM vs VEH	~group	6	15139	0.05	0.5	7	51	123

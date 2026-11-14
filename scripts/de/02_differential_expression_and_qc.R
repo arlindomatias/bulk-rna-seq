@@ -102,27 +102,33 @@ pheatmap(dist_mat,
 # <figure name="marker_genes">
 # Marker genes (e.g. sex and cell type markers) per sample
 markers <- unlist(cfg$plots$marker_genes)
-mk_idx  <- which(mcols(dds)$SYMBOL %in% markers)
-mk_df <- as.data.frame(norm_counts[mk_idx, , drop = FALSE])
-mk_df$SYMBOL <- mcols(dds)$SYMBOL[mk_idx]
-mk_df <- mk_df |>
-  pivot_longer(-SYMBOL, names_to = "sample", values_to = "count") |>
-  mutate(label = factor(sample_labels[sample], levels = sample_labels),
-         group = dds$group[match(sample, colnames(dds))])
-not_found <- setdiff(markers, mk_df$SYMBOL)
-if (length(not_found)) message("Marker genes absent after filtering: ",
-                               paste(not_found, collapse = ", "))
-p_mk <- ggplot(mk_df, aes(x = label, y = log2(count + 1), fill = group)) +
-  geom_col() +
-  facet_wrap(~ SYMBOL, scales = "free_y") +
-  scale_fill_manual(values = group_colors) +
-  labs(x = NULL, y = "log2(normalized counts + 1)", fill = "Group",
-       title = "Marker genes",
-       caption = if (length(not_found)) paste("Filtered out / absent:",
-                                              paste(not_found, collapse = ", "))) +
-  theme_bw(base_size = 10) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-ggsave(out$markers, plot = p_mk, width = 9, height = 6, dpi = 300)
+if (!length(markers)) {
+  # The output is declared in every project; without configured markers it only says so.
+  p_mk <- ggplot() + annotate("text", x = 0, y = 0, label = "No marker genes configured") + theme_void()
+  ggsave(out$markers, plot = p_mk, width = 4, height = 1, dpi = 100, bg = "white")
+} else {
+  mk_idx  <- which(mcols(dds)$SYMBOL %in% markers)
+  mk_df <- as.data.frame(norm_counts[mk_idx, , drop = FALSE])
+  mk_df$SYMBOL <- mcols(dds)$SYMBOL[mk_idx]
+  mk_df <- mk_df |>
+    pivot_longer(-SYMBOL, names_to = "sample", values_to = "count") |>
+    mutate(label = factor(sample_labels[sample], levels = sample_labels),
+           group = dds$group[match(sample, colnames(dds))])
+  not_found <- setdiff(markers, mk_df$SYMBOL)
+  if (length(not_found)) message("Marker genes absent after filtering: ",
+                                 paste(not_found, collapse = ", "))
+  p_mk <- ggplot(mk_df, aes(x = label, y = log2(count + 1), fill = group)) +
+    geom_col() +
+    facet_wrap(~ SYMBOL, scales = "free_y") +
+    scale_fill_manual(values = group_colors) +
+    labs(x = NULL, y = "log2(normalized counts + 1)", fill = "Group",
+         title = "Marker genes",
+         caption = if (length(not_found)) paste("Filtered out / absent:",
+                                                paste(not_found, collapse = ", "))) +
+    theme_bw(base_size = 10) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  ggsave(out$markers, plot = p_mk, width = 9, height = 6, dpi = 300)
+}
 # </figure>
 
 # <figure name="volcano">

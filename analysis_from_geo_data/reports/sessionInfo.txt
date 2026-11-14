@@ -21,68 +21,50 @@ attached base packages:
 [8] base     
 
 other attached packages:
- [1] ReactomePA_1.54.0           STRINGdb_2.22.0            
- [3] apeglm_1.32.0               pathview_1.50.0            
- [5] enrichplot_1.30.5           EnhancedVolcano_1.28.2     
- [7] org.Mm.eg.db_3.22.0         AnnotationDbi_1.72.0       
- [9] clusterProfiler_4.18.4      DESeq2_1.50.2              
-[11] SummarizedExperiment_1.40.0 MatrixGenerics_1.22.0      
-[13] matrixStats_1.5.0           GenomicRanges_1.62.1       
-[15] Seqinfo_1.0.0               IRanges_2.44.0             
-[17] S4Vectors_0.48.1            GEOquery_2.78.0            
-[19] Biobase_2.70.0              BiocGenerics_0.56.0        
-[21] generics_0.1.4              ggridges_0.5.7             
-[23] igraph_2.3.4                ggtangle_0.1.4             
-[25] patchwork_1.3.2             qqman_0.1.9                
-[27] stringr_1.6.0               shadowtext_0.1.6           
-[29] ggforce_0.5.0               tibble_3.3.1               
-[31] readxl_1.6.0                ggrepel_0.9.8              
-[33] pheatmap_1.0.13             gridExtra_2.3.1            
-[35] ggplot2_4.0.3               tidyr_1.3.2                
-[37] dplyr_1.2.1                 readr_2.2.0                
+ [1] org.Mm.eg.db_3.22.0    AnnotationDbi_1.72.0   IRanges_2.44.0        
+ [4] S4Vectors_0.48.1       Biobase_2.70.0         BiocGenerics_0.56.0   
+ [7] generics_0.1.4         igraph_2.3.4           stringr_1.6.0         
+[10] patchwork_1.3.2        STRINGdb_2.22.0        pathview_1.50.0       
+[13] enrichplot_1.30.5      clusterProfiler_4.18.4 ggplot2_4.0.3         
+[16] tibble_3.3.1           tidyr_1.3.2            dplyr_1.2.1           
+[19] readr_2.2.0           
 
 loaded via a namespace (and not attached):
-  [1] splines_4.5.3           bitops_1.1-0            ggplotify_0.1.4        
-  [4] R.oo_1.27.1             cellranger_1.1.0        polyclip_1.10-7        
-  [7] graph_1.88.1            XML_3.99-0.25           lifecycle_1.0.5        
- [10] lattice_0.23-1          MASS_7.3-66             magrittr_2.0.5         
- [13] limma_3.66.0            plotrix_3.8-14          otel_0.2.0             
- [16] cowplot_1.2.0           DBI_1.3.0               RColorBrewer_1.1-3     
- [19] abind_1.4-8             purrr_1.2.2             R.utils_2.13.0         
- [22] ggraph_2.2.2            RCurl_1.98-1.19         hash_3.0.1             
- [25] yulab.utils_0.2.5       tweenr_2.0.3            rappdirs_0.3.4         
- [28] gdtools_0.5.3           tidytree_0.4.8          rentrez_1.2.4          
- [31] reactome.db_1.95.0      proto_1.0.0             codetools_0.2-20       
- [34] DelayedArray_0.36.1     DOSE_4.4.0              xml2_1.6.0             
- [37] tidyselect_1.2.1        aplot_0.3.2             farver_2.1.2           
- [40] viridis_0.6.5           jsonlite_2.0.0          tidygraph_1.3.0        
- [43] systemfonts_1.3.2       bbmle_1.0.26            chron_2.3-63           
- [46] tools_4.5.3             ggnewscale_0.5.2        treeio_1.34.0          
- [49] Rcpp_1.1.2              glue_1.8.1              SparseArray_1.10.10    
- [52] qvalue_2.42.0           withr_3.0.3             numDeriv_2016.8-1.1    
- [55] fastmap_1.2.0           caTools_1.18.4          digest_0.6.39          
- [58] R6_2.6.1                gridGraphics_0.5-1      GO.db_3.22.0           
- [61] gtools_3.9.5            RSQLite_3.53.3          R.methodsS3_1.8.2      
- [64] calibrate_1.7.7         fontLiberation_0.1.0    data.table_1.18.6.1    
- [67] graphlayouts_1.2.5      httr_1.4.9              htmlwidgets_1.6.4      
- [70] S4Arrays_1.10.1         scatterpie_0.2.6        graphite_1.56.0        
- [73] sqldf_0.4-12            pkgconfig_2.0.3         gtable_0.3.6           
- [76] blob_1.3.0              S7_0.2.2                XVector_0.50.0         
- [79] htmltools_0.5.9         fontBitstreamVera_0.1.1 fgsea_1.36.2           
- [82] scales_1.4.0            png_0.1-9               ggfun_0.2.2            
- [85] tzdb_0.5.0              reshape2_1.4.5          coda_0.19-4.1          
- [88] nlme_3.1-170            bdsmatrix_1.3-7         org.Hs.eg.db_3.22.0    
- [91] cachem_1.1.0            KernSmooth_2.23-27      parallel_4.5.3         
- [94] pillar_1.11.1           grid_4.5.3              vctrs_0.7.3            
- [97] gplots_3.3.0            tidydr_0.0.7            cluster_2.1.8.3        
-[100] Rgraphviz_2.54.0        KEGGgraph_1.70.0        gsubfn_0.7             
-[103] mvtnorm_1.4-2           cli_3.6.6               locfit_1.5-9.12        
-[106] compiler_4.5.3          rlang_1.3.0             crayon_1.5.3           
-[109] emdbook_1.3.14          plyr_1.8.9              fs_2.1.0               
-[112] ggiraph_0.9.6           stringi_1.8.9           viridisLite_0.4.3      
-[115] BiocParallel_1.44.0     Biostrings_2.78.0       lazyeval_0.2.3         
-[118] GOSemSim_2.36.0         fontquiver_0.2.1        Matrix_1.7-6           
-[121] hms_1.1.4               bit64_4.8.6             KEGGREST_1.50.0        
-[124] statmod_1.5.2           memoise_2.0.1           ggtree_4.0.5           
-[127] fastmatch_1.1-8         bit_4.6.0               ape_5.8-1              
-[130] gson_0.2.2             
+  [1] RColorBrewer_1.1-3      jsonlite_2.0.0          tidydr_0.0.7           
+  [4] magrittr_2.0.5          ggtangle_0.1.4          farver_2.1.2           
+  [7] fs_2.1.0                vctrs_0.7.3             memoise_2.0.1          
+ [10] RCurl_1.98-1.19         ggtree_4.0.5            htmltools_0.5.9        
+ [13] curl_8.0.0              plotrix_3.8-14          gridGraphics_0.5-1     
+ [16] KernSmooth_2.23-27      htmlwidgets_1.6.4       gsubfn_0.7             
+ [19] plyr_1.8.9              cachem_1.1.0            lifecycle_1.0.5        
+ [22] pkgconfig_2.0.3         Matrix_1.7-6            R6_2.6.1               
+ [25] fastmap_1.2.0           gson_0.2.2              digest_0.6.39          
+ [28] aplot_0.3.2             ggnewscale_0.5.2        chron_2.3-63           
+ [31] RSQLite_3.53.3          org.Hs.eg.db_3.22.0     labeling_0.4.3         
+ [34] httr_1.4.9              polyclip_1.10-7         compiler_4.5.3         
+ [37] bit64_4.8.6             fontquiver_0.2.1        withr_3.0.3            
+ [40] S7_0.2.2                BiocParallel_1.44.0     DBI_1.3.0              
+ [43] ggforce_0.5.0           gplots_3.3.0            R.utils_2.13.0         
+ [46] MASS_7.3-66             rappdirs_0.3.4          gtools_3.9.5           
+ [49] caTools_1.18.4          tools_4.5.3             otel_0.2.0             
+ [52] ape_5.8-1               scatterpie_0.2.6        R.oo_1.27.1            
+ [55] glue_1.8.1              nlme_3.1-170            GOSemSim_2.36.0        
+ [58] grid_4.5.3              cluster_2.1.8.3         reshape2_1.4.5         
+ [61] fgsea_1.36.2            gtable_0.3.6            tzdb_0.5.0             
+ [64] R.methodsS3_1.8.2       data.table_1.18.6.1     hms_1.1.4              
+ [67] XVector_0.50.0          ggrepel_0.9.8           pillar_1.11.1          
+ [70] yulab.utils_0.2.5       vroom_1.7.1             splines_4.5.3          
+ [73] tweenr_2.0.3            treeio_1.34.0           lattice_0.23-1         
+ [76] bit_4.6.0               tidyselect_1.2.1        fontLiberation_0.1.0   
+ [79] GO.db_3.22.0            Biostrings_2.78.0       fontBitstreamVera_0.1.1
+ [82] Seqinfo_1.0.0           sqldf_0.4-12            KEGGgraph_1.70.0       
+ [85] proto_1.0.0             stringi_1.8.9           lazyeval_0.2.3         
+ [88] ggfun_0.2.2             codetools_0.2-20        gdtools_0.5.3          
+ [91] qvalue_2.42.0           hash_3.0.1              Rgraphviz_2.54.0       
+ [94] graph_1.88.1            ggplotify_0.1.4         cli_3.6.6              
+ [97] systemfonts_1.3.2       Rcpp_1.1.2              png_0.1-9              
+[100] XML_3.99-0.25           parallel_4.5.3          blob_1.3.0             
+[103] DOSE_4.4.0              bitops_1.1-0            tidytree_0.4.8         
+[106] ggiraph_0.9.6           ggridges_0.5.7          scales_1.4.0           
+[109] purrr_1.2.2             crayon_1.5.3            rlang_1.3.0            
+[112] cowplot_1.2.0           fastmatch_1.1-8         KEGGREST_1.50.0        

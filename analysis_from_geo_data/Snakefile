@@ -1,104 +1,66 @@
 # ============================================================
-# Bulk RNA-seq analysis pipeline
-# Dataset: GSE178812
+# Bulk RNA-seq: differential expression and enrichment from a GEO count table (GSE178812)
+# Uses the shared DE scripts in ../scripts/de/ (same as bulk_rna_seq_tximport); everything specific
+# to this dataset is in config.yaml.
 #
 # Requires Snakemake 9. Usage (from this folder):
 #   conda activate genomic-variants        # Snakemake 9
 #   snakemake -n --use-conda               # dry-run
-#   snakemake --use-conda --cores 1
+#   snakemake --use-conda --cores 2
 #
-# The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned to the
-# exact package versions in envs/rna-seq.linux-64.pin.txt. The report uses the
-# Python environment in envs/report.yaml.
+# The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned to the exact package versions in
+# envs/rna-seq.linux-64.pin.txt (same versions as ../bulk_rna_seq_tximport/envs/deseq2.linux-64.pin.txt,
+# plus GEOquery and readxl for the prepare step). The report uses envs/report.yaml.
 # ============================================================
+
+configfile: "config.yaml"
 
 ENV = "envs/rna-seq.yaml"
 ENV_REPORT = "envs/report.yaml"
 
 
-# ------------------------------------------------------------
-# Complete pipeline
-# ------------------------------------------------------------
-
 rule all:
     input:
-        # Prepared data
-        "data/counts.csv",
-        "data/colData.csv",
-
-        # Differential expression
         "results/top_table.csv",
-
-        # QC plots
-        "plots/pca_vst.png",
-        "plots/volcano.png",
-        "plots/heatmap.png",
-        "plots/fdr_histogram.png",
-        "plots/boxplot.png",
-        "plots/QQPlot.png",
-        "plots/MAplot.png",
-        "plots/dispersion_plot.png",
-        "plots/density_counts.png",
-        "plots/cooks_distance.png",
-
-        # Functional enrichment
+        "results/de_summary.tsv",
         "results/GSEA_GO_all_full.csv",
         "results/GSEA_KEGG_full.csv",
         "results/enrichment_STRING_full.csv",
-        "results/edges_PPI.csv",
-        "results/nodes_PPI.csv",
-
-        # Report
         "reports/sessionInfo.txt",
         "reports/report.html",
 
 
 # ------------------------------------------------------------
-# Step 00: Packages and configuration
+# 01: GEO count table + series matrix -> DESeq2 object (not fitted yet).
+# Downloads both files into data/ the first time.
 # ------------------------------------------------------------
-
-rule packages:
-    output:
-        touch(".pipeline/packages.done"),
-    conda:
-        ENV
-    log:
-        "logs/packages.log",
-    shell:
-        "Rscript scripts/00_packages.R > {log} 2>&1"
-
-
-# ------------------------------------------------------------
-# Step 01: Data acquisition and preparation
-# ------------------------------------------------------------
-
 rule prepare:
-    input:
-        packages=".pipeline/packages.done",
     output:
         counts="data/counts.csv",
+        dds="data/dds_raw.rds",
         coldata="data/colData.csv",
     conda:
         ENV
     log:
         "logs/prepare.log",
-    shell:
-        "Rscript scripts/01_download_and_prepare.R > {log} 2>&1"
+    script:
+        "../scripts/de/01_prepare_geo.R"
 
 
 # ------------------------------------------------------------
-# Step 02: Quality control and differential expression
+# 02: QC and differential expression
 # ------------------------------------------------------------
-
 rule differential:
     input:
-        counts="data/counts.csv",
-        coldata="data/colData.csv",
+        dds="data/dds_raw.rds",
     output:
+        dds="data/dds.rds",
         top_table="results/top_table.csv",
-
-        # QC plots
+        summary="results/de_summary.tsv",
+        norm_counts="results/normalized_counts.csv",
         pca="plots/pca_vst.png",
+        sample_dist="plots/sample_distances.png",
+        markers="plots/marker_genes.png",
         volcano="plots/volcano.png",
         heatmap="plots/heatmap.png",
         fdr="plots/fdr_histogram.png",
@@ -112,93 +74,105 @@ rule differential:
         ENV
     log:
         "logs/differential.log",
+    script:
+        "../scripts/de/02_differential_expression_and_qc.R"
+
+
+# ------------------------------------------------------------
+# KEGG annotation downloaded once (the REST API is slow and sometimes hangs; gseKEGG
+# downloaded it on every run). Delete cache/kegg/ to refresh.
+# ------------------------------------------------------------
+KEGG_ORG = config["enrichment"]["organism_kegg"]
+
+rule kegg_annotation:
+    output:
+        link=f"cache/kegg/{KEGG_ORG}_link_pathway.tsv",
+        names=f"cache/kegg/{KEGG_ORG}_list_pathway.tsv",
+    params:
+        url="https://rest.kegg.jp",
+        org=KEGG_ORG,
+    log:
+        "logs/kegg_annotation.log",
     shell:
-        "Rscript scripts/02_differential_expression_and_qc.R > {log} 2>&1"
+        """
+        (date -Iseconds
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 1800 \\
+             -o {output.link}.part {params.url}/link/{params.org}/pathway
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 600 \\
+             -o {output.names}.part {params.url}/list/pathway/{params.org}
+         test -s {output.link}.part && test -s {output.names}.part
+         mv {output.link}.part {output.link}
+         mv {output.names}.part {output.names}
+         wc -l {output.link} {output.names}) > {log} 2>&1
+        """
 
 
 # ------------------------------------------------------------
-# Step 03: Functional enrichment analysis
+# 03: GSEA (GO, KEGG), pathview and STRING. Needs internet access (pathview, STRING).
 # ------------------------------------------------------------
-
 rule enrichment:
     input:
         top_table="results/top_table.csv",
-        counts="data/counts.csv",
-        coldata="data/colData.csv",
+        kegg_link=rules.kegg_annotation.output.link,
+        kegg_names=rules.kegg_annotation.output.names,
     output:
-        go="results/GSEA_GO_all_full.csv",
-        kegg="results/GSEA_KEGG_full.csv",
-        string="results/enrichment_STRING_full.csv",
-        edges="results/edges_PPI.csv",
-        nodes="results/nodes_PPI.csv",
-    conda:
-        ENV
-    log:
-        "logs/enrichment.log",
-    shell:
-        "Rscript scripts/03_enrichment.R > {log} 2>&1"
-
-
-# ------------------------------------------------------------
-# R session info (package versions of the rna-seq environment)
-# ------------------------------------------------------------
-
-rule session_info:
-    input:
-        packages=".pipeline/packages.done",
-    output:
-        "reports/sessionInfo.txt",
-    conda:
-        ENV
-    log:
-        "logs/session_info.log",
-    shell:
-        """
-        Rscript -e 'suppressMessages(source("scripts/00_packages.R")); \
-                    writeLines(capture.output(sessionInfo()), "{output}")' > {log} 2>&1
-        """
-
-
-# ------------------------------------------------------------
-# Step 04: HTML report of the whole analysis (plots/ + results/)
-# ------------------------------------------------------------
-
-rule report:
-    input:
-        coldata="data/colData.csv",
-        top_table="results/top_table.csv",
-        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
         go="results/GSEA_GO_all_full.csv",
         kegg="results/GSEA_KEGG_full.csv",
         string="results/enrichment_STRING_full.csv",
         edges="results/edges_PPI.csv",
         nodes="results/nodes_PPI.csv",
         session="reports/sessionInfo.txt",
-        config=["Snakefile"],
-        envs=["envs/rna-seq.yaml", "envs/report.yaml"],
-        scripts=["scripts/report.py", "../scripts/html_report.py"],
-        code=["scripts/02_differential_expression_and_qc.R", "scripts/03_enrichment.R"],
+    conda:
+        ENV
+    log:
+        "logs/enrichment.log",
+    script:
+        "../scripts/de/03_enrichment.R"
+
+
+# ------------------------------------------------------------
+# Report: HTML summary of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+rule report:
+    input:
+        coldata=rules.prepare.output.coldata,
+        top_table=rules.differential.output.top_table,
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
+        go=rules.enrichment.output.go,
+        kegg=rules.enrichment.output.kegg,
+        string=rules.enrichment.output.string,
+        edges=rules.enrichment.output.edges,
+        nodes=rules.enrichment.output.nodes,
+        session=rules.enrichment.output.session,
+        config=["config.yaml"],
+        envs=["envs/report.yaml", "envs/rna-seq.yaml"],
+        scripts=["../scripts/de/report.py", "../scripts/html_report.py"],
+        code=["../scripts/de/02_differential_expression_and_qc.R", "../scripts/de/03_enrichment.R"],
     output:
         html="reports/report.html",
     params:
-        title="GSE178812: differential expression and enrichment",
-        subtitle="Doxorubicin (CHEM) vs vehicle (VEH), mouse hippocampus",
-        reference="VEH",
-        treatment="CHEM",
-        padj=0.05,
-        lfc=0.5,
+        title=f"{config['dataset']}: differential expression and enrichment",
+        subtitle=config["title"],
+        reference=config["groups"]["reference"],
+        treatment=config["groups"]["treatment"],
+        padj=config["de"]["padj"],
+        lfc=config["de"]["lfc"],
         design="""
 Hippocampus of young C57BL/6J mice treated with doxorubicin (**CHEM**) or vehicle (**VEH**)
 (GEO GSE178812, PMID 34147619). The series also has a doxorubicin + MitoQ group, which is not used here.
 """,
         notes="",
         pipeline="""
-1. **packages**: checks that the R packages of the `rna-seq` environment load.
-2. **prepare**: downloads the count table (`GSE178812_Doxo-counts.xlsx`) and the series matrix from GEO
-   and writes `data/counts.csv` and `data/colData.csv`.
-3. **differential**: filtering, DESeq2 fit (`DESeqDataSetFromMatrix`, `~ group`) and the QC/DE plots.
-4. **enrichment**: GSEA (GO, KEGG), pathview map, STRING network and enrichment.
+1. **prepare**: downloads the count table (`GSE178812_Doxo-counts.xlsx`) and the series matrix from GEO,
+   assigns groups from the sample titles and builds a `DESeqDataSetFromMatrix` object. Genes are the symbols
+   of the deposited table.
+2. **differential**: filtering, DESeq2 fit, apeglm-shrunken log2FC and the QC/DE plots.
+3. **kegg_annotation**: downloads the KEGG gene–pathway table once into `cache/kegg/`.
+4. **enrichment**: GSEA (GO, KEGG), pathview maps, STRING network and enrichment.
 5. **report**: this page.
+
+The scripts are shared with `bulk_rna_seq_tximport` (`../scripts/de/`); dataset-specific values are in
+`config.yaml`.
 """,
         filter_text="genes with ≥ 10 counts in at least 3 samples.",
         input_text="""
@@ -211,4 +185,4 @@ reads are not processed here. Gene symbols are used as identifiers.
     log:
         "logs/report.log",
     script:
-        "scripts/report.py"
+        "../scripts/de/report.py"
