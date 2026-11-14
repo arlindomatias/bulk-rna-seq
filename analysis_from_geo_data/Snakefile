@@ -7,11 +7,13 @@
 #   snakemake -n --use-conda               # dry-run
 #   snakemake --use-conda --cores 1
 #
-# The R environment is built from environment.yml, pinned to the exact
-# package versions in environment.linux-64.pin.txt.
+# The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned to the
+# exact package versions in envs/rna-seq.linux-64.pin.txt. The report uses the
+# Python environment in envs/report.yaml.
 # ============================================================
 
-ENV = "environment.yml"
+ENV = "envs/rna-seq.yaml"
+ENV_REPORT = "envs/report.yaml"
 
 
 # ------------------------------------------------------------
@@ -45,6 +47,9 @@ rule all:
         "results/enrichment_STRING_full.csv",
         "results/edges_PPI.csv",
         "results/nodes_PPI.csv",
+
+        # Report
+        "reports/report.html",
 
 
 # ------------------------------------------------------------
@@ -131,3 +136,55 @@ rule enrichment:
         "logs/enrichment.log",
     shell:
         "Rscript scripts/03_enrichment.R > {log} 2>&1"
+
+
+# ------------------------------------------------------------
+# Step 04: HTML report of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+
+rule report:
+    input:
+        coldata="data/colData.csv",
+        top_table="results/top_table.csv",
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
+        go="results/GSEA_GO_all_full.csv",
+        kegg="results/GSEA_KEGG_full.csv",
+        string="results/enrichment_STRING_full.csv",
+        edges="results/edges_PPI.csv",
+        nodes="results/nodes_PPI.csv",
+        scripts=["scripts/report.py", "scripts/html_report.py"],
+    output:
+        html="reports/report.html",
+    params:
+        title="GSE178812: differential expression and enrichment",
+        subtitle="Doxorubicin (CHEM) vs vehicle (VEH), mouse hippocampus",
+        reference="VEH",
+        treatment="CHEM",
+        padj=0.05,
+        lfc=0.5,
+        design="""
+Hippocampus of young C57BL/6J mice treated with doxorubicin (**CHEM**) or vehicle (**VEH**)
+(GEO GSE178812, PMID 34147619). The series also has a doxorubicin + MitoQ group, which is not used here.
+""",
+        notes="",
+        pipeline="""
+1. **packages**: checks that the R packages of the `rna-seq` environment load.
+2. **prepare**: downloads the count table (`GSE178812_Doxo-counts.xlsx`) and the series matrix from GEO
+   and writes `data/counts.csv` and `data/colData.csv`.
+3. **differential**: filtering, DESeq2 fit (`DESeqDataSetFromMatrix`, `~ group`) and the QC/DE plots.
+4. **enrichment**: GSEA (GO, KEGG), pathview map, STRING network and enrichment.
+5. **report**: this page.
+""",
+        filter_text="genes with ≥ 10 counts in at least 3 samples.",
+        input_text="""
+The analysis starts from the count table deposited by the authors in GEO (gene symbols × samples), so raw
+reads are not processed here. Gene symbols are used as identifiers.
+""",
+        upstream_qc="",
+        config_text="",
+    conda:
+        ENV_REPORT
+    log:
+        "logs/report.log",
+    script:
+        "scripts/report.py"

@@ -1,4 +1,5 @@
-# Versão do Salmon fixada: todas as amostras devem usar a mesma versão (ver CLAUDE.md).
+name: salmon
+# Pinned Salmon version: every sample must be quantified with the same version.
 channels:
   - conda-forge
   - bioconda

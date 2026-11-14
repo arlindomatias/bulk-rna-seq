@@ -41,5 +41,5 @@ dependencies:
   - bioconductor-reactomepa
   - bioconductor-summarizedexperiment
 
-  # Verificar disponibilidade do pacote nos canais
+  # Check that the package is available in the channels
   - r-ggtangle

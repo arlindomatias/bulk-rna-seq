@@ -1,11 +1,11 @@
 # ============================================================
-# SCRIPT 01: tximport + metadados -> DESeqDataSet
-# Substitui o 01_download_and_prepare.R do bulk-rna-seq (que lia a planilha do GEO).
+# SCRIPT 01: tximport + metadata -> DESeqDataSet
+# Replaces 01_download_and_prepare.R of analysis_from_geo_data (which read the GEO spreadsheet).
 # ============================================================
 source(file.path(snakemake@scriptdir, "00_common.R"))
 suppressPackageStartupMessages(library(DESeq2))
 
-### 1. Importar ------------------------------------------------------------
+### 1. Import --------------------------------------------------------------
 txi <- readRDS(snakemake@input$txi)
 stopifnot(all(c("counts", "abundance", "length") %in% names(txi)))
 if (!identical(txi$countsFromAbundance, "no")) {
@@ -21,7 +21,7 @@ cond_col  <- cfg$samples$condition_column
 label_col <- cfg$samples$label_column %||% id_col
 labels    <- unlist(cfg$groups$labels)
 
-### 2. Metadados das amostras ---------------------------------------------
+### 2. Sample metadata ---------------------------------------------------
 missing_in_txi <- setdiff(samples[[id_col]], colnames(txi$counts))
 missing_in_tsv <- setdiff(colnames(txi$counts), samples[[id_col]])
 if (length(missing_in_txi) || length(missing_in_tsv)) {
@@ -52,7 +52,7 @@ coldata <- samples |>
     label     = as.character(.data[[label_col]]),
     group     = factor(labels[.data[[cond_col]]], levels = c(ref_level, trt_level))
   ) |>
-  filter(!is.na(group)) |>          # condições fora do contraste
+  filter(!is.na(group)) |>          # conditions outside the contrast
   arrange(group, sample_id) |>
   as.data.frame()
 rownames(coldata) <- coldata$sample_id
@@ -64,12 +64,12 @@ for (cv in covariates) if (is.character(coldata[[cv]])) coldata[[cv]] <- factor(
 message("Samples per group:")
 print(table(coldata$group))
 
-### 3. Recortar o txi nas amostras usadas, na ordem do colData -------------
+### 3. Subset txi to the samples used, in colData order -------------
 for (m in c("counts", "abundance", "length")) {
   txi[[m]] <- txi[[m]][, coldata$sample_id, drop = FALSE]
 }
 
-### 4. Anotação dos genes --------------------------------------------------
+### 4. Gene annotation --------------------------------------------------
 genes <- unique(tx2gene[, c("gene_id", "gene_name")])
 stopifnot(!anyDuplicated(genes$gene_id))
 

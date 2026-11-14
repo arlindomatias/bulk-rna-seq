@@ -30,8 +30,8 @@ snakemake -n --use-conda               # dry-run
 snakemake --use-conda --cores 2
 ```
 
-The R environment is built from `envs/deseq2.linux-64.pin.txt` (exact package versions, copied from the
-bulk-rna-seq lock file); `envs/deseq2.yaml` is the unpinned fallback. Step 03 needs internet access (STRING, pathview).
+The R environment is built from `envs/deseq2.linux-64.pin.txt` (exact package versions, copied from
+`../analysis_from_geo_data/envs/rna-seq.linux-64.pin.txt`); `envs/deseq2.yaml` (env `deseq2`) is the unpinned fallback. Step 03 needs internet access (STRING, pathview).
 The KEGG REST API can be very slow (about 10 min for the 1 MB mouse gene-pathway list on 2026-11-12), so the
 annotation is cached in `cache/kegg/`; delete that folder to refresh it.
 
@@ -46,10 +46,10 @@ a separate checkout or working directory per dataset.
 
 | Rule | Script | Main outputs |
 |---|---|---|
-| `prepare` | `01_prepare.R` | `results/dds_raw.rds`, `results/colData.csv` |
-| `differential` | `02_differential_expression_and_qc.R` | `results/top_table.csv`, `results/de_summary.tsv`, `results/normalized_counts.csv`, QC/DE plots |
+| `prepare` | `01_prepare.R` | `data/dds_raw.rds`, `data/colData.csv` |
+| `differential` | `02_differential_expression_and_qc.R` | `data/dds.rds`, `results/top_table.csv`, `results/de_summary.tsv`, `results/normalized_counts.csv`, QC/DE plots |
 | `kegg_annotation` | (curl) | `cache/kegg/{org}_link_pathway.tsv`, `cache/kegg/{org}_list_pathway.tsv` |
-| `enrichment` | `03_enrichment.R` | `results/GSEA_GO_all_full.csv`, `results/GSEA_KEGG_full.csv`, `results/enrichment_STRING_full.csv`, `results/{edges,nodes}_PPI.csv`, enrichment plots |
+| `enrichment` | `03_enrichment.R` | `results/GSEA_GO_all_full.csv`, `results/GSEA_KEGG_full.csv`, `results/enrichment_STRING_full.csv`, `results/{edges,nodes}_PPI.csv`, `reports/sessionInfo.txt`, enrichment plots |
 
 `00_common.R` is sourced by every step (logging, config, colors). Logs are written to `logs/{rule}.log`.
 

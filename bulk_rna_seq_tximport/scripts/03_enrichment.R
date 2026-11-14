@@ -1,7 +1,7 @@
 # ============================================================
 # SCRIPT 03: ENRICHMENT ANALYSIS
-# GSEA usa Ensembl IDs (sem versão) em vez de símbolos: no GENCODE alguns símbolos
-# aparecem em mais de um gene. O STRING continua por símbolo.
+# GSEA uses Ensembl IDs (without version) instead of symbols: in GENCODE some symbols
+# map to more than one gene. STRING still uses symbols.
 # ============================================================
 source(file.path(snakemake@scriptdir, "00_common.R"))
 suppressPackageStartupMessages({
@@ -37,7 +37,7 @@ save_plot <- function(path, expr, ...) {
 ### 1. Ranking for GSEA: Wald statistic -------------------------------------
 gene_list <- setNames(tt$stat, tt$gene_id)
 gene_list <- sort(gene_list[!is.na(gene_list)], decreasing = TRUE)
-fc_list   <- setNames(tt$log2FoldChange, tt$gene_id)[names(gene_list)]  # só para cores
+fc_list   <- setNames(tt$log2FoldChange, tt$gene_id)[names(gene_list)]  # colors only
 
 n_mapped <- sum(names(gene_list) %in% keys(orgdb, "ENSEMBL"))
 message("Ranked genes: ", length(gene_list), " | in ", ecfg$orgdb, " (ENSEMBL): ", n_mapped)
@@ -113,14 +113,14 @@ if (has_go) {
 ### 3. GSEA KEGG (Entrez IDs) ---------------------------------------------------
 map <- bitr(names(gene_list), fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = orgdb)
 map$stat <- gene_list[map$ENSEMBL]
-map <- map[order(-abs(map$stat)), ]                       # em conflitos, fica o |stat| maior
+map <- map[order(-abs(map$stat)), ]                       # on conflicts, keep the largest |stat|
 map <- map[!duplicated(map$ENSEMBL) & !duplicated(map$ENTREZID), ]
 message("Genes with Entrez ID for KEGG: ", nrow(map), " of ", length(gene_list))
 
 gene_list_entrez <- sort(setNames(map$stat, map$ENTREZID), decreasing = TRUE)
 fc_entrez <- setNames(fc_list[map$ENSEMBL], map$ENTREZID)
 
-# Anotação local (regra kegg_annotation) em vez do download do gseKEGG a cada execução.
+# Local annotation (kegg_annotation rule) instead of gseKEGG downloading it on every run.
 # Formatos: "path:mmu00010<TAB>mmu:100042025" e "mmu00010<TAB>Glycolysis ... - Mus musculus ...".
 kegg_link <- read_tsv(snakemake@input$kegg_link, col_names = c("term", "gene"),
                       col_types = "cc") |>
@@ -179,17 +179,21 @@ pathways <- unlist(ecfg$pathview_pathways)
 if (!length(pathways) && has_kegg) pathways <- head(kegg_df$ID, ecfg$pathview_top_n)
 
 if (length(pathways)) {
-  # Criar antes de normalizar: normalizePath() de um diretório inexistente devolve o caminho relativo,
-  # que deixa de valer depois do setwd().
+  # pathview writes the colored map to the working directory and the downloaded KEGG files
+  # (KGML + base PNG) to kegg.dir: figures go to plots/pathview/, downloads to cache/kegg/pathview/.
+  # Create before normalizing: normalizePath() of a missing directory returns the relative path,
+  # which stops being valid after setwd().
   dir.create(file.path("plots", "pathview"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path("cache", "kegg", "pathview"), recursive = TRUE, showWarnings = FALSE)
   pv_dir <- normalizePath(file.path("plots", "pathview"), mustWork = TRUE)
+  kegg_dir <- normalizePath(file.path("cache", "kegg", "pathview"), mustWork = TRUE)
   old_wd <- setwd(pv_dir)
-  old_opt <- options(timeout = 180)   # KGML/PNG são pequenos; não esperar 10 min por via
+  old_opt <- options(timeout = 180)   # KGML/PNG files are small; do not wait 10 min per pathway
   on.exit(options(old_opt), add = TRUE)
   for (pw in pathways) {
     message("Pathview: ", pw)
     tryCatch(pathview(gene.data = fc_entrez, pathway.id = pw, species = ecfg$organism_kegg,
-                      gene.idtype = "ENTREZ", kegg.dir = pv_dir),
+                      gene.idtype = "ENTREZ", kegg.dir = kegg_dir),
              error = function(e) message("pathview ", pw, " failed: ", conditionMessage(e)))
   }
   setwd(old_wd)
@@ -204,7 +208,7 @@ string_db <- STRINGdb$new(version = ecfg$string_version, species = ecfg$string_s
                           score_threshold = ecfg$string_score, network_type = "full",
                           input_directory = ecfg$string_cache)
 
-# Um gene por símbolo (o de menor padj) antes de mapear.
+# One gene per symbol (lowest padj) before mapping.
 degs_sym <- tt_filtered |>
   filter(!is.na(SYMBOL)) |>
   arrange(padj) |>

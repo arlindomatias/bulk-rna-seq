@@ -1,6 +1,6 @@
 # ============================================================
-# Bulk RNA-seq: expressão diferencial e enriquecimento a partir de tximport
-# Generalização do pipeline bulk-rna-seq (GSE178812) para saídas do Salmon.
+# Bulk RNA-seq: differential expression and enrichment from tximport
+# Generalization of the GEO-count pipeline (GSE178812) to Salmon outputs.
 # ============================================================
 
 configfile: "config.yaml"
@@ -15,11 +15,12 @@ rule all:
         "results/GSEA_GO_all_full.csv",
         "results/GSEA_KEGG_full.csv",
         "results/enrichment_STRING_full.csv",
-        "results/sessionInfo.txt",
+        "reports/sessionInfo.txt",
+        "reports/report.html",
 
 
 # ------------------------------------------------------------
-# 01: tximport + samples.tsv -> objeto DESeq2 (ainda sem ajuste)
+# 01: tximport + samples.tsv -> DESeq2 object (not fitted yet)
 # ------------------------------------------------------------
 rule prepare:
     input:
@@ -27,8 +28,8 @@ rule prepare:
         samples=config["input"]["samples"],
         tx2gene=config["input"]["tx2gene"],
     output:
-        dds="results/dds_raw.rds",
-        coldata="results/colData.csv",
+        dds="data/dds_raw.rds",
+        coldata="data/colData.csv",
     conda:
         ENV
     log:
@@ -38,13 +39,13 @@ rule prepare:
 
 
 # ------------------------------------------------------------
-# 02: QC e expressão diferencial
+# 02: QC and differential expression
 # ------------------------------------------------------------
 rule differential:
     input:
-        dds="results/dds_raw.rds",
+        dds="data/dds_raw.rds",
     output:
-        dds="results/dds.rds",
+        dds="data/dds.rds",
         top_table="results/top_table.csv",
         summary="results/de_summary.tsv",
         norm_counts="results/normalized_counts.csv",
@@ -69,8 +70,8 @@ rule differential:
 
 
 # ------------------------------------------------------------
-# Anotação KEGG baixada uma vez (a API REST é lenta e às vezes trava; o gseKEGG
-# baixava a cada execução). Apagar cache/kegg/ para atualizar.
+# KEGG annotation downloaded once (the REST API is slow and sometimes hangs; gseKEGG
+# downloaded it on every run). Delete cache/kegg/ to refresh.
 # ------------------------------------------------------------
 KEGG_ORG = config["enrichment"]["organism_kegg"]
 
@@ -98,7 +99,7 @@ rule kegg_annotation:
 
 
 # ------------------------------------------------------------
-# 03: GSEA (GO, KEGG), pathview e STRING. Precisa de internet (pathview, STRING).
+# 03: GSEA (GO, KEGG), pathview and STRING. Needs internet access (pathview, STRING).
 # ------------------------------------------------------------
 rule enrichment:
     input:
@@ -111,10 +112,72 @@ rule enrichment:
         string="results/enrichment_STRING_full.csv",
         edges="results/edges_PPI.csv",
         nodes="results/nodes_PPI.csv",
-        session="results/sessionInfo.txt",
+        session="reports/sessionInfo.txt",
     conda:
         ENV
     log:
         "logs/enrichment.log",
     script:
         "scripts/03_enrichment.R"
+
+
+# ------------------------------------------------------------
+# Report: HTML summary of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+UPSTREAM_QC = "../raw_reads_processing/results/qc_summary.tsv"
+
+rule report:
+    input:
+        coldata=rules.prepare.output.coldata,
+        top_table=rules.differential.output.top_table,
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
+        go=rules.enrichment.output.go,
+        kegg=rules.enrichment.output.kegg,
+        string=rules.enrichment.output.string,
+        edges=rules.enrichment.output.edges,
+        nodes=rules.enrichment.output.nodes,
+        session=rules.enrichment.output.session,
+        config="config.yaml",
+        scripts=["scripts/report.py", "scripts/html_report.py"],
+    output:
+        html="reports/report.html",
+    params:
+        title=f"{config['dataset']}: differential expression and enrichment",
+        subtitle=config["title"],
+        reference=config["groups"]["reference"],
+        treatment=config["groups"]["treatment"],
+        padj=config["de"]["padj"],
+        lfc=config["de"]["lfc"],
+        design="""
+Hippocampus of 12-week-old female C57BL/6J mice, one month after AC-T chemotherapy (doxorubicin +
+cyclophosphamide, then paclitaxel) or saline (GEO GSE295281, PMID 41519984). Paired-end RNA-seq, NextSeq 2000.
+""",
+        notes="""
+> **Sample SRR33247678 (Saline, mouse 300).** It has almost no *Xist* (15 counts vs 14,000–25,000 in the
+> other females) and no Y-chromosome genes. See the [marker genes](#marker-genes) plot. The sample is kept in this
+> run (`exclude_samples: []` in `config.yaml`). If it is excluded, both versions should be reported.
+>
+> **Cage/batch** (first digit of `mouse_id`) is nested in group, so it cannot be used as a covariate.
+""",
+        pipeline="""
+1. **prepare**: reads the tximport object from `../raw_reads_processing`, builds `colData` and a
+   `DESeqDataSetFromTximport` object (transcript-length offsets). Genes are Ensembl IDs without version.
+2. **differential**: filtering, DESeq2 fit, apeglm-shrunken log2FC and the QC/DE plots.
+3. **kegg_annotation**: downloads the KEGG gene–pathway table once into `cache/kegg/`.
+4. **enrichment**: GSEA (GO, KEGG), pathview maps, STRING network and enrichment.
+5. **report**: this page.
+""",
+        filter_text="genes with ≥ 10 counts in at least as many samples as the smallest group.",
+        input_text="""
+Input is the gene-level tximport object made by
+[`raw_reads_processing`](../../raw_reads_processing/reports/report.html) (SRA → FastQC → Salmon 2.11.0 on
+GENCODE M35 → tximport). Its report covers read quality and quantification in detail.
+""",
+        upstream_qc=UPSTREAM_QC,
+        config_text=lambda wildcards: open("config.yaml").read(),
+    conda:
+        "envs/report.yaml"
+    log:
+        "logs/report.log",
+    script:
+        "scripts/report.py"

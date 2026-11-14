@@ -1,3 +1,4 @@
+name: tximport
 channels:
   - conda-forge
   - bioconda

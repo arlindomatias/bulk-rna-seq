@@ -10,14 +10,16 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 
 ```
 .
-├── snakefile                         # Snakemake workflow that runs the whole pipeline
-├── environment.yml                   # Conda environment used by the pipeline
-├── environment.linux-64.pin.txt      # Exact package versions (linux-64)
+├── Snakefile                         # Snakemake workflow that runs the whole pipeline
+├── envs/
+│   ├── rna-seq.yaml                  # Conda environment `rna-seq` used by the pipeline
+│   └── rna-seq.linux-64.pin.txt      # Exact package versions (linux-64)
 ├── data/
 │   ├── colData.csv                   # Sample metadata
 │   ├── counts.csv                    # Raw count matrix (gene symbols)
 │   ├── dds.rds                       # DESeq2 object (generated, not versioned)
-│   └── GSE178812_Doxo-counts.xlsx    # Original count table from GEO
+│   ├── GSE178812_Doxo-counts.xlsx    # Original count table from GEO
+│   └── GSE178812_series_matrix.txt.gz  # Series matrix from GEO (sample metadata)
 ├── results/
 │   ├── top_table.csv                 # DESeq2 results for all tested genes
 │   ├── GSEA_GO_all_full.csv          # GSEA (GO: BP, CC, MF)
@@ -25,18 +27,18 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 │   ├── enrichment_STRING_full.csv    # STRING functional enrichment
 │   ├── edges_PPI.csv                 # PPI edges (Cytoscape-ready)
 │   └── nodes_PPI.csv                 # PPI node attributes (log2FC, padj)
-├── plots/                            # QC, DE, enrichment and network figures
+├── plots/                            # QC, DE, enrichment and network figures (pathview maps included)
+├── reports/report.html               # HTML report of the whole analysis (rule `report`)
 ├── scripts/
 │   ├── 00_packages.R
 │   ├── 01_download_and_prepare.R
 │   ├── 02_differential_expression_and_qc.R
 │   └── 03_enrichment.R
-├── cache/                            # STRING downloads (generated, not versioned)
-└── GSE178812_series_matrix.txt.gz    # Series matrix from GEO
+└── cache/                            # STRING and KEGG downloads (generated, not versioned)
 ```
 ## Pipeline
 
-Each script reads its inputs from disk and writes its outputs to disk, so steps can be run independently or chained with Snakemake (`snakefile`).
+Each script reads its inputs from disk and writes its outputs to disk, so steps can be run independently or chained with Snakemake (`Snakefile`).
 
 | Script | Description | Main outputs |
 |---|---|---|
@@ -51,7 +53,7 @@ Each script reads its inputs from disk and writes its outputs to disk, so steps 
 - **Differential expression:** DESeq2 with design `~ group` (`VEH` as reference) and `fitType = "local"`. Contrast: **CHEM vs VEH**, so a positive log2 fold change means higher expression in CHEM. Differentially expressed genes (DEGs) are defined as `padj < 0.05` and `|log2FC| > 0.5`.
 - **GSEA:** genes are ranked by the DESeq2 Wald statistic. GO (BP, CC and MF) and KEGG (`mmu`) are tested with `clusterProfiler`, with Benjamini-Hochberg adjustment. A positive NES indicates enrichment in CHEM and a negative NES in VEH.
 - **STRING:** DEGs are mapped to STRING v12.0 (mouse, taxon 10090, combined score >= 700). Functional enrichment uses all tested genes as the background. Literature (`PMID`) and network-neighbor categories are excluded from the significant-term tables.
-- **Reproducibility:** a fixed random seed is set for GSEA permutations, and the R/package versions are pinned in `environment.linux-64.pin.txt`.
+- **Reproducibility:** a fixed random seed is set for GSEA permutations, and the R/package versions are pinned in `envs/rna-seq.linux-64.pin.txt`.
 
 ## Outputs
 
@@ -75,7 +77,7 @@ Each script reads its inputs from disk and writes its outputs to disk, so steps 
 - Snakemake (>= 9)
 - Conda (the R environment is created by Snakemake with `--use-conda`)
 - Internet connection (GEO, STRING and KEGG are queried at run time)
-- Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `STRINGdb`, `ReactomePA`, `ggplot2` (missing packages are installed automatically by `00_packages.R`; the full list of versions is in [`environment.linux-64.pin.txt`](environment.linux-64.pin.txt))
+- Main packages: `DESeq2`, `clusterProfiler`, `enrichplot`, `pathview`, `STRINGdb`, `ReactomePA`, `ggplot2` (missing packages are installed automatically by `00_packages.R`; the full list of versions is in [`envs/rna-seq.linux-64.pin.txt`](envs/rna-seq.linux-64.pin.txt))
 
 ## Usage
 
@@ -87,7 +89,7 @@ snakemake -n --use-conda          # dry-run
 snakemake --use-conda --cores 1
 ```
 
-The R environment is built from `environment.yml`, pinned to the exact package versions in `environment.linux-64.pin.txt`. Logs of each step are written to `logs/`.
+The R environment `rna-seq` is built from `envs/rna-seq.yaml`, pinned to the exact package versions in `envs/rna-seq.linux-64.pin.txt`. Logs of each step are written to `logs/`.
 
 Run all commands from the `analysis_from_geo_data/` folder.
 Figures are saved to `plots/` and result tables to `results/`.

@@ -1,20 +1,20 @@
-# Subdiretório de $DATA onde ficam os arquivos grandes (fastq, referência, índice, saídas do Salmon).
+# Subdirectory of $DATA that holds the large files (SRA, reference, index, Salmon outputs).
 data_subdir: GSE295281
 
-# FASTQ temporários (~25 GB/amostra) no SSD local: o HD mecânico satura com fasterq-dump (testado em 2026-11-12).
-# São apagados pelo Snakemake após FastQC + Salmon; nada permanente fica aqui.
+# Temporary FASTQ (~25 GB/sample) on the local SSD: the mechanical HD saturates with fasterq-dump (tested 2026-11-12).
+# Snakemake deletes them after FastQC + Salmon; nothing permanent is stored here.
 fastq_scratch: ~/scratch/GSE295281
 
-samples: samples.tsv
+samples: data/samples.tsv
 
 gencode_release: M35
 transcriptome_url: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/gencode.vM35.transcripts.fa.gz
 
-# Amostra é reprovada se o mapping rate do Salmon ficar abaixo disso (%).
+# A sample fails if its Salmon mapping rate is below this value (%).
 min_mapping_rate: 30
 
 threads:
-  # salmon < --cores: assim o Salmon roda junto com fasterq-dump/FastQC em vez de esperar todos os núcleos livres.
+  # salmon < --cores, so Salmon runs alongside fasterq-dump/FastQC instead of waiting for all cores to be free.
   salmon: 6
   fastqc: 1
   fasterq_dump: 4

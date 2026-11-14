@@ -1,0 +1,243 @@
+run	read	module	status
+SRR33247681	1	Basic Statistics	PASS
+SRR33247681	1	Per base sequence quality	PASS
+SRR33247681	1	Per tile sequence quality	FAIL
+SRR33247681	1	Per sequence quality scores	PASS
+SRR33247681	1	Per base sequence content	FAIL
+SRR33247681	1	Per sequence GC content	WARN
+SRR33247681	1	Per base N content	PASS
+SRR33247681	1	Sequence Length Distribution	PASS
+SRR33247681	1	Sequence Duplication Levels	FAIL
+SRR33247681	1	Overrepresented sequences	WARN
+SRR33247681	1	Adapter Content	PASS
+SRR33247681	2	Basic Statistics	PASS
+SRR33247681	2	Per base sequence quality	FAIL
+SRR33247681	2	Per tile sequence quality	FAIL
+SRR33247681	2	Per sequence quality scores	PASS
+SRR33247681	2	Per base sequence content	WARN
+SRR33247681	2	Per sequence GC content	FAIL
+SRR33247681	2	Per base N content	FAIL
+SRR33247681	2	Sequence Length Distribution	PASS
+SRR33247681	2	Sequence Duplication Levels	FAIL
+SRR33247681	2	Overrepresented sequences	FAIL
+SRR33247681	2	Adapter Content	WARN
+SRR33247680	1	Basic Statistics	PASS
+SRR33247680	1	Per base sequence quality	PASS
+SRR33247680	1	Per tile sequence quality	FAIL
+SRR33247680	1	Per sequence quality scores	PASS
+SRR33247680	1	Per base sequence content	WARN
+SRR33247680	1	Per sequence GC content	WARN
+SRR33247680	1	Per base N content	PASS
+SRR33247680	1	Sequence Length Distribution	PASS
+SRR33247680	1	Sequence Duplication Levels	FAIL
+SRR33247680	1	Overrepresented sequences	WARN
+SRR33247680	1	Adapter Content	PASS
+SRR33247680	2	Basic Statistics	PASS
+SRR33247680	2	Per base sequence quality	FAIL
+SRR33247680	2	Per tile sequence quality	FAIL
+SRR33247680	2	Per sequence quality scores	PASS
+SRR33247680	2	Per base sequence content	WARN
+SRR33247680	2	Per sequence GC content	FAIL
+SRR33247680	2	Per base N content	FAIL
+SRR33247680	2	Sequence Length Distribution	PASS
+SRR33247680	2	Sequence Duplication Levels	FAIL
+SRR33247680	2	Overrepresented sequences	FAIL
+SRR33247680	2	Adapter Content	WARN
+SRR33247679	1	Basic Statistics	PASS
+SRR33247679	1	Per base sequence quality	PASS
+SRR33247679	1	Per tile sequence quality	FAIL
+SRR33247679	1	Per sequence quality scores	PASS
+SRR33247679	1	Per base sequence content	FAIL
+SRR33247679	1	Per sequence GC content	WARN
+SRR33247679	1	Per base N content	PASS
+SRR33247679	1	Sequence Length Distribution	PASS
+SRR33247679	1	Sequence Duplication Levels	FAIL
+SRR33247679	1	Overrepresented sequences	PASS
+SRR33247679	1	Adapter Content	PASS
+SRR33247679	2	Basic Statistics	PASS
+SRR33247679	2	Per base sequence quality	FAIL
+SRR33247679	2	Per tile sequence quality	FAIL
+SRR33247679	2	Per sequence quality scores	PASS
+SRR33247679	2	Per base sequence content	WARN
+SRR33247679	2	Per sequence GC content	FAIL
+SRR33247679	2	Per base N content	FAIL
+SRR33247679	2	Sequence Length Distribution	PASS
+SRR33247679	2	Sequence Duplication Levels	FAIL
+SRR33247679	2	Overrepresented sequences	FAIL
+SRR33247679	2	Adapter Content	WARN
+SRR33247678	1	Basic Statistics	PASS
+SRR33247678	1	Per base sequence quality	PASS
+SRR33247678	1	Per tile sequence quality	FAIL
+SRR33247678	1	Per sequence quality scores	PASS
+SRR33247678	1	Per base sequence content	FAIL
+SRR33247678	1	Per sequence GC content	WARN
+SRR33247678	1	Per base N content	PASS
+SRR33247678	1	Sequence Length Distribution	PASS
+SRR33247678	1	Sequence Duplication Levels	FAIL
+SRR33247678	1	Overrepresented sequences	PASS
+SRR33247678	1	Adapter Content	PASS
+SRR33247678	2	Basic Statistics	PASS
+SRR33247678	2	Per base sequence quality	FAIL
+SRR33247678	2	Per tile sequence quality	FAIL
+SRR33247678	2	Per sequence quality scores	PASS
+SRR33247678	2	Per base sequence content	WARN
+SRR33247678	2	Per sequence GC content	FAIL
+SRR33247678	2	Per base N content	FAIL
+SRR33247678	2	Sequence Length Distribution	PASS
+SRR33247678	2	Sequence Duplication Levels	FAIL
+SRR33247678	2	Overrepresented sequences	FAIL
+SRR33247678	2	Adapter Content	PASS
+SRR33247677	1	Basic Statistics	PASS
+SRR33247677	1	Per base sequence quality	PASS
+SRR33247677	1	Per tile sequence quality	FAIL
+SRR33247677	1	Per sequence quality scores	PASS
+SRR33247677	1	Per base sequence content	WARN
+SRR33247677	1	Per sequence GC content	WARN
+SRR33247677	1	Per base N content	PASS
+SRR33247677	1	Sequence Length Distribution	PASS
+SRR33247677	1	Sequence Duplication Levels	FAIL
+SRR33247677	1	Overrepresented sequences	PASS
+SRR33247677	1	Adapter Content	PASS
+SRR33247677	2	Basic Statistics	PASS
+SRR33247677	2	Per base sequence quality	FAIL
+SRR33247677	2	Per tile sequence quality	FAIL
+SRR33247677	2	Per sequence quality scores	PASS
+SRR33247677	2	Per base sequence content	WARN
+SRR33247677	2	Per sequence GC content	FAIL
+SRR33247677	2	Per base N content	FAIL
+SRR33247677	2	Sequence Length Distribution	PASS
+SRR33247677	2	Sequence Duplication Levels	FAIL
+SRR33247677	2	Overrepresented sequences	FAIL
+SRR33247677	2	Adapter Content	WARN
+SRR33247676	1	Basic Statistics	PASS
+SRR33247676	1	Per base sequence quality	PASS
+SRR33247676	1	Per tile sequence quality	FAIL
+SRR33247676	1	Per sequence quality scores	PASS
+SRR33247676	1	Per base sequence content	WARN
+SRR33247676	1	Per sequence GC content	WARN
+SRR33247676	1	Per base N content	PASS
+SRR33247676	1	Sequence Length Distribution	PASS
+SRR33247676	1	Sequence Duplication Levels	FAIL
+SRR33247676	1	Overrepresented sequences	PASS
+SRR33247676	1	Adapter Content	PASS
+SRR33247676	2	Basic Statistics	PASS
+SRR33247676	2	Per base sequence quality	FAIL
+SRR33247676	2	Per tile sequence quality	FAIL
+SRR33247676	2	Per sequence quality scores	PASS
+SRR33247676	2	Per base sequence content	WARN
+SRR33247676	2	Per sequence GC content	FAIL
+SRR33247676	2	Per base N content	FAIL
+SRR33247676	2	Sequence Length Distribution	PASS
+SRR33247676	2	Sequence Duplication Levels	FAIL
+SRR33247676	2	Overrepresented sequences	FAIL
+SRR33247676	2	Adapter Content	PASS
+SRR33247686	1	Basic Statistics	PASS
+SRR33247686	1	Per base sequence quality	PASS
+SRR33247686	1	Per tile sequence quality	FAIL
+SRR33247686	1	Per sequence quality scores	PASS
+SRR33247686	1	Per base sequence content	WARN
+SRR33247686	1	Per sequence GC content	WARN
+SRR33247686	1	Per base N content	PASS
+SRR33247686	1	Sequence Length Distribution	PASS
+SRR33247686	1	Sequence Duplication Levels	FAIL
+SRR33247686	1	Overrepresented sequences	PASS
+SRR33247686	1	Adapter Content	PASS
+SRR33247686	2	Basic Statistics	PASS
+SRR33247686	2	Per base sequence quality	FAIL
+SRR33247686	2	Per tile sequence quality	FAIL
+SRR33247686	2	Per sequence quality scores	PASS
+SRR33247686	2	Per base sequence content	WARN
+SRR33247686	2	Per sequence GC content	FAIL
+SRR33247686	2	Per base N content	FAIL
+SRR33247686	2	Sequence Length Distribution	PASS
+SRR33247686	2	Sequence Duplication Levels	FAIL
+SRR33247686	2	Overrepresented sequences	FAIL
+SRR33247686	2	Adapter Content	PASS
+SRR33247685	1	Basic Statistics	PASS
+SRR33247685	1	Per base sequence quality	PASS
+SRR33247685	1	Per tile sequence quality	FAIL
+SRR33247685	1	Per sequence quality scores	PASS
+SRR33247685	1	Per base sequence content	WARN
+SRR33247685	1	Per sequence GC content	WARN
+SRR33247685	1	Per base N content	PASS
+SRR33247685	1	Sequence Length Distribution	PASS
+SRR33247685	1	Sequence Duplication Levels	FAIL
+SRR33247685	1	Overrepresented sequences	PASS
+SRR33247685	1	Adapter Content	PASS
+SRR33247685	2	Basic Statistics	PASS
+SRR33247685	2	Per base sequence quality	FAIL
+SRR33247685	2	Per tile sequence quality	FAIL
+SRR33247685	2	Per sequence quality scores	PASS
+SRR33247685	2	Per base sequence content	WARN
+SRR33247685	2	Per sequence GC content	FAIL
+SRR33247685	2	Per base N content	FAIL
+SRR33247685	2	Sequence Length Distribution	PASS
+SRR33247685	2	Sequence Duplication Levels	FAIL
+SRR33247685	2	Overrepresented sequences	FAIL
+SRR33247685	2	Adapter Content	WARN
+SRR33247684	1	Basic Statistics	PASS
+SRR33247684	1	Per base sequence quality	PASS
+SRR33247684	1	Per tile sequence quality	FAIL
+SRR33247684	1	Per sequence quality scores	PASS
+SRR33247684	1	Per base sequence content	WARN
+SRR33247684	1	Per sequence GC content	WARN
+SRR33247684	1	Per base N content	PASS
+SRR33247684	1	Sequence Length Distribution	PASS
+SRR33247684	1	Sequence Duplication Levels	FAIL
+SRR33247684	1	Overrepresented sequences	PASS
+SRR33247684	1	Adapter Content	PASS
+SRR33247684	2	Basic Statistics	PASS
+SRR33247684	2	Per base sequence quality	FAIL
+SRR33247684	2	Per tile sequence quality	FAIL
+SRR33247684	2	Per sequence quality scores	PASS
+SRR33247684	2	Per base sequence content	WARN
+SRR33247684	2	Per sequence GC content	FAIL
+SRR33247684	2	Per base N content	FAIL
+SRR33247684	2	Sequence Length Distribution	PASS
+SRR33247684	2	Sequence Duplication Levels	FAIL
+SRR33247684	2	Overrepresented sequences	FAIL
+SRR33247684	2	Adapter Content	PASS
+SRR33247683	1	Basic Statistics	PASS
+SRR33247683	1	Per base sequence quality	PASS
+SRR33247683	1	Per tile sequence quality	FAIL
+SRR33247683	1	Per sequence quality scores	PASS
+SRR33247683	1	Per base sequence content	WARN
+SRR33247683	1	Per sequence GC content	WARN
+SRR33247683	1	Per base N content	PASS
+SRR33247683	1	Sequence Length Distribution	PASS
+SRR33247683	1	Sequence Duplication Levels	FAIL
+SRR33247683	1	Overrepresented sequences	PASS
+SRR33247683	1	Adapter Content	PASS
+SRR33247683	2	Basic Statistics	PASS
+SRR33247683	2	Per base sequence quality	FAIL
+SRR33247683	2	Per tile sequence quality	FAIL
+SRR33247683	2	Per sequence quality scores	PASS
+SRR33247683	2	Per base sequence content	WARN
+SRR33247683	2	Per sequence GC content	FAIL
+SRR33247683	2	Per base N content	FAIL
+SRR33247683	2	Sequence Length Distribution	PASS
+SRR33247683	2	Sequence Duplication Levels	FAIL
+SRR33247683	2	Overrepresented sequences	FAIL
+SRR33247683	2	Adapter Content	WARN
+SRR33247682	1	Basic Statistics	PASS
+SRR33247682	1	Per base sequence quality	PASS
+SRR33247682	1	Per tile sequence quality	FAIL
+SRR33247682	1	Per sequence quality scores	PASS
+SRR33247682	1	Per base sequence content	WARN
+SRR33247682	1	Per sequence GC content	WARN
+SRR33247682	1	Per base N content	PASS
+SRR33247682	1	Sequence Length Distribution	PASS
+SRR33247682	1	Sequence Duplication Levels	FAIL
+SRR33247682	1	Overrepresented sequences	PASS
+SRR33247682	1	Adapter Content	PASS
+SRR33247682	2	Basic Statistics	PASS
+SRR33247682	2	Per base sequence quality	FAIL
+SRR33247682	2	Per tile sequence quality	FAIL
+SRR33247682	2	Per sequence quality scores	PASS
+SRR33247682	2	Per base sequence content	WARN
+SRR33247682	2	Per sequence GC content	FAIL
+SRR33247682	2	Per base N content	FAIL
+SRR33247682	2	Sequence Length Distribution	PASS
+SRR33247682	2	Sequence Duplication Levels	FAIL
+SRR33247682	2	Overrepresented sequences	FAIL
+SRR33247682	2	Adapter Content	PASS

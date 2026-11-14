@@ -1,6 +1,7 @@
-# Mesmo conjunto de pacotes do bulk-rna-seq (environment.yml), sem GEOquery/readxl.
-# As versões exatas estão em deseq2.linux-64.pin.txt (cópia do lock do bulk-rna-seq),
-# que o Snakemake usa no lugar deste arquivo em linux-64.
+# Same package set as ../analysis_from_geo_data/envs/rna-seq.yaml, without GEOquery/readxl.
+# Exact versions are in deseq2.linux-64.pin.txt (copied from the rna-seq lock file),
+# which Snakemake uses instead of this file on linux-64.
+name: deseq2
 channels:
   - conda-forge
   - bioconda

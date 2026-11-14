@@ -13,9 +13,24 @@ The repository contains three projects. Each has its own Snakefile, conda enviro
 | [`analysis_from_geo_data/`](analysis_from_geo_data) | [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) | Count matrix deposited in GEO | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
 
 ```
-SRA (GSE295281) ──► raw_reads_processing ──► txi_gene.rds ──► bulk_rna_seq_tximport ──► DE + enrichment
-GEO counts (GSE178812) ─────────────────────────────────────► analysis_from_geo_data ─► DE + enrichment
+SRA (GSE295281) ──► raw_reads_processing ──► data/txi_gene.rds ──► bulk_rna_seq_tximport ──► DE + enrichment
+GEO counts (GSE178812) ──────────────────────────────────────────► analysis_from_geo_data ─► DE + enrichment
 ```
+
+## Project layout
+
+Every project follows the same folder layout (other folders, such as `logs/` or `cache/`, are added when needed):
+
+| Folder | Contents |
+|---|---|
+| `data/` | Inputs (count tables, sample metadata), intermediate objects (`dds.rds`, `txi_gene.rds`) and small reference files |
+| `results/` | Result tables only (`.csv`/`.tsv`) |
+| `plots/` | All figures |
+| `scripts/` | Scripts called by the Snakefile |
+| `envs/` | Conda environments; each `envs/<name>.yaml` creates the environment `<name>` and has a `<name>.linux-64.pin.txt` lock when pinned |
+| `reports/` | `report.html`: self-contained HTML report explaining the results with figures, from the first to the last step (built in Python, so it works for projects without R) |
+
+Large files (SRA, FASTQ, genomes, indices, Salmon outputs) are never stored in the repository: they live under `$DATA`.
 
 ## Datasets
 
@@ -36,7 +51,7 @@ GEO counts (GSE178812) ───────────────────
   run if its mapping rate is below `min_mapping_rate` (30%). All samples mapped at about 92% (library type ISR);
   see `results/qc_summary.tsv`.
 - Summarizes to gene level with tximport and writes counts, length-scaled TPM counts, TPM and lengths
-  (`results/*.tsv`) plus `results/txi_gene.rds`. It also writes a MultiQC report.
+  (`results/*.tsv`) plus `data/txi_gene.rds`. It also writes a MultiQC report to `reports/`.
 
 Large files (SRA, reference, index, Salmon output) are written under `$DATA/<data_subdir>`, so the `DATA`
 environment variable must be set:
@@ -96,7 +111,7 @@ pathview maps, PPI network, Reactome and WikiPathways enrichment).
 
 - Linux (x86-64), Conda/Mamba and Snakemake ≥ 9. Each rule creates its own environment with `--use-conda`.
 - Pinned versions: Salmon 2.11.0, sra-tools 3.4.1, FastQC 0.13.0, MultiQC 1.35, R 4.5 / tximport 1.38.2.
-  The R/Bioconductor stack for DE is pinned in `environment.linux-64.pin.txt` and
+  The R/Bioconductor stack for DE is pinned in `analysis_from_geo_data/envs/rna-seq.linux-64.pin.txt` and
   `bulk_rna_seq_tximport/envs/deseq2.linux-64.pin.txt`.
 - Internet access (SRA, GENCODE, GEO, KEGG REST, STRING).
 - For `raw_reads_processing`: about 25 GB of fast scratch space per sample running at the same time, plus

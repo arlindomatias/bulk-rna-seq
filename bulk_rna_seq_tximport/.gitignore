@@ -1,7 +1,7 @@
 .snakemake/
 logs/
 cache/
-results/*.rds
+data/*.rds
 .Rhistory
 .RData
 logs_run.txt

@@ -35,7 +35,7 @@ colnames(counts_raw)[1] <- c("SYMBOL")
 
 ### 2. Retrieve GEO metadata -------------------------------------
 
-local_file <- file.path(project_dir, paste0(geo_accession, "_series_matrix.txt.gz"))
+local_file <- file.path(project_dir, "data", paste0(geo_accession, "_series_matrix.txt.gz"))
 
 # Use the local file if it exists; otherwise download from GEO
 if (file.exists(local_file)) {
@@ -43,7 +43,7 @@ if (file.exists(local_file)) {
   gse <- getGEO(filename = local_file, GSEMatrix = TRUE)
 } else {
   message("Local file not found. Downloading from GEO: ", geo_accession)
-  gse <- getGEO(geo_accession, GSEMatrix = TRUE, destdir = project_dir)
+  gse <- getGEO(geo_accession, GSEMatrix = TRUE, destdir = file.path(project_dir, "data"))
   if (is.list(gse)) gse <- gse[[1]]   # online retrieval returns a list
 }
 

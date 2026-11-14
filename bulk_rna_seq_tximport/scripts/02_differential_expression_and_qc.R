@@ -14,8 +14,8 @@ dds <- readRDS(snakemake@input$dds)
 padj_cut <- cfg$de$padj
 lfc_cut  <- cfg$de$lfc
 
-### 1. Filtro e ajuste -------------------------------------------------------
-# tximport traz contagens estimadas (fracionárias); o filtro usa as contagens arredondadas do dds.
+### 1. Filter and fit --------------------------------------------------------
+# tximport gives estimated (fractional) counts; the filter uses the rounded counts of the dds.
 min_samples <- cfg$filter$min_samples %||% min(table(dds$group))
 keep <- rowSums(counts(dds) >= cfg$filter$min_count) >= min_samples
 message("Filter: >= ", cfg$filter$min_count, " counts in >= ", min_samples,

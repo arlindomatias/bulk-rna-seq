@@ -1,6 +1,6 @@
-"""Resumo de QC por amostra a partir das saídas do Salmon.
+"""Per-sample QC summary built from the Salmon outputs.
 
-Uso: python3 qc_summary.py samples.tsv <dir_salmon> qc_summary.tsv
+Usage: python3 qc_summary.py samples.tsv <salmon_dir> qc_summary.tsv
 """
 import csv
 import json
@@ -20,8 +20,8 @@ with open(out, "w") as fout:
         meta = json.load(open(os.path.join(d, "aux_info", "meta_info.json")))
         lib = json.load(open(os.path.join(d, "lib_format_counts.json")))
         if meta["num_processed"] != int(s["read_pairs"]):
-            print(f"AVISO {s['run']}: Salmon processou {meta['num_processed']} pares, "
-                  f"ENA informa {s['read_pairs']}")
+            print(f"WARNING {s['run']}: Salmon processed {meta['num_processed']} pairs, "
+                  f"ENA reports {s['read_pairs']}")
         row = [s["run"], s["condition"], s["mouse_id"], s["read_pairs"],
                meta["num_processed"], meta["num_mapped"], f"{meta['percent_mapped']:.2f}",
                lib["expected_format"], f"{lib['compatible_fragment_ratio']:.4f}",
@@ -33,5 +33,5 @@ for s in samples:
     meta = json.load(open(os.path.join(salmon_dir, s["run"], "aux_info", "meta_info.json")))
     versions.add(meta["salmon_version"])
 if len(versions) != 1:
-    sys.exit(f"ERRO: amostras quantificadas com versões diferentes do Salmon: {versions}")
-print(f"{len(samples)} amostras resumidas em {out}")
+    sys.exit(f"ERROR: samples were quantified with different Salmon versions: {versions}")
+print(f"{len(samples)} samples summarized in {out}")

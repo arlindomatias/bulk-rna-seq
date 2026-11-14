@@ -1,5 +1,5 @@
-# RNA-seq GSE295281: .sra (NCBI/AWS) -> fastq -> FastQC -> Salmon -> count table por gene (tximport).
-# Uso (env genomic-variants, Snakemake 9):
+# RNA-seq GSE295281: .sra (NCBI/AWS) -> fastq -> FastQC -> Salmon -> gene-level count table (tximport).
+# Usage (env genomic-variants, Snakemake 9):
 #   snakemake -n --use-conda
 #   snakemake --use-conda --cores 8 --resources download=3 scratch_dump=1
 
@@ -9,9 +9,9 @@ import os
 configfile: "config.yaml"
 
 if "DATA" not in os.environ:
-    raise ValueError("Variável de ambiente DATA não definida (arquivos grandes ficam em $DATA).")
+    raise ValueError("Environment variable DATA is not set (large files are stored under $DATA).")
 D = os.path.join(os.environ["DATA"], config["data_subdir"])
-# FASTQ temporários no SSD local (ver config.yaml).
+# Temporary FASTQ files on the local SSD (see config.yaml).
 S = os.path.expanduser(config["fastq_scratch"])
 
 with open(config["samples"]) as f:
@@ -34,13 +34,14 @@ rule all:
         "results/counts_gene_lengthScaledTPM.tsv",
         "results/tpm_gene.tsv",
         "results/qc_summary.tsv",
-        "results/multiqc_report.html",
+        "reports/multiqc_report.html",
+        "reports/report.html",
 
 
 # ---------------------------------------------------------------- download
 
 rule download_sra:
-    # Espelho público da NCBI no AWS S3 (o ENA está lento demais daqui: ~KB/s).
+    # Public NCBI mirror on AWS S3 (ENA is far too slow from here: ~KB/s).
     output:
         f"{D}/sra/{{run}}.sra",
     params:
@@ -61,8 +62,8 @@ rule download_sra:
 
 
 rule fasterq_dump:
-    # FASTQ descompactado é temporário, no SSD: apagado depois do FastQC e do Salmon. O .sra (HD) é a cópia bruta.
-    # resources scratch_dump=1 (via --resources): um fasterq-dump por vez, para limitar o uso do SSD.
+    # Uncompressed FASTQ is temporary and lives on the SSD: deleted after FastQC and Salmon. The .sra (HD) is the raw copy.
+    # resources scratch_dump=1 (via --resources): one fasterq-dump at a time, to limit SSD usage.
     input:
         f"{D}/sra/{{run}}.sra",
     output:
@@ -122,14 +123,14 @@ rule multiqc:
         expand(f"{D}/qc/fastqc/{{run}}_{{read}}_fastqc.zip", run=RUNS, read=[1, 2]),
         expand(f"{D}/salmon/{{run}}/quant.sf", run=RUNS),
     output:
-        "results/multiqc_report.html",
+        "reports/multiqc_report.html",
     conda:
         "envs/qc.yaml"
     log:
         "logs/multiqc/multiqc.log",
     shell:
         """
-        multiqc --force --no-data-dir --filename multiqc_report.html --outdir results \
+        multiqc --force --no-data-dir --filename multiqc_report.html --outdir reports \
             {D}/qc/fastqc {D}/salmon &> {log}
         """
 
@@ -162,7 +163,7 @@ rule salmon_quant:
     params:
         outdir=f"{D}/salmon/{{run}}",
     threads: SALMON_THREADS
-    # Prioridade alta: consumir os FASTQ temporários antes de gerar novos (senão eles se acumulam no HD).
+    # High priority: consume temporary FASTQ before new ones are generated (otherwise they pile up).
     priority: 10
     conda:
         "envs/salmon.yaml"
@@ -190,11 +191,11 @@ rule check_mapping_rate:
         import json
 
         rate = json.load(open(input[0]))["percent_mapped"]
-        msg = f"{wildcards.run}: mapping rate = {rate:.2f}% (mínimo {params.min_rate}%)"
+        msg = f"{wildcards.run}: mapping rate = {rate:.2f}% (minimum {params.min_rate}%)"
         with open(log[0], "w") as f:
             f.write(msg + "\n")
         if rate < params.min_rate:
-            raise ValueError("Mapping rate muito baixo -- " + msg)
+            raise ValueError("Mapping rate too low -- " + msg)
         with open(output[0], "w") as f:
             f.write(msg + "\n")
 
@@ -205,7 +206,7 @@ rule tx2gene:
     input:
         TRANSCRIPTOME,
     output:
-        "results/tx2gene.tsv",
+        "data/tx2gene.tsv",
     log:
         "logs/tx2gene/tx2gene.log",
     shell:
@@ -230,7 +231,7 @@ rule qc_summary:
 rule tximport:
     input:
         samples=config["samples"],
-        tx2gene="results/tx2gene.tsv",
+        tx2gene="data/tx2gene.tsv",
         quant=expand(f"{D}/salmon/{{run}}/quant.sf", run=RUNS),
         ok=expand(f"{D}/salmon/{{run}}/mapping_ok.txt", run=RUNS),
     output:
@@ -238,7 +239,7 @@ rule tximport:
         scaled="results/counts_gene_lengthScaledTPM.tsv",
         tpm="results/tpm_gene.tsv",
         length="results/length_gene.tsv",
-        rds="results/txi_gene.rds",
+        rds="data/txi_gene.rds",
     params:
         salmon_dir=f"{D}/salmon",
     conda:
@@ -250,3 +251,61 @@ rule tximport:
         Rscript scripts/tximport.R {input.samples} {params.salmon_dir} {input.tx2gene} \
             {output.counts} {output.scaled} {output.tpm} {output.length} {output.rds} &> {log}
         """
+
+
+# ---------------------------------------------------------------- figures and report
+
+QC_PLOTS = [
+    "qc_reads_mapping", "fastqc_module_status", "fastqc_per_base_quality", "fastqc_gc_content",
+    "fastqc_adapter_content", "count_composition", "detected_genes", "top_expressed_genes",
+    "sample_correlation", "pca_logcpm",
+]
+QC_TABLES = ["count_composition", "fastqc_module_status", "top_expressed_genes",
+             "sample_correlation_logcpm", "pca_logcpm"]
+
+
+rule qc_plots:
+    input:
+        samples=config["samples"],
+        qc="results/qc_summary.tsv",
+        counts="results/counts_gene.tsv",
+        tx2gene="data/tx2gene.tsv",
+        fastqc=expand(f"{D}/qc/fastqc/{{run}}_{{read}}_fastqc.zip", run=RUNS, read=[1, 2]),
+    output:
+        plots=expand("plots/{name}.png", name=QC_PLOTS),
+        tables=expand("results/{name}.tsv", name=QC_TABLES),
+    params:
+        fastqc_dir=f"{D}/qc/fastqc",
+    conda:
+        "envs/report.yaml"
+    log:
+        "logs/qc_plots/qc_plots.log",
+    shell:
+        """
+        python3 scripts/qc_plots.py {input.samples} {input.qc} {input.counts} {input.tx2gene} \
+            {params.fastqc_dir} plots results &> {log}
+        """
+
+
+rule report:
+    input:
+        samples=config["samples"],
+        qc="results/qc_summary.tsv",
+        counts="results/counts_gene.tsv",
+        composition="results/count_composition.tsv",
+        fastqc_status="results/fastqc_module_status.tsv",
+        top_genes="results/top_expressed_genes.tsv",
+        correlation="results/sample_correlation_logcpm.tsv",
+        reads_plot="plots/qc_reads_mapping.png",
+        plots=expand("plots/{name}.png", name=QC_PLOTS),
+        multiqc="reports/multiqc_report.html",
+        envs=["envs/qc.yaml", "envs/salmon.yaml", "envs/sratools.yaml", "envs/tximport.yaml"],
+        scripts=["scripts/html_report.py"],
+    output:
+        html="reports/report.html",
+    conda:
+        "envs/report.yaml"
+    log:
+        "logs/report/report.log",
+    script:
+        "scripts/report.py"

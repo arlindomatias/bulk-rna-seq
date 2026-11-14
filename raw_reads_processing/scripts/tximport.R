@@ -1,5 +1,5 @@
-# Agrega quant.sf do Salmon para nível de gene com tximport e grava as tabelas.
-# Uso: Rscript tximport.R samples.tsv <dir_salmon> tx2gene.tsv \
+# Summarizes Salmon quant.sf files to gene level with tximport and writes the tables.
+# Usage: Rscript tximport.R samples.tsv <salmon_dir> tx2gene.tsv \
 #        counts.tsv counts_lengthScaledTPM.tsv tpm.tsv length.tsv txi.rds
 suppressPackageStartupMessages({
   library(tximport)
@@ -35,9 +35,9 @@ write_matrix(txi_scaled$counts, out_scaled, 3)
 write_matrix(txi$abundance, out_tpm, 4)
 write_matrix(txi$length, out_length, 3)
 
-# Objeto completo para DESeqDataSetFromTximport(txi, colData, design).
+# Full object for DESeqDataSetFromTximport(txi, colData, design).
 saveRDS(txi, out_rds)
 
-cat(sprintf("%d genes x %d amostras\n", nrow(txi$counts), ncol(txi$counts)))
-cat("Reads atribuídos por amostra:\n")
+cat(sprintf("%d genes x %d samples\n", nrow(txi$counts), ncol(txi$counts)))
+cat("Reads assigned per sample:\n")
 print(round(colSums(txi$counts)))

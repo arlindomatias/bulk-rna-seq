@@ -1,24 +1,24 @@
 # ============================================================
-# Configuração do dataset. Para outro dataset, trocar este arquivo
-# (ou passar outro com `snakemake --configfile outro.yaml`).
+# Dataset configuration. For another dataset, replace this file
+# (or pass another one with `snakemake --configfile other.yaml`).
 # ============================================================
 
 dataset: GSE295281
-title: "AC-T vs Saline (hipocampo, 1 mês após o tratamento)"
+title: "AC-T vs Saline (hippocampus, 1 month after treatment)"
 
-# Saídas do projeto ../raw_reads_processing (tximport, nível gene).
+# Outputs of the ../raw_reads_processing project (tximport, gene level).
 input:
-  txi: ../raw_reads_processing/results/txi_gene.rds        # lista do tximport: counts, abundance, length
-  samples: ../raw_reads_processing/samples.tsv             # uma linha por amostra
-  tx2gene: ../raw_reads_processing/results/tx2gene.tsv     # transcript_id, gene_id, gene_name, ...
+  txi: ../raw_reads_processing/data/txi_gene.rds           # tximport list: counts, abundance, length
+  samples: ../raw_reads_processing/data/samples.tsv        # one row per sample
+  tx2gene: ../raw_reads_processing/data/tx2gene.tsv        # transcript_id, gene_id, gene_name, ...
 
 samples:
-  id_column: run              # deve bater com colnames(txi$counts)
-  condition_column: condition # coluna com o grupo experimental
-  label_column: mouse_id      # rótulo curto para gráficos (null = usar o id)
+  id_column: run              # must match colnames(txi$counts)
+  condition_column: condition # column with the experimental group
+  label_column: mouse_id      # short label for plots (null = use the id)
 
-# Nome bruto em `condition_column` -> rótulo usado no modelo.
-# Os rótulos precisam ser nomes válidos em R (sem hífen), senão o coeficiente do DESeq2 muda de nome.
+# Raw value in `condition_column` -> label used in the model.
+# Labels must be valid R names (no hyphen), otherwise the DESeq2 coefficient name changes.
 groups:
   labels:
     Saline: Saline
@@ -29,26 +29,26 @@ groups:
     Saline: "#3399FF"
     ACT: "#CC0000"
 
-# Colunas de samples.tsv somadas ao modelo antes do grupo (~ cov1 + cov2 + group).
-# Atenção: no GSE295281 a gaiola/lote (1º dígito do mouse_id) está aninhada no grupo e não pode entrar.
+# Columns of samples.tsv added to the model before the group (~ cov1 + cov2 + group).
+# Warning: in GSE295281 cage/batch (first digit of mouse_id) is nested in group and cannot be used.
 covariates: []
 
-# Amostras (ids) removidas da análise. Ex.: [SRR33247678]
+# Sample ids removed from the analysis. E.g. [SRR33247678]
 exclude_samples: []
 
 filter:
   min_count: 10
-  min_samples: null   # null = tamanho do menor grupo
+  min_samples: null   # null = size of the smallest group
 
 de:
   fit_type: local
   padj: 0.05
-  lfc: 0.5            # |log2FC| mínimo para DEG
+  lfc: 0.5            # minimum |log2FC| for a DEG
 
 plots:
   heatmap_max_genes: 50
-  # Genes mostrados em plots/marker_genes.png (contagens normalizadas por amostra).
-  # Xist: todas as fêmeas devem expressar; Ddx3y: deve ser ~0.
+  # Genes shown in plots/marker_genes.png (normalized counts per sample).
+  # Xist: every female should express it; Ddx3y: should be ~0.
   marker_genes: [Xist, Ddx3y, Gfap, Aif1, Mbp]
 
 enrichment:
@@ -61,7 +61,7 @@ enrichment:
   string_species: 10090
   string_score: 700
   string_cache: cache/
-  # Vias para o pathview. Lista vazia = as `pathview_top_n` vias KEGG mais significativas.
+  # Pathways for pathview. Empty list = the `pathview_top_n` most significant KEGG pathways.
   pathview_pathways: []
   pathview_top_n: 3
 

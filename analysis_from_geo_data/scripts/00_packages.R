@@ -51,7 +51,7 @@ if (length(missing_packages) > 0) {
   stop(
     "Missing packages: ",
     paste(missing_packages, collapse = ", "),
-    "\nPlease recreate the Conda environment using 'conda env create -f environment.yml'")
+    "\nPlease recreate the Conda environment using 'conda env create -f envs/rna-seq.yaml'")
   
 }
 
@@ -70,7 +70,7 @@ if (!file.exists("scripts/00_packages.R")) {
 }
 project_dir <- getwd()
 
-for (d in c("data", "plots", "results", "cache")) {
+for (d in c("data", "plots", "results", "reports", file.path("cache", "kegg", "pathview"))) {
   dir.create(d, recursive = TRUE, showWarnings = FALSE)
 }
 

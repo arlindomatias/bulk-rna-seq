@@ -57,3 +57,7 @@ CLAUDE*
 
 # ---- Snakemake state and conda envs (regenerated) --------
 .snakemake/
+
+# ---- Python bytecode -------------------------------------
+__pycache__/
+*.pyc

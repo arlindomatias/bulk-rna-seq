@@ -435,14 +435,16 @@ if (has_kegg) {
   
 }
 
-# Pathview
-pv_dir <- normalizePath(file.path("plots"), mustWork = FALSE)
+# Pathview: the colored map is written to plots/, the downloaded KEGG files
+# (KGML + base PNG) to cache/kegg/pathview/.
+pv_dir <- normalizePath(file.path("plots"), mustWork = TRUE)
+kegg_dir <- normalizePath(file.path("cache", "kegg", "pathview"), mustWork = TRUE)
 
 run_pathview <- function(pathway_id, out_dir = pv_dir, ...) {
   old_wd <- setwd(out_dir)
   on.exit(setwd(old_wd))
   pathview(gene.data = fc_entrez, pathway.id = pathway_id, species = "mmu",
-           gene.idtype = "ENTREZ", kegg.dir = out_dir, ...)
+           gene.idtype = "ENTREZ", kegg.dir = kegg_dir, ...)
 }
 
 if (has_kegg) {

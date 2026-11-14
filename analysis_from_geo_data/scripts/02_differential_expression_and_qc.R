@@ -189,14 +189,11 @@ dev.off()
 norm_counts <- counts(dds, normalized = TRUE)
 
 df_dens <- as.data.frame(log2(norm_counts + 1)) %>%
-  pivot_longer(everything(), names_to = "amostra", values_to = "log2_expr")
+  pivot_longer(everything(), names_to = "sample", values_to = "log2_expr")
+meta <- data.frame(sample = colnames(dds), group = colData(dds)$group)
+df_dens <- left_join(df_dens, meta, by = "sample")
 
-df_dens <- as.data.frame(log2(norm_counts + 1)) %>%
-  pivot_longer(everything(), names_to = "amostra", values_to = "log2_expr")
-meta <- data.frame(amostra = colnames(dds), group = colData(dds)$group)
-df_dens <- left_join(df_dens, meta, by = "amostra")
-
-p_dens <- ggplot(df_dens, aes(x = log2_expr, color = amostra, linetype = group)) +
+p_dens <- ggplot(df_dens, aes(x = log2_expr, color = sample, linetype = group)) +
   geom_density(linewidth = 0.7) +
   labs(x = "log2(normalized counts + 1)", y = "Density",
        title = "Density of normalized counts") +

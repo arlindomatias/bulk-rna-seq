@@ -1,0 +1,10 @@
+# Figures and HTML report (Python only, no R).
+name: report
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pandas=2.3
+  - numpy=2.3
+  - matplotlib-base=3.10
+  - markdown=3.9
