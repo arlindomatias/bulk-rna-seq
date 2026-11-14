@@ -35,6 +35,7 @@ rule all:
         "results/tpm_gene.tsv",
         "results/qc_summary.tsv",
         "reports/multiqc_report.html",
+        "reports/sessionInfo.txt",
         "reports/report.html",
 
 
@@ -287,6 +288,21 @@ rule qc_plots:
         """
 
 
+rule session_info:
+    # R session of the tximport environment (the only R step of this project).
+    output:
+        "reports/sessionInfo.txt",
+    conda:
+        "envs/tximport.yaml"
+    log:
+        "logs/session_info/session_info.log",
+    shell:
+        """
+        Rscript -e 'suppressMessages({{library(tximport); library(readr); library(jsonlite)}}); \
+                    writeLines(capture.output(sessionInfo()), "{output}")' > {log} 2>&1
+        """
+
+
 rule report:
     input:
         samples=config["samples"],
@@ -299,7 +315,9 @@ rule report:
         reads_plot="plots/qc_reads_mapping.png",
         plots=expand("plots/{name}.png", name=QC_PLOTS),
         multiqc="reports/multiqc_report.html",
-        envs=["envs/qc.yaml", "envs/salmon.yaml", "envs/sratools.yaml", "envs/tximport.yaml"],
+        envs=["envs/qc.yaml", "envs/report.yaml", "envs/salmon.yaml", "envs/sratools.yaml", "envs/tximport.yaml"],
+        config="config.yaml",
+        session="reports/sessionInfo.txt",
         scripts=["scripts/html_report.py"],
         code=["scripts/qc_plots.py"],
     output:

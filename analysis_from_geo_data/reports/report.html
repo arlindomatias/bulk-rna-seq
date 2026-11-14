@@ -69,7 +69,7 @@ details.code .src { font-size: 12px; color: var(--ink2); margin: 4px 0 0; }
 .kpi .l { font-size: 13px; color: var(--ink2); }
 @media (max-width: 900px) { .wrap { display: block; } nav.toc { position: static; max-height: none; } }
 @media print { nav.toc { display: none; } }
-</style></head><body><div class="wrap"><nav class="toc"><ul><li class="l2" data-parent="study-design"><a href="#study-design">Study design</a></li><li class="l2" data-parent="pipeline"><a href="#pipeline">Pipeline</a></li><li class="l2" data-parent="input-data"><a href="#input-data">Input data</a></li><li class="l2" data-parent="quality-control"><a href="#quality-control">Quality control</a></li><li class="l3" data-parent="quality-control"><a href="#count-distributions">Count distributions</a></li><li class="l3" data-parent="quality-control"><a href="#sample-similarity">Sample similarity</a></li><li class="l3" data-parent="quality-control"><a href="#model-fit">Model fit</a></li><li class="l2" data-parent="differential-expression"><a href="#differential-expression">Differential expression</a></li><li class="l3" data-parent="differential-expression"><a href="#p-value-diagnostics">P-value diagnostics</a></li><li class="l3" data-parent="differential-expression"><a href="#top-genes">Top genes</a></li><li class="l2" data-parent="gene-set-enrichment-gsea"><a href="#gene-set-enrichment-gsea">Gene set enrichment (GSEA)</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#go">GO</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#kegg">KEGG</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#pathway-maps-pathview">Pathway maps (pathview)</a></li><li class="l2" data-parent="protein-protein-interactions-string"><a href="#protein-protein-interactions-string">Protein-protein interactions (STRING)</a></li><li class="l3" data-parent="protein-protein-interactions-string"><a href="#string-functional-enrichment">STRING functional enrichment</a></li><li class="l2" data-parent="appendix"><a href="#appendix">Appendix</a></li><li class="l3" data-parent="appendix"><a href="#outputs">Outputs</a></li></ul></nav><main><button class="code-all">Show all code</button><h1 class="title">GSE178812: differential expression and enrichment</h1><p class="subtitle">Doxorubicin (CHEM) vs vehicle (VEH), mouse hippocampus</p><p class="date">2026-11-14</p><div class="kpis"><div class="kpi"><div class="v">6</div><div class="l">samples</div></div><div class="kpi"><div class="v">15,139</div><div class="l">genes tested</div></div><div class="kpi"><div class="v">7</div><div class="l">up in CHEM</div></div><div class="kpi"><div class="v">51</div><div class="l">down in CHEM</div></div><div class="kpi"><div class="v">285 / 26</div><div class="l">GSEA terms GO / KEGG (padj &lt; 0.05)</div></div><div class="kpi"><div class="v">56</div><div class="l">DEGs mapped to STRING</div></div></div>
+</style></head><body><div class="wrap"><nav class="toc"><ul><li class="l2" data-parent="study-design"><a href="#study-design">Study design</a></li><li class="l2" data-parent="pipeline"><a href="#pipeline">Pipeline</a></li><li class="l2" data-parent="input-data"><a href="#input-data">Input data</a></li><li class="l2" data-parent="quality-control"><a href="#quality-control">Quality control</a></li><li class="l3" data-parent="quality-control"><a href="#count-distributions">Count distributions</a></li><li class="l3" data-parent="quality-control"><a href="#sample-similarity">Sample similarity</a></li><li class="l3" data-parent="quality-control"><a href="#model-fit">Model fit</a></li><li class="l2" data-parent="differential-expression"><a href="#differential-expression">Differential expression</a></li><li class="l3" data-parent="differential-expression"><a href="#p-value-diagnostics">P-value diagnostics</a></li><li class="l3" data-parent="differential-expression"><a href="#top-genes">Top genes</a></li><li class="l2" data-parent="gene-set-enrichment-gsea"><a href="#gene-set-enrichment-gsea">Gene set enrichment (GSEA)</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#go">GO</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#kegg">KEGG</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#pathway-maps-pathview">Pathway maps (pathview)</a></li><li class="l2" data-parent="protein-protein-interactions-string"><a href="#protein-protein-interactions-string">Protein-protein interactions (STRING)</a></li><li class="l3" data-parent="protein-protein-interactions-string"><a href="#string-functional-enrichment">STRING functional enrichment</a></li><li class="l2" data-parent="appendix"><a href="#appendix">Appendix</a></li><li class="l3" data-parent="appendix"><a href="#outputs">Outputs</a></li><li class="l3" data-parent="appendix"><a href="#software">Software</a></li><li class="l3" data-parent="appendix"><a href="#configuration">Configuration</a></li><li class="l3" data-parent="appendix"><a href="#session-info">Session info</a></li></ul></nav><main><button class="code-all">Show all code</button><h1 class="title">GSE178812: differential expression and enrichment</h1><p class="subtitle">Doxorubicin (CHEM) vs vehicle (VEH), mouse hippocampus</p><p class="date">2026-11-14</p><div class="kpis"><div class="kpi"><div class="v">6</div><div class="l">samples</div></div><div class="kpi"><div class="v">15,139</div><div class="l">genes tested</div></div><div class="kpi"><div class="v">7</div><div class="l">up in CHEM</div></div><div class="kpi"><div class="v">51</div><div class="l">down in CHEM</div></div><div class="kpi"><div class="v">285 / 26</div><div class="l">GSEA terms GO / KEGG (padj &lt; 0.05)</div></div><div class="kpi"><div class="v">56</div><div class="l">DEGs mapped to STRING</div></div></div>
 <h2 id="study-design">Study design</h2>
 <p>Hippocampus of young C57BL/6J mice treated with doxorubicin (<strong>CHEM</strong>) or vehicle (<strong>VEH</strong>)
 (GEO GSE178812, PMID 34147619). The series also has a doxorubicin + MitoQ group, which is not used here.</p>
@@ -664,23 +664,337 @@ if (!is.null(wp)) {
 <td>DESeq2 results for every tested gene</td>
 </tr>
 <tr>
-<td><code>results/GSEA_GO_all_full.csv</code>, <code>results/GSEA_KEGG_full.csv</code></td>
-<td>Full GSEA tables</td>
+<td><code>results/GSEA_GO_all_full.csv</code></td>
+<td>Full GSEA table, GO (BP, CC, MF)</td>
+</tr>
+<tr>
+<td><code>results/GSEA_KEGG_full.csv</code></td>
+<td>Full GSEA table, KEGG</td>
 </tr>
 <tr>
 <td><code>results/enrichment_STRING_full.csv</code></td>
 <td>STRING enrichment of the DEGs</td>
 </tr>
 <tr>
-<td><code>results/edges_PPI.csv</code>, <code>results/nodes_PPI.csv</code></td>
-<td>PPI network for Cytoscape</td>
+<td><code>results/edges_PPI.csv</code></td>
+<td>PPI edges for Cytoscape</td>
+</tr>
+<tr>
+<td><code>results/nodes_PPI.csv</code></td>
+<td>PPI node attributes (log2FC, padj)</td>
 </tr>
 <tr>
 <td><code>data/dds.rds</code></td>
 <td>Fitted DESeq2 object</td>
 </tr>
 </tbody>
-</table></main></div><script>
+</table>
+<h3 id="software">Software</h3>
+<div class="tbl"><table><caption><b>Table 8.</b> Conda environments (<code>envs/</code>). Snakemake builds one per rule with <code>--use-conda</code>.</caption><thead><tr><th class="">environment</th><th class="">packages</th><th class="">exact versions</th></tr></thead><tbody><tr><td class="">report</td><td class="">python=3.12, pandas=2.3, numpy=2.3, matplotlib-base=3.10, markdown=3.9</td><td class="">versions in the YAML</td></tr><tr><td class="">rna-seq</td><td class="">r-base=4.5.3, r-ggplot2, r-readr, r-dplyr, r-tidyr, r-pheatmap, r-readxl, r-gridextra, r-shadowtext, r-qqman, r-ggridges, r-ggrepel, r-tibble, r-ggforce, r-stringr, r-patchwork, r-igraph, r-ggtangle=0.1.4, bioconductor-deseq2, bioconductor-enhancedvolcano, bioconductor-geoquery, bioconductor-stringdb, bioconductor-enrichplot, bioconductor-clusterprofiler, bioconductor-dose, bioconductor-apeglm, bioconductor-org.mm.eg.db, bioconductor-pathview, bioconductor-reactomepa, bioconductor-summarizedexperiment, r-ggtangle</td><td class="">envs/rna-seq.linux-64.pin.txt</td></tr></tbody></table></div>
+<h3 id="configuration">Configuration</h3>
+<details><summary>Show Snakefile</summary><pre><code class="python"># ============================================================
+# Bulk RNA-seq analysis pipeline
+# Dataset: GSE178812
+#
+# Requires Snakemake 9. Usage (from this folder):
+#   conda activate genomic-variants        # Snakemake 9
+#   snakemake -n --use-conda               # dry-run
+#   snakemake --use-conda --cores 1
+#
+# The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned to the
+# exact package versions in envs/rna-seq.linux-64.pin.txt. The report uses the
+# Python environment in envs/report.yaml.
+# ============================================================
+
+ENV = &quot;envs/rna-seq.yaml&quot;
+ENV_REPORT = &quot;envs/report.yaml&quot;
+
+
+# ------------------------------------------------------------
+# Complete pipeline
+# ------------------------------------------------------------
+
+rule all:
+    input:
+        # Prepared data
+        &quot;data/counts.csv&quot;,
+        &quot;data/colData.csv&quot;,
+
+        # Differential expression
+        &quot;results/top_table.csv&quot;,
+
+        # QC plots
+        &quot;plots/pca_vst.png&quot;,
+        &quot;plots/volcano.png&quot;,
+        &quot;plots/heatmap.png&quot;,
+        &quot;plots/fdr_histogram.png&quot;,
+        &quot;plots/boxplot.png&quot;,
+        &quot;plots/QQPlot.png&quot;,
+        &quot;plots/MAplot.png&quot;,
+        &quot;plots/dispersion_plot.png&quot;,
+        &quot;plots/density_counts.png&quot;,
+        &quot;plots/cooks_distance.png&quot;,
+
+        # Functional enrichment
+        &quot;results/GSEA_GO_all_full.csv&quot;,
+        &quot;results/GSEA_KEGG_full.csv&quot;,
+        &quot;results/enrichment_STRING_full.csv&quot;,
+        &quot;results/edges_PPI.csv&quot;,
+        &quot;results/nodes_PPI.csv&quot;,
+
+        # Report
+        &quot;reports/sessionInfo.txt&quot;,
+        &quot;reports/report.html&quot;,
+
+
+# ------------------------------------------------------------
+# Step 00: Packages and configuration
+# ------------------------------------------------------------
+
+rule packages:
+    output:
+        touch(&quot;.pipeline/packages.done&quot;),
+    conda:
+        ENV
+    log:
+        &quot;logs/packages.log&quot;,
+    shell:
+        &quot;Rscript scripts/00_packages.R &gt; {log} 2&gt;&amp;1&quot;
+
+
+# ------------------------------------------------------------
+# Step 01: Data acquisition and preparation
+# ------------------------------------------------------------
+
+rule prepare:
+    input:
+        packages=&quot;.pipeline/packages.done&quot;,
+    output:
+        counts=&quot;data/counts.csv&quot;,
+        coldata=&quot;data/colData.csv&quot;,
+    conda:
+        ENV
+    log:
+        &quot;logs/prepare.log&quot;,
+    shell:
+        &quot;Rscript scripts/01_download_and_prepare.R &gt; {log} 2&gt;&amp;1&quot;
+
+
+# ------------------------------------------------------------
+# Step 02: Quality control and differential expression
+# ------------------------------------------------------------
+
+rule differential:
+    input:
+        counts=&quot;data/counts.csv&quot;,
+        coldata=&quot;data/colData.csv&quot;,
+    output:
+        top_table=&quot;results/top_table.csv&quot;,
+
+        # QC plots
+        pca=&quot;plots/pca_vst.png&quot;,
+        volcano=&quot;plots/volcano.png&quot;,
+        heatmap=&quot;plots/heatmap.png&quot;,
+        fdr=&quot;plots/fdr_histogram.png&quot;,
+        boxplot=&quot;plots/boxplot.png&quot;,
+        qqplot=&quot;plots/QQPlot.png&quot;,
+        ma=&quot;plots/MAplot.png&quot;,
+        dispersion=&quot;plots/dispersion_plot.png&quot;,
+        density=&quot;plots/density_counts.png&quot;,
+        cooks=&quot;plots/cooks_distance.png&quot;,
+    conda:
+        ENV
+    log:
+        &quot;logs/differential.log&quot;,
+    shell:
+        &quot;Rscript scripts/02_differential_expression_and_qc.R &gt; {log} 2&gt;&amp;1&quot;
+
+
+# ------------------------------------------------------------
+# Step 03: Functional enrichment analysis
+# ------------------------------------------------------------
+
+rule enrichment:
+    input:
+        top_table=&quot;results/top_table.csv&quot;,
+        counts=&quot;data/counts.csv&quot;,
+        coldata=&quot;data/colData.csv&quot;,
+    output:
+        go=&quot;results/GSEA_GO_all_full.csv&quot;,
+        kegg=&quot;results/GSEA_KEGG_full.csv&quot;,
+        string=&quot;results/enrichment_STRING_full.csv&quot;,
+        edges=&quot;results/edges_PPI.csv&quot;,
+        nodes=&quot;results/nodes_PPI.csv&quot;,
+    conda:
+        ENV
+    log:
+        &quot;logs/enrichment.log&quot;,
+    shell:
+        &quot;Rscript scripts/03_enrichment.R &gt; {log} 2&gt;&amp;1&quot;
+
+
+# ------------------------------------------------------------
+# R session info (package versions of the rna-seq environment)
+# ------------------------------------------------------------
+
+rule session_info:
+    input:
+        packages=&quot;.pipeline/packages.done&quot;,
+    output:
+        &quot;reports/sessionInfo.txt&quot;,
+    conda:
+        ENV
+    log:
+        &quot;logs/session_info.log&quot;,
+    shell:
+        &quot;&quot;&quot;
+        Rscript -e &#x27;suppressMessages(source(&quot;scripts/00_packages.R&quot;)); \
+                    writeLines(capture.output(sessionInfo()), &quot;{output}&quot;)&#x27; &gt; {log} 2&gt;&amp;1
+        &quot;&quot;&quot;
+
+
+# ------------------------------------------------------------
+# Step 04: HTML report of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+
+rule report:
+    input:
+        coldata=&quot;data/colData.csv&quot;,
+        top_table=&quot;results/top_table.csv&quot;,
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(&quot;.png&quot;)],
+        go=&quot;results/GSEA_GO_all_full.csv&quot;,
+        kegg=&quot;results/GSEA_KEGG_full.csv&quot;,
+        string=&quot;results/enrichment_STRING_full.csv&quot;,
+        edges=&quot;results/edges_PPI.csv&quot;,
+        nodes=&quot;results/nodes_PPI.csv&quot;,
+        session=&quot;reports/sessionInfo.txt&quot;,
+        config=[&quot;Snakefile&quot;],
+        envs=[&quot;envs/rna-seq.yaml&quot;, &quot;envs/report.yaml&quot;],
+        scripts=[&quot;scripts/report.py&quot;, &quot;scripts/html_report.py&quot;],
+        code=[&quot;scripts/02_differential_expression_and_qc.R&quot;, &quot;scripts/03_enrichment.R&quot;],
+    output:
+        html=&quot;reports/report.html&quot;,
+    params:
+        title=&quot;GSE178812: differential expression and enrichment&quot;,
+        subtitle=&quot;Doxorubicin (CHEM) vs vehicle (VEH), mouse hippocampus&quot;,
+        reference=&quot;VEH&quot;,
+        treatment=&quot;CHEM&quot;,
+        padj=0.05,
+        lfc=0.5,
+        design=&quot;&quot;&quot;
+Hippocampus of young C57BL/6J mice treated with doxorubicin (**CHEM**) or vehicle (**VEH**)
+(GEO GSE178812, PMID 34147619). The series also has a doxorubicin + MitoQ group, which is not used here.
+&quot;&quot;&quot;,
+        notes=&quot;&quot;,
+        pipeline=&quot;&quot;&quot;
+1. **packages**: checks that the R packages of the `rna-seq` environment load.
+2. **prepare**: downloads the count table (`GSE178812_Doxo-counts.xlsx`) and the series matrix from GEO
+   and writes `data/counts.csv` and `data/colData.csv`.
+3. **differential**: filtering, DESeq2 fit (`DESeqDataSetFromMatrix`, `~ group`) and the QC/DE plots.
+4. **enrichment**: GSEA (GO, KEGG), pathview map, STRING network and enrichment.
+5. **report**: this page.
+&quot;&quot;&quot;,
+        filter_text=&quot;genes with ≥ 10 counts in at least 3 samples.&quot;,
+        input_text=&quot;&quot;&quot;
+The analysis starts from the count table deposited by the authors in GEO (gene symbols × samples), so raw
+reads are not processed here. Gene symbols are used as identifiers.
+&quot;&quot;&quot;,
+        upstream_qc=&quot;&quot;,
+    conda:
+        ENV_REPORT
+    log:
+        &quot;logs/report.log&quot;,
+    script:
+        &quot;scripts/report.py&quot;</code></pre></details>
+<h3 id="session-info">Session info</h3>
+<details><summary>Show R sessionInfo()</summary><pre><code class="">R version 4.5.3 (2026-03-11)
+Platform: x86_64-conda-linux-gnu
+Running under: Ubuntu 26.04.1 LTS
+
+Matrix products: default
+BLAS/LAPACK: /home/arlindo/github/bulk-rna-seq/analysis_from_geo_data/.snakemake/conda/dcbcc7376eb88e1d33026f5d575ebd38_/lib/libopenblasp-r0.3.34.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=pt_BR.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=pt_BR.UTF-8        LC_COLLATE=pt_BR.UTF-8    
+ [5] LC_MONETARY=pt_BR.UTF-8    LC_MESSAGES=pt_BR.UTF-8   
+ [7] LC_PAPER=pt_BR.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=pt_BR.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: America/Sao_Paulo
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] ReactomePA_1.54.0           STRINGdb_2.22.0            
+ [3] apeglm_1.32.0               pathview_1.50.0            
+ [5] enrichplot_1.30.5           EnhancedVolcano_1.28.2     
+ [7] org.Mm.eg.db_3.22.0         AnnotationDbi_1.72.0       
+ [9] clusterProfiler_4.18.4      DESeq2_1.50.2              
+[11] SummarizedExperiment_1.40.0 MatrixGenerics_1.22.0      
+[13] matrixStats_1.5.0           GenomicRanges_1.62.1       
+[15] Seqinfo_1.0.0               IRanges_2.44.0             
+[17] S4Vectors_0.48.1            GEOquery_2.78.0            
+[19] Biobase_2.70.0              BiocGenerics_0.56.0        
+[21] generics_0.1.4              ggridges_0.5.7             
+[23] igraph_2.3.4                ggtangle_0.1.4             
+[25] patchwork_1.3.2             qqman_0.1.9                
+[27] stringr_1.6.0               shadowtext_0.1.6           
+[29] ggforce_0.5.0               tibble_3.3.1               
+[31] readxl_1.6.0                ggrepel_0.9.8              
+[33] pheatmap_1.0.13             gridExtra_2.3.1            
+[35] ggplot2_4.0.3               tidyr_1.3.2                
+[37] dplyr_1.2.1                 readr_2.2.0                
+
+loaded via a namespace (and not attached):
+  [1] splines_4.5.3           bitops_1.1-0            ggplotify_0.1.4        
+  [4] R.oo_1.27.1             cellranger_1.1.0        polyclip_1.10-7        
+  [7] graph_1.88.1            XML_3.99-0.25           lifecycle_1.0.5        
+ [10] lattice_0.23-1          MASS_7.3-66             magrittr_2.0.5         
+ [13] limma_3.66.0            plotrix_3.8-14          otel_0.2.0             
+ [16] cowplot_1.2.0           DBI_1.3.0               RColorBrewer_1.1-3     
+ [19] abind_1.4-8             purrr_1.2.2             R.utils_2.13.0         
+ [22] ggraph_2.2.2            RCurl_1.98-1.19         hash_3.0.1             
+ [25] yulab.utils_0.2.5       tweenr_2.0.3            rappdirs_0.3.4         
+ [28] gdtools_0.5.3           tidytree_0.4.8          rentrez_1.2.4          
+ [31] reactome.db_1.95.0      proto_1.0.0             codetools_0.2-20       
+ [34] DelayedArray_0.36.1     DOSE_4.4.0              xml2_1.6.0             
+ [37] tidyselect_1.2.1        aplot_0.3.2             farver_2.1.2           
+ [40] viridis_0.6.5           jsonlite_2.0.0          tidygraph_1.3.0        
+ [43] systemfonts_1.3.2       bbmle_1.0.26            chron_2.3-63           
+ [46] tools_4.5.3             ggnewscale_0.5.2        treeio_1.34.0          
+ [49] Rcpp_1.1.2              glue_1.8.1              SparseArray_1.10.10    
+ [52] qvalue_2.42.0           withr_3.0.3             numDeriv_2016.8-1.1    
+ [55] fastmap_1.2.0           caTools_1.18.4          digest_0.6.39          
+ [58] R6_2.6.1                gridGraphics_0.5-1      GO.db_3.22.0           
+ [61] gtools_3.9.5            RSQLite_3.53.3          R.methodsS3_1.8.2      
+ [64] calibrate_1.7.7         fontLiberation_0.1.0    data.table_1.18.6.1    
+ [67] graphlayouts_1.2.5      httr_1.4.9              htmlwidgets_1.6.4      
+ [70] S4Arrays_1.10.1         scatterpie_0.2.6        graphite_1.56.0        
+ [73] sqldf_0.4-12            pkgconfig_2.0.3         gtable_0.3.6           
+ [76] blob_1.3.0              S7_0.2.2                XVector_0.50.0         
+ [79] htmltools_0.5.9         fontBitstreamVera_0.1.1 fgsea_1.36.2           
+ [82] scales_1.4.0            png_0.1-9               ggfun_0.2.2            
+ [85] tzdb_0.5.0              reshape2_1.4.5          coda_0.19-4.1          
+ [88] nlme_3.1-170            bdsmatrix_1.3-7         org.Hs.eg.db_3.22.0    
+ [91] cachem_1.1.0            KernSmooth_2.23-27      parallel_4.5.3         
+ [94] pillar_1.11.1           grid_4.5.3              vctrs_0.7.3            
+ [97] gplots_3.3.0            tidydr_0.0.7            cluster_2.1.8.3        
+[100] Rgraphviz_2.54.0        KEGGgraph_1.70.0        gsubfn_0.7             
+[103] mvtnorm_1.4-2           cli_3.6.6               locfit_1.5-9.12        
+[106] compiler_4.5.3          rlang_1.3.0             crayon_1.5.3           
+[109] emdbook_1.3.14          plyr_1.8.9              fs_2.1.0               
+[112] ggiraph_0.9.6           stringi_1.8.9           viridisLite_0.4.3      
+[115] BiocParallel_1.44.0     Biostrings_2.78.0       lazyeval_0.2.3         
+[118] GOSemSim_2.36.0         fontquiver_0.2.1        Matrix_1.7-6           
+[121] hms_1.1.4               bit64_4.8.6             KEGGREST_1.50.0        
+[124] statmod_1.5.2           memoise_2.0.1           ggtree_4.0.5           
+[127] fastmatch_1.1-8         bit_4.6.0               ape_5.8-1              
+[130] gson_0.2.2</code></pre></details></main></div><script>
 (function () {
   const links = Array.from(document.querySelectorAll('nav.toc a'));
   const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));

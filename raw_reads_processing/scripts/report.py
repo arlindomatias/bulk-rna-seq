@@ -159,29 +159,21 @@ No sample is a clear outlier. The PCA here is only an overview: the DE project r
 variance-stabilized counts after filtering.
 """)
 
-# ---------------------------------------------------------------- outputs
-r.h2("Outputs")
-r.md("""
-| File | Contents |
-|---|---|
-| `results/counts_gene.tsv` | Estimated counts per gene (for DESeq2 use `data/txi_gene.rds`) |
-| `results/counts_gene_lengthScaledTPM.tsv` | Length-scaled TPM counts (edgeR/limma) |
-| `results/tpm_gene.tsv` | TPM per gene (not for DE) |
-| `results/length_gene.tsv` | Effective gene lengths |
-| `results/qc_summary.tsv` | Reads, mapping rate and library type per sample |
-| `data/txi_gene.rds` | tximport object for `DESeqDataSetFromTximport` |
-| `data/tx2gene.tsv` | Transcript → gene table from GENCODE |
-| `reports/multiqc_report.html` | MultiQC (FastQC + Salmon) |
-""")
-
 # ---------------------------------------------------------------- appendix
-r.h2("Appendix: software and parameters")
-envs = []
-for f in sorted(inp.envs):
-    with open(f) as fh:
-        deps = [l.strip()[2:] for l in fh if l.strip().startswith("- ") and "=" in l]
-    envs.append({"environment": os.path.basename(f).rsplit(".", 1)[0], "pinned packages": ", ".join(deps)})
-r.table(pd.DataFrame(envs), "Conda environments (`envs/`).")
-r.code("\n".join(f"{k}: {v}" for k, v in cfg.items()), "yaml")
+r.appendix(
+    outputs=[
+        ("results/counts_gene.tsv", "Estimated counts per gene (for DESeq2 use `data/txi_gene.rds`)"),
+        ("results/counts_gene_lengthScaledTPM.tsv", "Length-scaled TPM counts (edgeR/limma)"),
+        ("results/tpm_gene.tsv", "TPM per gene (not for DE)"),
+        ("results/length_gene.tsv", "Effective gene lengths"),
+        ("results/qc_summary.tsv", "Reads, mapping rate and library type per sample"),
+        ("data/txi_gene.rds", "tximport object for `DESeqDataSetFromTximport`"),
+        ("data/tx2gene.tsv", "Transcript → gene table from GENCODE"),
+        ("reports/multiqc_report.html", "MultiQC (FastQC + Salmon)"),
+    ],
+    env_files=sorted(inp.envs),
+    config_files=[inp.config],
+    session_file=inp.session,
+)
 
 r.write(out.html)

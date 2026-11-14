@@ -208,24 +208,19 @@ if len(string_sig):
             "Top 5 terms per category.")
 
 # ---------------------------------------------------------------- appendix
-r.h2("Appendix")
-r.h3("Outputs")
-r.md("""
-| File | Contents |
-|---|---|
-| `results/top_table.csv` | DESeq2 results for every tested gene |
-| `results/GSEA_GO_all_full.csv`, `results/GSEA_KEGG_full.csv` | Full GSEA tables |
-| `results/enrichment_STRING_full.csv` | STRING enrichment of the DEGs |
-| `results/edges_PPI.csv`, `results/nodes_PPI.csv` | PPI network for Cytoscape |
-| `data/dds.rds` | Fitted DESeq2 object |
-""")
-if prm.config_text:
-    r.h3("Configuration")
-    r.code(prm.config_text, "yaml", collapsed=True, summary="Show config.yaml")
-si = getattr(inp, "session", None)
-if si and os.path.exists(si):
-    r.h3("Session info")
-    with open(si) as f:
-        r.code(f.read(), collapsed=True, summary="Show R sessionInfo()")
+r.appendix(
+    outputs=[
+        ("results/top_table.csv", "DESeq2 results for every tested gene"),
+        ("results/GSEA_GO_all_full.csv", "Full GSEA table, GO (BP, CC, MF)"),
+        ("results/GSEA_KEGG_full.csv", "Full GSEA table, KEGG"),
+        ("results/enrichment_STRING_full.csv", "STRING enrichment of the DEGs"),
+        ("results/edges_PPI.csv", "PPI edges for Cytoscape"),
+        ("results/nodes_PPI.csv", "PPI node attributes (log2FC, padj)"),
+        ("data/dds.rds", "Fitted DESeq2 object"),
+    ],
+    env_files=sorted(inp.envs),
+    config_files=list(inp.config),
+    session_file=inp.session,
+)
 
 r.write(out.html)

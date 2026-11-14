@@ -69,7 +69,7 @@ details.code .src { font-size: 12px; color: var(--ink2); margin: 4px 0 0; }
 .kpi .l { font-size: 13px; color: var(--ink2); }
 @media (max-width: 900px) { .wrap { display: block; } nav.toc { position: static; max-height: none; } }
 @media print { nav.toc { display: none; } }
-</style></head><body><div class="wrap"><nav class="toc"><ul><li class="l2" data-parent="study-design"><a href="#study-design">Study design</a></li><li class="l2" data-parent="pipeline"><a href="#pipeline">Pipeline</a></li><li class="l2" data-parent="input-data"><a href="#input-data">Input data</a></li><li class="l2" data-parent="quality-control"><a href="#quality-control">Quality control</a></li><li class="l3" data-parent="quality-control"><a href="#count-distributions">Count distributions</a></li><li class="l3" data-parent="quality-control"><a href="#sample-similarity">Sample similarity</a></li><li class="l3" data-parent="quality-control"><a href="#marker-genes">Marker genes</a></li><li class="l3" data-parent="quality-control"><a href="#model-fit">Model fit</a></li><li class="l2" data-parent="differential-expression"><a href="#differential-expression">Differential expression</a></li><li class="l3" data-parent="differential-expression"><a href="#p-value-diagnostics">P-value diagnostics</a></li><li class="l3" data-parent="differential-expression"><a href="#top-genes">Top genes</a></li><li class="l2" data-parent="gene-set-enrichment-gsea"><a href="#gene-set-enrichment-gsea">Gene set enrichment (GSEA)</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#go">GO</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#kegg">KEGG</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#pathway-maps-pathview">Pathway maps (pathview)</a></li><li class="l2" data-parent="protein-protein-interactions-string"><a href="#protein-protein-interactions-string">Protein-protein interactions (STRING)</a></li><li class="l3" data-parent="protein-protein-interactions-string"><a href="#string-functional-enrichment">STRING functional enrichment</a></li><li class="l2" data-parent="appendix"><a href="#appendix">Appendix</a></li><li class="l3" data-parent="appendix"><a href="#outputs">Outputs</a></li><li class="l3" data-parent="appendix"><a href="#configuration">Configuration</a></li><li class="l3" data-parent="appendix"><a href="#session-info">Session info</a></li></ul></nav><main><button class="code-all">Show all code</button><h1 class="title">GSE295281: differential expression and enrichment</h1><p class="subtitle">AC-T vs Saline (hippocampus, 1 month after treatment)</p><p class="date">2026-11-14</p><div class="kpis"><div class="kpi"><div class="v">11</div><div class="l">samples</div></div><div class="kpi"><div class="v">18,767</div><div class="l">genes tested</div></div><div class="kpi"><div class="v">262</div><div class="l">up in ACT</div></div><div class="kpi"><div class="v">408</div><div class="l">down in ACT</div></div><div class="kpi"><div class="v">1,064 / 81</div><div class="l">GSEA terms GO / KEGG (padj &lt; 0.05)</div></div><div class="kpi"><div class="v">541</div><div class="l">DEGs mapped to STRING</div></div></div>
+</style></head><body><div class="wrap"><nav class="toc"><ul><li class="l2" data-parent="study-design"><a href="#study-design">Study design</a></li><li class="l2" data-parent="pipeline"><a href="#pipeline">Pipeline</a></li><li class="l2" data-parent="input-data"><a href="#input-data">Input data</a></li><li class="l2" data-parent="quality-control"><a href="#quality-control">Quality control</a></li><li class="l3" data-parent="quality-control"><a href="#count-distributions">Count distributions</a></li><li class="l3" data-parent="quality-control"><a href="#sample-similarity">Sample similarity</a></li><li class="l3" data-parent="quality-control"><a href="#marker-genes">Marker genes</a></li><li class="l3" data-parent="quality-control"><a href="#model-fit">Model fit</a></li><li class="l2" data-parent="differential-expression"><a href="#differential-expression">Differential expression</a></li><li class="l3" data-parent="differential-expression"><a href="#p-value-diagnostics">P-value diagnostics</a></li><li class="l3" data-parent="differential-expression"><a href="#top-genes">Top genes</a></li><li class="l2" data-parent="gene-set-enrichment-gsea"><a href="#gene-set-enrichment-gsea">Gene set enrichment (GSEA)</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#go">GO</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#kegg">KEGG</a></li><li class="l3" data-parent="gene-set-enrichment-gsea"><a href="#pathway-maps-pathview">Pathway maps (pathview)</a></li><li class="l2" data-parent="protein-protein-interactions-string"><a href="#protein-protein-interactions-string">Protein-protein interactions (STRING)</a></li><li class="l3" data-parent="protein-protein-interactions-string"><a href="#string-functional-enrichment">STRING functional enrichment</a></li><li class="l2" data-parent="appendix"><a href="#appendix">Appendix</a></li><li class="l3" data-parent="appendix"><a href="#outputs">Outputs</a></li><li class="l3" data-parent="appendix"><a href="#software">Software</a></li><li class="l3" data-parent="appendix"><a href="#configuration">Configuration</a></li><li class="l3" data-parent="appendix"><a href="#session-info">Session info</a></li></ul></nav><main><button class="code-all">Show all code</button><h1 class="title">GSE295281: differential expression and enrichment</h1><p class="subtitle">AC-T vs Saline (hippocampus, 1 month after treatment)</p><p class="date">2026-11-14</p><div class="kpis"><div class="kpi"><div class="v">11</div><div class="l">samples</div></div><div class="kpi"><div class="v">18,767</div><div class="l">genes tested</div></div><div class="kpi"><div class="v">262</div><div class="l">up in ACT</div></div><div class="kpi"><div class="v">408</div><div class="l">down in ACT</div></div><div class="kpi"><div class="v">1,064 / 81</div><div class="l">GSEA terms GO / KEGG (padj &lt; 0.05)</div></div><div class="kpi"><div class="v">541</div><div class="l">DEGs mapped to STRING</div></div></div>
 <h2 id="study-design">Study design</h2>
 <p>Hippocampus of 12-week-old female C57BL/6J mice, one month after AC-T chemotherapy (doxorubicin +
 cyclophosphamide, then paclitaxel) or saline (GEO GSE295281, PMID 41519984). Paired-end RNA-seq, NextSeq 2000.</p>
@@ -457,16 +457,24 @@ if (!is.null(wp))   save_plot(<span class="hl-s">&quot;plots/wikipathways.png&qu
 <td>DESeq2 results for every tested gene</td>
 </tr>
 <tr>
-<td><code>results/GSEA_GO_all_full.csv</code>, <code>results/GSEA_KEGG_full.csv</code></td>
-<td>Full GSEA tables</td>
+<td><code>results/GSEA_GO_all_full.csv</code></td>
+<td>Full GSEA table, GO (BP, CC, MF)</td>
+</tr>
+<tr>
+<td><code>results/GSEA_KEGG_full.csv</code></td>
+<td>Full GSEA table, KEGG</td>
 </tr>
 <tr>
 <td><code>results/enrichment_STRING_full.csv</code></td>
 <td>STRING enrichment of the DEGs</td>
 </tr>
 <tr>
-<td><code>results/edges_PPI.csv</code>, <code>results/nodes_PPI.csv</code></td>
-<td>PPI network for Cytoscape</td>
+<td><code>results/edges_PPI.csv</code></td>
+<td>PPI edges for Cytoscape</td>
+</tr>
+<tr>
+<td><code>results/nodes_PPI.csv</code></td>
+<td>PPI node attributes (log2FC, padj)</td>
 </tr>
 <tr>
 <td><code>data/dds.rds</code></td>
@@ -474,6 +482,8 @@ if (!is.null(wp))   save_plot(<span class="hl-s">&quot;plots/wikipathways.png&qu
 </tr>
 </tbody>
 </table>
+<h3 id="software">Software</h3>
+<div class="tbl"><table><caption><b>Table 9.</b> Conda environments (<code>envs/</code>). Snakemake builds one per rule with <code>--use-conda</code>.</caption><thead><tr><th class="">environment</th><th class="">packages</th><th class="">exact versions</th></tr></thead><tbody><tr><td class="">deseq2</td><td class="">r-base=4.5.3, r-ggplot2, r-readr, r-dplyr, r-tidyr, r-tibble, r-stringr, r-pheatmap, r-ggrepel, r-ggridges, r-ggforce, r-shadowtext, r-qqman, r-patchwork, r-igraph, r-ggtangle=0.1.4, bioconductor-deseq2, bioconductor-apeglm, bioconductor-enhancedvolcano, bioconductor-summarizedexperiment, bioconductor-clusterprofiler, bioconductor-enrichplot, bioconductor-dose, bioconductor-org.mm.eg.db, bioconductor-pathview, bioconductor-reactomepa, bioconductor-stringdb</td><td class="">envs/deseq2.linux-64.pin.txt</td></tr><tr><td class="">report</td><td class="">python=3.12, pandas=2.3, numpy=2.3, matplotlib-base=3.10, markdown=3.9</td><td class="">versions in the YAML</td></tr></tbody></table></div>
 <h3 id="configuration">Configuration</h3>
 <details><summary>Show config.yaml</summary><pre><code class="yaml"># ============================================================
 # Dataset configuration. For another dataset, replace this file

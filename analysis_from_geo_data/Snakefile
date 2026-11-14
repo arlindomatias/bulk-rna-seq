@@ -49,6 +49,7 @@ rule all:
         "results/nodes_PPI.csv",
 
         # Report
+        "reports/sessionInfo.txt",
         "reports/report.html",
 
 
@@ -139,6 +140,26 @@ rule enrichment:
 
 
 # ------------------------------------------------------------
+# R session info (package versions of the rna-seq environment)
+# ------------------------------------------------------------
+
+rule session_info:
+    input:
+        packages=".pipeline/packages.done",
+    output:
+        "reports/sessionInfo.txt",
+    conda:
+        ENV
+    log:
+        "logs/session_info.log",
+    shell:
+        """
+        Rscript -e 'suppressMessages(source("scripts/00_packages.R")); \
+                    writeLines(capture.output(sessionInfo()), "{output}")' > {log} 2>&1
+        """
+
+
+# ------------------------------------------------------------
 # Step 04: HTML report of the whole analysis (plots/ + results/)
 # ------------------------------------------------------------
 
@@ -152,6 +173,9 @@ rule report:
         string="results/enrichment_STRING_full.csv",
         edges="results/edges_PPI.csv",
         nodes="results/nodes_PPI.csv",
+        session="reports/sessionInfo.txt",
+        config=["Snakefile"],
+        envs=["envs/rna-seq.yaml", "envs/report.yaml"],
         scripts=["scripts/report.py", "scripts/html_report.py"],
         code=["scripts/02_differential_expression_and_qc.R", "scripts/03_enrichment.R"],
     output:
@@ -182,7 +206,6 @@ The analysis starts from the count table deposited by the authors in GEO (gene s
 reads are not processed here. Gene symbols are used as identifiers.
 """,
         upstream_qc="",
-        config_text="",
     conda:
         ENV_REPORT
     log:

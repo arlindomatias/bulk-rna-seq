@@ -137,7 +137,8 @@ rule report:
         edges=rules.enrichment.output.edges,
         nodes=rules.enrichment.output.nodes,
         session=rules.enrichment.output.session,
-        config="config.yaml",
+        config=["config.yaml"],
+        envs=["envs/deseq2.yaml", "envs/report.yaml"],
         scripts=["scripts/report.py", "scripts/html_report.py"],
         code=["scripts/02_differential_expression_and_qc.R", "scripts/03_enrichment.R"],
     output:
@@ -175,7 +176,6 @@ Input is the gene-level tximport object made by
 GENCODE M35 → tximport). Its report covers read quality and quantification in detail.
 """,
         upstream_qc=UPSTREAM_QC,
-        config_text=lambda wildcards: open("config.yaml").read(),
     conda:
         "envs/report.yaml"
     log:

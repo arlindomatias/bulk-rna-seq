@@ -321,6 +321,49 @@ class Report:
             block = f"<details><summary>{html.escape(summary)}</summary>{block}</details>"
         self.body.append(block)
 
+    # ---- appendix ----------------------------------------------------------
+    def appendix(self, outputs, env_files=(), config_files=(), session_file=None):
+        """Standard appendix shared by every project report.
+
+        outputs: list of (file, description) rows.
+        env_files: conda environment YAML files (envs/*.yaml); a matching *.linux-64.pin.txt is noted.
+        config_files: files with the run parameters (config.yaml, or the Snakefile when there is none).
+        session_file: text file with the R sessionInfo() of the analysis environment.
+        """
+        self.h2("Appendix")
+        self.h3("Outputs")
+        rows = "\n".join(f"| `{f}` | {d} |" for f, d in outputs)
+        self.md(f"| File | Contents |\n|---|---|\n{rows}")
+
+        self.h3("Software")
+        envs = []
+        for f in env_files:
+            with open(f, encoding="utf-8") as fh:
+                text = fh.read()
+            section = text.split("dependencies:", 1)[-1]
+            deps = [l.strip()[2:] for l in section.splitlines() if l.strip().startswith("- ")]
+            name = os.path.basename(f).rsplit(".", 1)[0]
+            pin = os.path.join(os.path.dirname(f), f"{name}.linux-64.pin.txt")
+            envs.append({"environment": name,
+                         "packages": ", ".join(deps),
+                         "exact versions": f"envs/{os.path.basename(pin)}" if os.path.exists(pin) else "versions in the YAML"})
+        if envs:
+            import pandas as pd
+            self.table(pd.DataFrame(envs), "Conda environments (`envs/`). Snakemake builds one per rule with `--use-conda`.")
+
+        self.h3("Configuration")
+        for f in config_files:
+            with open(f, encoding="utf-8") as fh:
+                lang = "yaml" if f.endswith((".yaml", ".yml")) else "python"
+                self.code(fh.read(), lang, collapsed=True, summary=f"Show {os.path.basename(f)}")
+
+        self.h3("Session info")
+        if session_file and os.path.exists(session_file):
+            with open(session_file, encoding="utf-8") as fh:
+                self.code(fh.read(), collapsed=True, summary="Show R sessionInfo()")
+        else:
+            self.md("No session information was recorded.")
+
     # ---- output ------------------------------------------------------------
     def _toc_html(self):
         items = []
