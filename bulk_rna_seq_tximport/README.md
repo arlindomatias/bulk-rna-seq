@@ -1,8 +1,8 @@
 # Bulk RNA-seq from Salmon/tximport: differential expression and enrichment
 
-A Snakemake generalization of the [bulk-rna-seq](../analysis_from_geo_data) pipeline
-(GSE178812). The original pipeline reads a gene-symbol count matrix from GEO; this one starts from
-**Salmon quantifications summarized with tximport** and is configured per dataset in `config.yaml`.
+Differential expression and enrichment of **Salmon quantifications summarized with tximport**, configured per
+dataset in `config.yaml`. It runs the same scripts (`../scripts/de/`) as
+[`analysis_from_geo_data`](../analysis_from_geo_data), which starts from a GEO count table instead.
 
 Current dataset: **GSE295281**: hippocampus of 12-week-old female C57BL/6J mice, one month after AC-T
 chemotherapy (doxorubicin + cyclophosphamide, then paclitaxel) vs saline (n = 5 vs 6). The input comes from
@@ -10,19 +10,18 @@ chemotherapy (doxorubicin + cyclophosphamide, then paclitaxel) vs saline (n = 5 
 
 **Report:** [arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html)
 
-## What changed relative to bulk-rna-seq
+## Differences from `analysis_from_geo_data`
 
-| | bulk-rna-seq | this project |
+Both projects run the same scripts. Only the input differs, and that sets a few options in `config.yaml`:
+
+| | `analysis_from_geo_data` | this project |
 |---|---|---|
-| Input | GEO xlsx of counts by gene symbol | `txi_gene.rds` (tximport) + `samples.tsv` + `tx2gene.tsv` |
+| Input | GEO xlsx of counts by gene symbol (`01_prepare_geo.R`) | `txi_gene.rds` (tximport) + `samples.tsv` + `tx2gene.tsv` (`01_prepare_tximport.R`) |
 | DESeq2 object | `DESeqDataSetFromMatrix` | `DESeqDataSetFromTximport` (uses transcript-length offsets) |
-| Gene IDs | symbols, duplicates dropped | Ensembl gene IDs (version stripped), symbol kept as annotation |
-| GSEA keys | `SYMBOL` | `ENSEMBL` for GO, Entrez for KEGG (ties resolved by largest \|stat\|) |
-| Groups, filter, cutoffs | hard-coded | `config.yaml` (filter default: smallest group size) |
-| KEGG | `gseKEGG`, downloads KEGG at every run | KEGG REST downloaded once to `cache/kegg/` (rule `kegg_annotation`), then `GSEA(TERM2GENE)` |
-| Pathview | fixed pathway | configured list, or top N significant KEGG pathways |
-| Runner | Snakemake calling `Rscript` | Snakemake `script:` + per-rule conda env and logs |
-| Extra QC | | sample distance heatmap, labelled PCA, marker-gene plot |
+| Gene IDs (`gene_id_type`) | `SYMBOL` (duplicates dropped) | `ENSEMBL` without version; symbol kept as annotation |
+| GSEA keys | `SYMBOL` for GO, Entrez for KEGG | `ENSEMBL` for GO, Entrez for KEGG (ties resolved by largest \|stat\|) |
+| Filter | ≥ 10 counts in 3 samples | ≥ 10 counts in the smallest group size |
+| Marker-gene plot | not configured | *Xist*, *Ddx3y*, glial markers |
 
 ## Usage
 

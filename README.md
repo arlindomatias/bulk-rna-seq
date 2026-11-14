@@ -33,18 +33,41 @@ GitHub Pages.
 
 ## Project layout
 
-Every project follows the same folder layout (other folders, such as `logs/` or `cache/`, are added when needed):
+Every project follows the same folder layout (other folders, such as `logs/` or `cache/`, are added when needed).
+The scripts are not inside the projects: they live in the repository-level [`scripts/`](scripts) folder,
+shared by the projects (see below).
 
 | Folder | Contents |
 |---|---|
 | `data/` | Inputs (count tables, sample metadata), intermediate objects (`dds.rds`, `txi_gene.rds`) and small reference files |
 | `results/` | Result tables only (`.csv`/`.tsv`) |
 | `plots/` | All figures |
-| `scripts/` | Scripts called by the Snakefile |
 | `envs/` | Conda environments; each `envs/<name>.yaml` creates the environment `<name>` and has a `<name>.linux-64.pin.txt` lock when pinned |
 | `reports/` | `report.html`: self-contained HTML report explaining the results with figures, from the first to the last step (built in Python, so it works for projects without R) |
 
 Large files (SRA, FASTQ, genomes, indices, Salmon outputs) are never stored in the repository: they live under `$DATA`.
+
+### Shared scripts
+
+```
+scripts/
+├── html_report.py                         # HTML report builder used by every project's report rule
+├── de/                                    # DE projects (bulk_rna_seq_tximport, analysis_from_geo_data)
+│   ├── 00_common.R                        # config, logging, sample metadata (sourced by every step)
+│   ├── 01_prepare_tximport.R              # tximport object -> DESeq2 object
+│   ├── 01_prepare_geo.R                   # GEO count table + series matrix -> DESeq2 object
+│   ├── 02_differential_expression_and_qc.R
+│   ├── 03_enrichment.R                    # GSEA GO/KEGG, pathview, STRING
+│   └── report.py
+└── raw/                                   # raw_reads_processing
+    ├── tx2gene.py, qc_summary.py, tximport.R
+    ├── qc_plots.py
+    └── report.py
+```
+
+Both DE projects run the same scripts; everything specific to a dataset (input, groups, gene identifier type,
+cutoffs, filter, enrichment settings, seed) is in its `config.yaml`. Each project keeps its own complete
+`Snakefile`.
 
 ## Datasets
 
@@ -79,12 +102,12 @@ snakemake --use-conda --cores 8 --resources download=3 scratch_dump=1
 
 ### 2. `bulk_rna_seq_tximport`: DE and enrichment from tximport
 
-A configurable version of the GEO pipeline. Everything specific to a dataset lives in `config.yaml`: groups,
-covariates, excluded samples, filters, cutoffs and enrichment settings.
+Runs the shared DE scripts (`scripts/de/`) on the tximport object of `raw_reads_processing`. Everything specific
+to a dataset lives in `config.yaml`: groups, covariates, excluded samples, filters, cutoffs and enrichment settings.
 
 - `DESeqDataSetFromTximport` (with transcript-length offsets), Ensembl gene IDs, apeglm-shrunken log2FC.
-- KEGG annotation is downloaded once into `cache/kegg/`, then used for GSEA with `TERM2GENE`.
-- Extra QC: sample-distance heatmap, labelled PCA, marker-gene plot (*Xist*, *Ddx3y*, glial markers).
+- KEGG annotation is downloaded once into `cache/kegg/`, then used for GSEA with `TERM2GENE` (both DE projects).
+- QC: sample-distance heatmap, labelled PCA and a marker-gene plot (*Xist*, *Ddx3y*, glial markers).
 - Current result (AC-T vs saline, 18,767 genes tested): **262 up- and 408 down-regulated DEGs**
   (`padj < 0.05`, `|log2FC| > 0.5`).
 
@@ -97,12 +120,14 @@ snakemake --use-conda --cores 2 --configfile other.yaml
 
 ### 3. `analysis_from_geo_data`: DE and enrichment from GEO counts
 
-The original pipeline. It downloads the GSE178812 count table and series matrix, then runs DESeq2
-(`~ group`, VEH as reference), GSEA (GO and KEGG), pathview, a STRING v12 PPI network and STRING enrichment.
+Same scripts as `bulk_rna_seq_tximport`, with a different first step (`01_prepare_geo.R`): it downloads the
+GSE178812 count table and series matrix, takes the groups from the GEO sample titles and uses gene symbols as
+identifiers. Then DESeq2 (`~ group`, VEH as reference), GSEA (GO and KEGG), pathview, a STRING v12 PPI
+network and STRING enrichment. Current result: 7 up- and 51 down-regulated DEGs (CHEM vs VEH).
 
 ```bash
 cd analysis_from_geo_data
-snakemake --use-conda --cores 1
+snakemake --use-conda --cores 2
 ```
 
 ## Shared methods
