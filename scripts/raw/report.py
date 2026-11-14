@@ -8,8 +8,8 @@ import sys
 
 import pandas as pd
 
-# Shared report module: <repository>/scripts/html_report.py (one level above the project folder).
-sys.path.insert(0, os.path.join(snakemake.scriptdir, "..", "..", "scripts"))  # noqa: F821
+# Shared report module: <repository>/scripts/html_report.py (this script lives in scripts/raw/).
+sys.path.insert(0, os.path.join(snakemake.scriptdir, ".."))  # noqa: F821
 from html_report import Report  # noqa: E402
 
 inp, out, cfg = snakemake.input, snakemake.output, snakemake.config  # noqa: F821

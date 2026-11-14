@@ -211,7 +211,7 @@ rule tx2gene:
     log:
         "logs/tx2gene/tx2gene.log",
     shell:
-        "python3 scripts/tx2gene.py {input} {output} &> {log}"
+        "python3 ../scripts/raw/tx2gene.py {input} {output} &> {log}"
 
 
 rule qc_summary:
@@ -226,7 +226,7 @@ rule qc_summary:
     log:
         "logs/qc_summary/qc_summary.log",
     shell:
-        "python3 scripts/qc_summary.py {input.samples} {params.salmon_dir} {output} &> {log}"
+        "python3 ../scripts/raw/qc_summary.py {input.samples} {params.salmon_dir} {output} &> {log}"
 
 
 rule tximport:
@@ -249,7 +249,7 @@ rule tximport:
         "logs/tximport/tximport.log",
     shell:
         """
-        Rscript scripts/tximport.R {input.samples} {params.salmon_dir} {input.tx2gene} \
+        Rscript ../scripts/raw/tximport.R {input.samples} {params.salmon_dir} {input.tx2gene} \
             {output.counts} {output.scaled} {output.tpm} {output.length} {output.rds} &> {log}
         """
 
@@ -283,7 +283,7 @@ rule qc_plots:
         "logs/qc_plots/qc_plots.log",
     shell:
         """
-        python3 scripts/qc_plots.py {input.samples} {input.qc} {input.counts} {input.tx2gene} \
+        python3 ../scripts/raw/qc_plots.py {input.samples} {input.qc} {input.counts} {input.tx2gene} \
             {params.fastqc_dir} plots results &> {log}
         """
 
@@ -319,7 +319,8 @@ rule report:
         config="config.yaml",
         session="reports/sessionInfo.txt",
         scripts=["../scripts/html_report.py"],
-        code=["scripts/qc_plots.py"],
+        code=["../scripts/raw/qc_plots.py"],
+        report_script=["../scripts/raw/report.py"],
     output:
         html="reports/report.html",
     conda:
@@ -327,4 +328,4 @@ rule report:
     log:
         "logs/report/report.log",
     script:
-        "scripts/report.py"
+        "../scripts/raw/report.py"
