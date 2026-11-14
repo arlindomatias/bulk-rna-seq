@@ -1,7 +1,8 @@
 # ============================================================
 # SCRIPT 03: ENRICHMENT ANALYSIS
-# GSEA uses Ensembl IDs (without version) instead of symbols: in GENCODE some symbols
-# map to more than one gene. STRING still uses symbols.
+# GSEA uses the gene identifiers of the count table (config gene_id_type): Ensembl IDs without
+# version for tximport projects (in GENCODE some symbols map to more than one gene), symbols for
+# GEO symbol tables. KEGG uses Entrez IDs mapped from them. STRING always uses symbols.
 # ============================================================
 source(file.path(snakemake@scriptdir, "00_common.R"))
 suppressPackageStartupMessages({
@@ -39,21 +40,22 @@ gene_list <- setNames(tt$stat, tt$gene_id)
 gene_list <- sort(gene_list[!is.na(gene_list)], decreasing = TRUE)
 fc_list   <- setNames(tt$log2FoldChange, tt$gene_id)[names(gene_list)]  # colors only
 
-n_mapped <- sum(names(gene_list) %in% keys(orgdb, "ENSEMBL"))
-message("Ranked genes: ", length(gene_list), " | in ", ecfg$orgdb, " (ENSEMBL): ", n_mapped)
+n_mapped <- sum(names(gene_list) %in% keys(orgdb, gene_id_type))
+message("Ranked genes: ", length(gene_list), " | in ", ecfg$orgdb, " (", gene_id_type, "): ", n_mapped)
 
+n_gsea_plot <- ecfg$gsea_plot_top_n %||% 3   # pathways/terms in the single-set GSEA plots
 gsea_args <- list(minGSSize = ecfg$min_gs_size, maxGSSize = ecfg$max_gs_size,
                   pvalueCutoff = ecfg$pvalue_cutoff, pAdjustMethod = "BH", eps = 0,
                   seed = TRUE)
 
 ### 2. GSEA GO -----------------------------------------------------------------
 message("Performing GSEA (GO)")
-gse_GO_all <- do.call(gseGO, c(list(geneList = gene_list, ont = "ALL", keyType = "ENSEMBL",
+gse_GO_all <- do.call(gseGO, c(list(geneList = gene_list, ont = "ALL", keyType = gene_id_type,
                                     OrgDb = orgdb, verbose = FALSE), gsea_args))
 has_go <- !is.null(gse_GO_all) && nrow(gse_GO_all@result) > 0
 
 if (has_go) {
-  gse_GO_all <- setReadable(gse_GO_all, OrgDb = orgdb, keyType = "ENSEMBL")
+  if (gene_id_type != "SYMBOL") gse_GO_all <- setReadable(gse_GO_all, OrgDb = orgdb, keyType = gene_id_type)
   gse_df <- as.data.frame(gse_GO_all) |>
     mutate(direction = ifelse(NES > 0, dir_up, dir_down)) |>
     arrange(p.adjust)
@@ -122,28 +124,31 @@ if (has_go) {
   }
 
   # <figure name="gsea">
+  # Running score of the n most significant terms (result is sorted by p.adjust).
+  # pvalue_table = FALSE: with several sets, enrichplot 1.30 mislabels the rows of that table
+  # (names and colors do not match the curves); the legend is correct and the report has the p-values.
+  top_ids <- seq_len(min(n_gsea_plot, nrow(gse_GO_all@result)))
   save_plot("plots/gsea.png",
-            gseaplot2(gse_GO_all, geneSetID = 1, pvalue_table = TRUE,
-                      title = gse_GO_all$Description[1],
-                      color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line"),
-            width = 9, height = 7)
+            gseaplot2(gse_GO_all, geneSetID = top_ids, pvalue_table = FALSE,
+                      title = paste("Top", length(top_ids), "GO terms"), ES_geom = "line"),
+            width = 11, height = 8)
   # </figure>
 } else {
   write_empty(out$go, "GO terms")
 }
 
 ### 3. GSEA KEGG (Entrez IDs) ---------------------------------------------------
-map <- bitr(names(gene_list), fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = orgdb)
-map$stat <- gene_list[map$ENSEMBL]
+map <- bitr(names(gene_list), fromType = gene_id_type, toType = "ENTREZID", OrgDb = orgdb)
+map$stat <- gene_list[map[[gene_id_type]]]
 map <- map[order(-abs(map$stat)), ]                       # on conflicts, keep the largest |stat|
-map <- map[!duplicated(map$ENSEMBL) & !duplicated(map$ENTREZID), ]
+map <- map[!duplicated(map[[gene_id_type]]) & !duplicated(map$ENTREZID), ]
 message("Genes with Entrez ID for KEGG: ", nrow(map), " of ", length(gene_list))
 
 gene_list_entrez <- sort(setNames(map$stat, map$ENTREZID), decreasing = TRUE)
-fc_entrez <- setNames(fc_list[map$ENSEMBL], map$ENTREZID)
+fc_entrez <- setNames(fc_list[map[[gene_id_type]]], map$ENTREZID)
 
 # Local annotation (kegg_annotation rule) instead of gseKEGG downloading it on every run.
-# Formatos: "path:mmu00010<TAB>mmu:100042025" e "mmu00010<TAB>Glycolysis ... - Mus musculus ...".
+# Formats: "path:mmu00010<TAB>mmu:100042025" and "mmu00010<TAB>Glycolysis ... - Mus musculus ...".
 kegg_link <- read_tsv(snakemake@input$kegg_link, col_names = c("term", "gene"),
                       col_types = "cc") |>
   mutate(term = sub("^path:", "", term), gene = sub("^[a-z]+:", "", gene))
@@ -196,11 +201,11 @@ if (has_kegg) {
             width = 7, height = 5)
   # </figure>
   # <figure name="gsea_kegg">
+  top_ids <- seq_len(min(n_gsea_plot, nrow(gse_kegg@result)))
   save_plot("plots/gsea_kegg.png",
-            gseaplot2(gse_kegg, geneSetID = 1, pvalue_table = TRUE,
-                      title = gse_kegg$Description[1],
-                      color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line"),
-            width = 9, height = 7)
+            gseaplot2(gse_kegg, geneSetID = top_ids, pvalue_table = FALSE,
+                      title = paste("Top", length(top_ids), "KEGG pathways"), ES_geom = "line"),
+            width = 11, height = 8)
   # </figure>
 } else {
   write_empty(out$kegg, "KEGG pathways")

@@ -10,14 +10,15 @@ import sys
 
 import pandas as pd
 
-# Shared report module: <repository>/scripts/html_report.py (one level above the project folder).
-sys.path.insert(0, os.path.join(snakemake.scriptdir, "..", "..", "scripts"))  # noqa: F821
+# Shared report module: <repository>/scripts/html_report.py (this script lives in scripts/de/).
+sys.path.insert(0, os.path.join(snakemake.scriptdir, ".."))  # noqa: F821
 from html_report import Report  # noqa: E402
 
 inp, out, prm = snakemake.input, snakemake.output, snakemake.params  # noqa: F821
 P = "plots"
 padj_cut, lfc_cut = float(prm.padj), float(prm.lfc)
 trt, ref = prm.treatment, prm.reference
+n_gsea_plot = snakemake.config.get("enrichment", {}).get("gsea_plot_top_n", 3)  # noqa: F821
 
 
 def read_csv(path):
@@ -146,7 +147,7 @@ r.figure(f"{P}/dotplot_GO.png", "Top 10 GO terms per ontology and direction (act
 r.figure(f"{P}/ridge.png", "Distribution of fold changes of the core genes of each term.", optional=True)
 r.figure(f"{P}/emaplot.png", "Enrichment map: terms that share genes are linked.", optional=True)
 r.figure(f"{P}/cnet.png", "Gene-concept network of the top terms.", optional=True)
-r.figure(f"{P}/gsea.png", "Running enrichment score of the most significant GO term.", optional=True)
+r.figure(f"{P}/gsea.png", f"Running enrichment score of the {n_gsea_plot} most significant GO terms.", optional=True)
 gsea_cols = [c for c in ["ONTOLOGY", "ID", "Description", "setSize", "NES", "p.adjust"] if c in go]
 
 
@@ -171,7 +172,7 @@ r.figure(f"{P}/dotplot_kegg.png", "Top KEGG pathways, split by direction.", opti
 r.figure(f"{P}/ridge_kegg.png", "Fold-change distribution of the core genes per pathway.", optional=True)
 r.figure(f"{P}/ema_kegg.png", "Enrichment map of KEGG pathways.", optional=True)
 r.figure(f"{P}/cnet_kegg.png", "Gene-concept network of the top KEGG pathways.", optional=True)
-r.figure(f"{P}/gsea_kegg.png", "Running enrichment score of the most significant KEGG pathway.", optional=True)
+r.figure(f"{P}/gsea_kegg.png", f"Running enrichment score of the {n_gsea_plot} most significant KEGG pathways.", optional=True)
 if len(kegg_sig):
     r.table(top_by_direction(kegg_sig, [c for c in ["ID", "Description", "setSize", "NES", "p.adjust"] if c in kegg]),
             f"Top 10 KEGG pathways per direction (NES > 0: enriched in {trt}).")

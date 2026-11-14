@@ -56,16 +56,15 @@ loaded via a namespace (and not attached):
  [70] yulab.utils_0.2.5       vroom_1.7.1             splines_4.5.3          
  [73] tweenr_2.0.3            treeio_1.34.0           lattice_0.23-1         
  [76] bit_4.6.0               tidyselect_1.2.1        fontLiberation_0.1.0   
- [79] GO.db_3.22.0            Biostrings_2.78.0       gridExtra_2.3.1        
- [82] fontBitstreamVera_0.1.1 Seqinfo_1.0.0           sqldf_0.4-12           
- [85] KEGGgraph_1.70.0        proto_1.0.0             stringi_1.8.9          
- [88] lazyeval_0.2.3          ggfun_0.2.2             codetools_0.2-20       
- [91] gdtools_0.5.3           qvalue_2.42.0           hash_3.0.1             
- [94] Rgraphviz_2.54.0        graph_1.88.1            ggplotify_0.1.4        
- [97] cli_3.6.6               systemfonts_1.3.2       Rcpp_1.1.2             
-[100] png_0.1-9               XML_3.99-0.25           parallel_4.5.3         
-[103] blob_1.3.0              DOSE_4.4.0              bitops_1.1-0           
-[106] tidytree_0.4.8          ggiraph_0.9.6           ggridges_0.5.7         
-[109] scales_1.4.0            purrr_1.2.2             crayon_1.5.3           
-[112] rlang_1.3.0             cowplot_1.2.0           fastmatch_1.1-8        
-[115] KEGGREST_1.50.0        
+ [79] GO.db_3.22.0            Biostrings_2.78.0       fontBitstreamVera_0.1.1
+ [82] Seqinfo_1.0.0           sqldf_0.4-12            KEGGgraph_1.70.0       
+ [85] proto_1.0.0             stringi_1.8.9           lazyeval_0.2.3         
+ [88] ggfun_0.2.2             codetools_0.2-20        gdtools_0.5.3          
+ [91] qvalue_2.42.0           hash_3.0.1              Rgraphviz_2.54.0       
+ [94] graph_1.88.1            ggplotify_0.1.4         cli_3.6.6              
+ [97] systemfonts_1.3.2       Rcpp_1.1.2              png_0.1-9              
+[100] XML_3.99-0.25           parallel_4.5.3          blob_1.3.0             
+[103] DOSE_4.4.0              bitops_1.1-0            tidytree_0.4.8         
+[106] ggiraph_0.9.6           ggridges_0.5.7          scales_1.4.0           
+[109] purrr_1.2.2             crayon_1.5.3            rlang_1.3.0            
+[112] cowplot_1.2.0           fastmatch_1.1-8         KEGGREST_1.50.0        

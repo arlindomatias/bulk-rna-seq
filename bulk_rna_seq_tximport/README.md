@@ -48,12 +48,12 @@ a separate checkout or working directory per dataset.
 
 | Rule | Script | Main outputs |
 |---|---|---|
-| `prepare` | `01_prepare.R` | `data/dds_raw.rds`, `data/colData.csv` |
-| `differential` | `02_differential_expression_and_qc.R` | `data/dds.rds`, `results/top_table.csv`, `results/de_summary.tsv`, `results/normalized_counts.csv`, QC/DE plots |
+| `prepare` | `../scripts/de/01_prepare_tximport.R` | `data/dds_raw.rds`, `data/colData.csv` |
+| `differential` | `../scripts/de/02_differential_expression_and_qc.R` | `data/dds.rds`, `results/top_table.csv`, `results/de_summary.tsv`, `results/normalized_counts.csv`, QC/DE plots |
 | `kegg_annotation` | (curl) | `cache/kegg/{org}_link_pathway.tsv`, `cache/kegg/{org}_list_pathway.tsv` |
-| `enrichment` | `03_enrichment.R` | `results/GSEA_GO_all_full.csv`, `results/GSEA_KEGG_full.csv`, `results/enrichment_STRING_full.csv`, `results/{edges,nodes}_PPI.csv`, `reports/sessionInfo.txt`, enrichment plots |
+| `enrichment` | `../scripts/de/03_enrichment.R` | `results/GSEA_GO_all_full.csv`, `results/GSEA_KEGG_full.csv`, `results/enrichment_STRING_full.csv`, `results/{edges,nodes}_PPI.csv`, `reports/sessionInfo.txt`, enrichment plots |
 
-`00_common.R` is sourced by every step (logging, config, colors). Logs are written to `logs/{rule}.log`.
+`../scripts/de/00_common.R` is sourced by every step (logging, config, colors). Logs are written to `logs/{rule}.log`.
 
 ## Methods
 

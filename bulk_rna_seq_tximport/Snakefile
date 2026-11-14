@@ -35,7 +35,7 @@ rule prepare:
     log:
         "logs/prepare.log",
     script:
-        "scripts/01_prepare.R"
+        "../scripts/de/01_prepare_tximport.R"
 
 
 # ------------------------------------------------------------
@@ -66,7 +66,7 @@ rule differential:
     log:
         "logs/differential.log",
     script:
-        "scripts/02_differential_expression_and_qc.R"
+        "../scripts/de/02_differential_expression_and_qc.R"
 
 
 # ------------------------------------------------------------
@@ -118,7 +118,7 @@ rule enrichment:
     log:
         "logs/enrichment.log",
     script:
-        "scripts/03_enrichment.R"
+        "../scripts/de/03_enrichment.R"
 
 
 # ------------------------------------------------------------
@@ -139,8 +139,8 @@ rule report:
         session=rules.enrichment.output.session,
         config=["config.yaml"],
         envs=["envs/deseq2.yaml", "envs/report.yaml"],
-        scripts=["scripts/report.py", "../scripts/html_report.py"],
-        code=["scripts/02_differential_expression_and_qc.R", "scripts/03_enrichment.R"],
+        scripts=["../scripts/de/report.py", "../scripts/html_report.py"],
+        code=["../scripts/de/02_differential_expression_and_qc.R", "../scripts/de/03_enrichment.R"],
     output:
         html="reports/report.html",
     params:
@@ -181,4 +181,4 @@ GENCODE M35 → tximport). Its report covers read quality and quantification in 
     log:
         "logs/report.log",
     script:
-        "scripts/report.py"
+        "../scripts/de/report.py"
