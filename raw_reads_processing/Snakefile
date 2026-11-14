@@ -318,7 +318,7 @@ rule report:
         envs=["envs/qc.yaml", "envs/report.yaml", "envs/salmon.yaml", "envs/sratools.yaml", "envs/tximport.yaml"],
         config="config.yaml",
         session="reports/sessionInfo.txt",
-        scripts=["scripts/html_report.py"],
+        scripts=["../scripts/html_report.py"],
         code=["scripts/qc_plots.py"],
     output:
         html="reports/report.html",

@@ -870,7 +870,7 @@ rule report:
         session=&quot;reports/sessionInfo.txt&quot;,
         config=[&quot;Snakefile&quot;],
         envs=[&quot;envs/rna-seq.yaml&quot;, &quot;envs/report.yaml&quot;],
-        scripts=[&quot;scripts/report.py&quot;, &quot;scripts/html_report.py&quot;],
+        scripts=[&quot;scripts/report.py&quot;, &quot;../scripts/html_report.py&quot;],
         code=[&quot;scripts/02_differential_expression_and_qc.R&quot;, &quot;scripts/03_enrichment.R&quot;],
     output:
         html=&quot;reports/report.html&quot;,
