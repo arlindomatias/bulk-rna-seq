@@ -141,7 +141,7 @@ GSEA uses all tested genes, so it also catches pathways where many genes change 
 **{len(go_sig):,} GO terms** have `padj < 0.05` ({n_go_up} enriched in {trt}, {len(go_sig) - n_go_up} in {ref}).
 """)
 r.h3("GO")
-r.figure(f"{P}/dotplot_GO.png", "Top GO terms by ontology, split by direction (activated / suppressed).", optional=True)
+r.figure(f"{P}/dotplot_GO.png", "Top 10 GO terms per ontology and direction (activated: NES > 0, higher in the treated group; suppressed: NES < 0).", optional=True)
 r.figure(f"{P}/ridge.png", "Distribution of fold changes of the core genes of each term.", optional=True)
 r.figure(f"{P}/emaplot.png", "Enrichment map: terms that share genes are linked.", optional=True)
 r.figure(f"{P}/cnet.png", "Gene-concept network of the top terms.", optional=True)

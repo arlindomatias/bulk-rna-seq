@@ -78,11 +78,21 @@ if (has_go) {
   # ----------------------------------------------------------
   
   # <figure name="dotplot_GO">
+  # Top 10 terms per ontology *and* direction. showCategory = 10 with split = "ONTOLOGY" ranks by
+  # p.adjust within each ontology only, so one direction could hide the other.
+  top_go <- gse_GO_all@result |>
+    mutate(sign = ifelse(NES > 0, "activated", "suppressed")) |>
+    group_by(ONTOLOGY, sign) |>
+    slice_min(p.adjust, n = 10, with_ties = FALSE) |>
+    ungroup()
+  go_dot <- gse_GO_all
+  go_dot@result <- gse_GO_all@result[gse_GO_all@result$ID %in% top_go$ID, ]
   dot <- dotplot(
-    gse_GO_all,
-    showCategory = 10,
-    split = "ONTOLOGY",
-    font.size = 12
+    go_dot,
+    showCategory = nrow(go_dot@result),
+    split = ".sign",
+    font.size = 11,
+    label_format = 60
   ) +
     facet_grid(
       ONTOLOGY ~ .sign,
@@ -93,8 +103,8 @@ if (has_go) {
   ggsave(
     "plots/dotplot_GO.png",
     plot = dot,
-    width = 7,
-    height = 15,
+    width = 13,
+    height = 18,
     dpi = 300,
     bg = "white"
   )
