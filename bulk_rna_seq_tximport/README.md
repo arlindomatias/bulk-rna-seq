@@ -8,6 +8,8 @@ Current dataset: **GSE295281**: hippocampus of 12-week-old female C57BL/6J mice,
 chemotherapy (doxorubicin + cyclophosphamide, then paclitaxel) vs saline (n = 5 vs 6). The input comes from
 [`../raw_reads_processing`](../raw_reads_processing) (Salmon 2.11.0, GENCODE M35).
 
+**Report:** [arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html)
+
 ## What changed relative to bulk-rna-seq
 
 | | bulk-rna-seq | this project |

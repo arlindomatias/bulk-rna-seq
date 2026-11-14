@@ -2,6 +2,8 @@
 
 A reproducible R pipeline for bulk RNA-seq differential expression and functional enrichment analysis of the public dataset **GSE178812** (NCBI GEO), investigating transcriptional alterations induced by doxorubicin, with a focus on mechanisms relevant to chemotherapy-induced cognitive impairment ("chemobrain").
 
+**Report:** [arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/reports/report.html)
+
 ## Overview
 
 The pipeline downloads and prepares the data, performs quality control and differential expression analysis with DESeq2, and runs functional enrichment analyses (GO, KEGG and GSEA), including pathway-level visualization.

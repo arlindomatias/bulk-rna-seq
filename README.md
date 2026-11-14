@@ -17,6 +17,20 @@ SRA (GSE295281) ──► raw_reads_processing ──► data/txi_gene.rds ─�
 GEO counts (GSE178812) ──────────────────────────────────────────► analysis_from_geo_data ─► DE + enrichment
 ```
 
+## Reports
+
+Each project has an HTML report that walks through the analysis from the input data to the last step,
+with figures and tables:
+
+| Project | Report |
+|---|---|
+| `raw_reads_processing` | [SRA → FastQC → Salmon → count table](https://arlindomatias.github.io/bulk-rna-seq/raw_reads_processing/reports/report.html) |
+| `bulk_rna_seq_tximport` | [GSE295281: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html) |
+| `analysis_from_geo_data` | [GSE178812: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/reports/report.html) |
+
+The reports are built by the `report` rule of each Snakefile (`reports/report.html`) and published with
+GitHub Pages.
+
 ## Project layout
 
 Every project follows the same folder layout (other folders, such as `logs/` or `cache/`, are added when needed):
