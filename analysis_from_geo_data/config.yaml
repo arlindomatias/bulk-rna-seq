@@ -1,0 +1,80 @@
+# ============================================================
+# Dataset configuration. Same structure as ../bulk_rna_seq_tximport/config.yaml, so both projects can run
+# the shared scripts in ../scripts/de/. Values are this project's current settings.
+# ============================================================
+
+dataset: GSE178812
+title: "Doxorubicin (CHEM) vs vehicle (VEH), mouse hippocampus"
+
+# Count table deposited by the authors in GEO (gene symbols x samples) and the series matrix
+# (sample metadata). Both are downloaded once into data/ by the `prepare` rule.
+input:
+  geo_accession: GSE178812
+  counts_url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE178nnn/GSE178812/suppl/GSE178812%5FDoxo%2Dcounts%2Exlsx
+  counts_file: data/GSE178812_Doxo-counts.xlsx
+  series_matrix: data/GSE178812_series_matrix.txt.gz
+
+# Groups are read from the GEO sample titles: the first matching pattern gives the group.
+# Samples whose title matches `exclude_title_pattern` (doxorubicin + MitoQ) are not used.
+geo:
+  title_patterns:
+    CHEM: "Doxo-treated"
+    VEH: "Sham"
+  exclude_title_pattern: "DMQ"
+
+# Gene identifiers of the count table: ENSEMBL (tximport projects) or SYMBOL (GEO symbol tables).
+# Sets the GO keyType and the Entrez mapping for KEGG.
+gene_id_type: SYMBOL
+
+samples:
+  id_column: GEO_ID           # GSM accession, column names of the DESeq2 object
+  condition_column: group     # experimental group (VEH / CHEM)
+  label_column: condition     # short label for plots (DOX_SH1, DOX_1, ...)
+
+# Raw value in `condition_column` -> label used in the model (valid R names).
+groups:
+  labels:
+    VEH: VEH
+    CHEM: CHEM
+  reference: VEH
+  treatment: CHEM
+  colors:
+    VEH: "#3399FF"
+    CHEM: "#CC0000"
+
+# Columns added to the model before the group (~ cov1 + cov2 + group).
+covariates: []
+
+# Sample ids removed from the analysis.
+exclude_samples: []
+
+filter:
+  min_count: 10
+  min_samples: 3      # current GEO value (= group size)
+
+de:
+  fit_type: local
+  padj: 0.05          # also the `alpha` of DESeq2 results() (independent filtering)
+  lfc: 0.5            # minimum |log2FC| for a DEG
+
+plots:
+  heatmap_max_genes: 60   # current GEO heatmap shows every DEG (58)
+  marker_genes: []        # no marker-gene plot for this dataset
+
+enrichment:
+  organism_kegg: mmu
+  orgdb: org.Mm.eg.db
+  min_gs_size: 10
+  max_gs_size: 800
+  pvalue_cutoff: 0.05
+  string_version: "12.0"
+  string_species: 10090
+  string_score: 700
+  string_cache: cache/
+  # Pathview maps and single-pathway GSEA plots: the `top_n` most significant pathways/terms
+  # (an explicit list in pathview_pathways overrides the top N).
+  pathview_pathways: []
+  pathview_top_n: 3
+  gsea_plot_top_n: 3
+
+seed: 123

@@ -499,6 +499,10 @@ input:
   samples: ../raw_reads_processing/data/samples.tsv        # one row per sample
   tx2gene: ../raw_reads_processing/data/tx2gene.tsv        # transcript_id, gene_id, gene_name, ...
 
+# Gene identifiers of the count table: ENSEMBL (tximport projects) or SYMBOL (GEO symbol tables).
+# Sets the GO keyType and the Entrez mapping for KEGG.
+gene_id_type: ENSEMBL
+
 samples:
   id_column: run              # must match colnames(txi$counts)
   condition_column: condition # column with the experimental group
@@ -529,7 +533,7 @@ filter:
 
 de:
   fit_type: local
-  padj: 0.05
+  padj: 0.05          # also the `alpha` of DESeq2 results() (independent filtering)
   lfc: 0.5            # minimum |log2FC| for a DEG
 
 plots:
@@ -548,9 +552,11 @@ enrichment:
   string_species: 10090
   string_score: 700
   string_cache: cache/
-  # Pathways for pathview. Empty list = the `pathview_top_n` most significant KEGG pathways.
+  # Pathview maps and single-pathway GSEA plots: the `top_n` most significant pathways/terms
+  # (an explicit list in pathview_pathways overrides the top N).
   pathview_pathways: []
   pathview_top_n: 3
+  gsea_plot_top_n: 3
 
 seed: 123</code></pre></details>
 <h3 id="session-info">Session info</h3>
