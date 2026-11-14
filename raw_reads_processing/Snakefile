@@ -301,6 +301,7 @@ rule report:
         multiqc="reports/multiqc_report.html",
         envs=["envs/qc.yaml", "envs/salmon.yaml", "envs/sratools.yaml", "envs/tximport.yaml"],
         scripts=["scripts/html_report.py"],
+        code=["scripts/qc_plots.py"],
     output:
         html="reports/report.html",
     conda:

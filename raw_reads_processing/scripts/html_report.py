@@ -8,9 +8,16 @@ R projects look the same.
 The same file is copied into every project's `scripts/` folder so that each project stays
 self-contained. Keep the copies identical.
 
+Code folding: pass `code_files` (scripts that made the figures). Blocks wrapped in
+    # <figure name="volcano">
+    ...
+    # </figure>
+are shown behind a "Code" button above the figure whose file name (without extension) matches the
+block name, like `code_folding: hide` in R Markdown. Works for R and Python scripts.
+
 Usage:
     from html_report import Report
-    r = Report("Title", subtitle="Dataset")
+    r = Report("Title", subtitle="Dataset", code_files=["scripts/02_de.R"])
     r.h2("Section"); r.md("Some **Markdown** text.")
     r.figure("plots/pca.png", "Caption.")
     r.table(df, "Caption.")
@@ -77,6 +84,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tbody tr:nth-child(odd) { background: #fafafa; }
 details { margin: 6px 0 18px; }
 details > summary { cursor: pointer; color: var(--accent); font-size: 14px; margin-bottom: 6px; }
+details.code { margin: 14px 0 0; }
+details.code > summary { list-style: none; display: inline-block; float: right; font-size: 12px;
+  color: #333; background: #f5f5f5; border: 1px solid #ccc; border-radius: 3px; padding: 2px 9px; }
+details.code > summary::-webkit-details-marker { display: none; }
+details.code > summary::before { content: "Show code"; }
+details.code[open] > summary::before { content: "Hide code"; }
+details.code > summary:hover { background: #e6e6e6; }
+details.code pre { clear: both; margin-top: 30px; }
+details.code .src { font-size: 12px; color: var(--ink2); margin: 4px 0 0; }
+.hl-c { color: #8e908c; font-style: italic; }
+.hl-s { color: #3e7a1f; }
+.code-all { float: right; margin-top: 30px; font-size: 12px; color: #333; background: #f5f5f5;
+  border: 1px solid #ccc; border-radius: 3px; padding: 3px 10px; cursor: pointer; }
 .kpis { display: flex; flex-wrap: wrap; gap: 12px; margin: 10px 0 22px; }
 .kpi { flex: 1 1 150px; border: 1px solid var(--rule); border-radius: 6px; padding: 10px 14px; }
 .kpi .v { font-size: 24px; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -104,6 +124,13 @@ _JS = """
   }
   document.addEventListener('scroll', update, { passive: true });
   update();
+  const btn = document.querySelector('.code-all');
+  if (btn) btn.addEventListener('click', () => {
+    const blocks = document.querySelectorAll('details.code');
+    const open = !Array.from(blocks).every(d => d.open);
+    blocks.forEach(d => { d.open = open; });
+    btn.textContent = open ? 'Hide all code' : 'Show all code';
+  });
 })();
 """
 
@@ -140,8 +167,48 @@ def _fmt(v, digits):
     return f"{v:,.{decimals}f}"
 
 
+_FIG_START = re.compile(r'^\s*#\s*<figure name="([^"]+)">\s*$')
+_FIG_END = re.compile(r"^\s*#\s*</figure>\s*$")
+
+
+def load_code_blocks(paths):
+    """Returns {name: (code, source_file)} for every `# <figure name=...>` block in `paths`."""
+    blocks = {}
+    for path in paths or []:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+        name, buf = None, []
+        for line in lines:
+            m = _FIG_START.match(line)
+            if m:
+                name, buf = m.group(1), []
+            elif name and _FIG_END.match(line):
+                indent = min((len(l) - len(l.lstrip()) for l in buf if l.strip()), default=0)
+                code = "\n".join(l[indent:] for l in buf).strip("\n")
+                blocks.setdefault(name, (code, os.path.basename(path)))
+                name = None
+            elif name:
+                buf.append(line)
+    return blocks
+
+
+_TOKEN = re.compile(r'(?P<s>"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\')|(?P<c>#[^\n]*)')
+
+
+def _highlight(code):
+    """Minimal highlighting shared by R and Python: strings and comments."""
+    out, pos = [], 0
+    for m in _TOKEN.finditer(code):
+        out.append(html.escape(code[pos:m.start()]))
+        cls = "hl-s" if m.group("s") else "hl-c"
+        out.append(f'<span class="{cls}">{html.escape(m.group(0))}</span>')
+        pos = m.end()
+    out.append(html.escape(code[pos:]))
+    return "".join(out)
+
+
 class Report:
-    def __init__(self, title, subtitle=None, date=None):
+    def __init__(self, title, subtitle=None, date=None, code_files=None):
         self.title = title
         self.subtitle = subtitle
         self.date = date or datetime.date.today().isoformat()
@@ -151,6 +218,7 @@ class Report:
         self._h2 = None
         self._fig = 0
         self._tab = 0
+        self.code_blocks = load_code_blocks(code_files)
 
     # ---- structure ---------------------------------------------------------
     def _heading(self, level, text):
@@ -187,9 +255,22 @@ class Report:
                         f'<div class="l">{html.escape(l)}</div></div>' for v, l in items)
         self.body.append(f'<div class="kpis">{cells}</div>')
 
-    def figure(self, path, caption=None, width=None, optional=False):
+    def code_toggle(self, names):
+        """Collapsed code block(s) taken from the marked blocks of `code_files`."""
+        found = [(n, *self.code_blocks[n]) for n in names if n in self.code_blocks]
+        if not found:
+            return ""
+        srcs = ", ".join(sorted({f"<code>{html.escape(src)}</code>" for _, _, src in found}))
+        lang = "python" if all(src.endswith(".py") for _, _, src in found) else "r"
+        code = "\n\n".join(c for _, c, _ in found)
+        return (f'<details class="code"><summary></summary><pre><code class="{lang}">{_highlight(code)}</code></pre>'
+                f'<p class="src">From {srcs}</p></details>')
+
+    def figure(self, path, caption=None, width=None, optional=False, code="auto"):
         """Embeds an image file. Missing files are reported in the page instead of failing,
-        or skipped silently when `optional=True` (plots that a step only makes when it has results)."""
+        or skipped silently when `optional=True` (plots that a step only makes when it has results).
+        `code`: "auto" shows the code block named after the file, a list shows those blocks,
+        None shows nothing."""
         if not os.path.exists(path):
             if optional:
                 return
@@ -203,7 +284,10 @@ class Report:
         cap = ""
         if caption:
             cap = f"<figcaption><b>Figure {self._fig}.</b> {_markdown.markdown(caption)[3:-4]}</figcaption>"
-        self.body.append(f'<figure><img src="data:{mime};base64,{data}" alt="{html.escape(os.path.basename(path))}"{style}>{cap}</figure>')
+        if code == "auto":
+            code = [os.path.splitext(os.path.basename(path))[0]]
+        toggle = self.code_toggle(code) if code else ""
+        self.body.append(f'{toggle}<figure><img src="data:{mime};base64,{data}" alt="{html.escape(os.path.basename(path))}"{style}>{cap}</figure>')
 
     def table(self, df, caption=None, digits=3, max_rows=None, collapsed=False, index=False):
         """Renders a pandas DataFrame. `collapsed=True` hides it behind a "Show table" toggle."""
@@ -253,7 +337,8 @@ class Report:
             "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
             f"<title>{html.escape(self.title)}</title><style>{_CSS}</style></head><body>"
             f'<div class="wrap">{self._toc_html()}<main>'
-            f'<h1 class="title">{html.escape(self.title)}</h1>{sub}<p class="date">{self.date}</p>'
+            + ('<button class="code-all">Show all code</button>' if self.code_blocks else "")
+            + f'<h1 class="title">{html.escape(self.title)}</h1>{sub}<p class="date">{self.date}</p>'
             + "\n".join(self.body)
             + f"</main></div><script>{_JS}</script></body></html>\n"
         )

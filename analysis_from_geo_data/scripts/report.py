@@ -49,7 +49,7 @@ go_sig, kegg_sig = sig(go), sig(kegg)
 string_sig = sig(string, "fdr")
 groups = coldata["group"].value_counts() if "group" in coldata else pd.Series(dtype=int)
 
-r = Report(prm.title, subtitle=prm.subtitle)
+r = Report(prm.title, subtitle=prm.subtitle, code_files=list(inp.code))
 r.kpis([
     (len(coldata), "samples"),
     (f"{tested:,}", "genes tested"),
@@ -196,8 +196,8 @@ r.figure(f"{P}/rede_PPI.png", "STRING network of the DEGs (image from the STRING
 r.h3("STRING functional enrichment")
 r.md("Over-representation of the DEGs against all tested genes (FDR < 0.05).")
 r.figure(f"{P}/enrichment_combined.png", "Top terms per category (−log10 FDR).", optional=True)
-r.figure(f"{P}/reactome.png", "Reactome pathways.", optional=True)
-r.figure(f"{P}/wikipathways.png", "WikiPathways.", optional=True)
+r.figure(f"{P}/reactome.png", "Reactome pathways.", optional=True, code=["plot_enrichment", "reactome"])
+r.figure(f"{P}/wikipathways.png", "WikiPathways.", optional=True, code=["plot_enrichment", "reactome"])
 if len(string_sig):
     cnt = string_sig["category"].value_counts().rename_axis("category").reset_index(name="terms (FDR < 0.05)")
     r.table(cnt, "Significant STRING terms per category.")

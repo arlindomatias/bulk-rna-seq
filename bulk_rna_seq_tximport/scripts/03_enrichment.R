@@ -62,10 +62,12 @@ if (has_go) {
 
   if (nrow(gse_GO_all@result) >= 2) gse_GO_all <- pairwise_termsim(gse_GO_all)
 
+  # <figure name="dotplot_GO">
   save_plot("plots/dotplot_GO.png",
             dotplot(gse_GO_all, showCategory = 10, split = "ONTOLOGY", font.size = 12) +
               facet_grid(ONTOLOGY ~ .sign, scales = "free_y", space = "free_y"),
             width = 9, height = 15)
+  # </figure>
 
   onts <- names(which(table(gse_GO_all@result$ONTOLOGY) >= 2))
   sub_ont <- function(obj, ont) {
@@ -74,12 +76,15 @@ if (has_go) {
   }
 
   if (length(onts) > 0) {
+    # <figure name="ridge">
     ridge_list <- lapply(onts, function(o)
       ridgeplot(sub_ont(gse_GO_all, o), showCategory = 10, fill = "p.adjust",
                 core_enrichment = TRUE, label_format = 50, decreasing = TRUE) + ggtitle(o))
     save_plot("plots/ridge.png", wrap_plots(ridge_list, ncol = 1),
               width = 7, height = 4 * length(onts))
+    # </figure>
 
+    # <figure name="cnet">
     cnet_list <- lapply(onts, function(o)
       cnetplot(sub_ont(gse_GO_all, o), layout = igraph::layout_nicely, showCategory = 20,
                color_category = "#E5C494", size_category = 1, color_item = "#B3B3B3",
@@ -88,24 +93,30 @@ if (has_go) {
                hilight = "none", hilight_alpha = 0.3) + ggtitle(o))
     save_plot("plots/cnet.png", wrap_plots(cnet_list, ncol = 1),
               width = 10, height = 6 * length(onts))
+    # </figure>
 
+    # <figure name="emaplot">
     ema_list <- lapply(onts, function(o)
       emapplot(sub_ont(gse_GO_all, o), layout = igraph::layout_with_kk, showCategory = 20,
                color = "p.adjust", size_category = 1, min_edge = 0.2,
-               color_edge = "grey", size_edge = 0.5, node_label = "category_grouped",
-               label_format = 30, clusterFunction = stats::kmeans, nWords = 4,
+               color_edge = "grey", size_edge = 0.5,
+               node_label = "category",  # enrichplot >= 1.30: category, group, all or none
+               node_label_size = 3, label_format = 30, clusterFunction = stats::kmeans, nWords = 4,
                nCluster = NULL) + ggtitle(o))
     save_plot("plots/emaplot.png", wrap_plots(ema_list, ncol = 1),
-              width = 9, height = 12 * length(onts), limitsize = FALSE)
+              width = 9, height = 8 * length(onts), limitsize = FALSE)
+    # </figure>
   } else {
     message("No GO ontology has >= 2 significant terms; skipping ridge/cnet/ema plots.")
   }
 
+  # <figure name="gsea">
   save_plot("plots/gsea.png",
             gseaplot2(gse_GO_all, geneSetID = 1, pvalue_table = TRUE,
                       title = gse_GO_all$Description[1],
                       color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line"),
             width = 9, height = 7)
+  # </figure>
 } else {
   write_empty(out$go, "GO terms")
 }
@@ -146,30 +157,40 @@ if (has_kegg) {
   write_csv(kegg_df, out$kegg)
   message("Significant KEGG pathways: ", nrow(kegg_df))
 
+  # <figure name="ema_kegg">
   if (nrow(gse_kegg@result) >= 2) {
     gse_kegg <- pairwise_termsim(gse_kegg)
     save_plot("plots/ema_kegg.png", emapplot(gse_kegg), width = 8, height = 9)
   }
+  # </figure>
+  # <figure name="dotplot_kegg">
   save_plot("plots/dotplot_kegg.png",
             dotplot(gse_kegg, showCategory = 10, split = ".sign", font.size = 12) +
               facet_grid(. ~ .sign),
             width = 9, height = 8)
+  # </figure>
+  # <figure name="cnet_kegg">
   save_plot("plots/cnet_kegg.png",
             cnetplot(gse_kegg, layout = igraph::layout_nicely, showCategory = 10,
                      color_category = "#E5C494", size_category = 1, size_item = 1,
                      color_edge = "grey", size_edge = 0.5, node_label = "category",
                      foldChange = fc_entrez, hilight = "none", hilight_alpha = 0.3),
             width = 9, height = 7)
+  # </figure>
+  # <figure name="ridge_kegg">
   save_plot("plots/ridge_kegg.png",
             ridgeplot(gse_kegg, showCategory = 10, fill = "p.adjust",
                       core_enrichment = TRUE, label_format = 30) +
               labs(x = "Enrichment distribution"),
             width = 7, height = 5)
+  # </figure>
+  # <figure name="gsea_kegg">
   save_plot("plots/gsea_kegg.png",
             gseaplot2(gse_kegg, geneSetID = 1, pvalue_table = TRUE,
                       title = gse_kegg$Description[1],
                       color = c("#E495A5", "#86B875", "#7DB0DD"), ES_geom = "line"),
             width = 9, height = 7)
+  # </figure>
 } else {
   write_empty(out$kegg, "KEGG pathways")
 }
@@ -226,11 +247,13 @@ if (nrow(degs_sym) > 0) {
 if (length(hits) >= 2) {
   # PPI network (the image comes from the STRING server)
   tryCatch({
+    # <figure name="rede_PPI">
     colored <- string_db$add_diff_exp_color(mapped, logFcColStr = "log2FoldChange")
     payload <- string_db$post_payload(colored$STRING_id, colors = colored$color)
     png("plots/rede_PPI.png", width = 3000, height = 3000, res = 300)
     string_db$plot_network(hits, payload_id = payload)
     dev.off()
+    # </figure>
   }, error = function(e) message("STRING network plot failed: ", conditionMessage(e)))
 
   # Cytoscape tables
@@ -252,6 +275,7 @@ if (length(hits) >= 2) {
   keep_cats <- c("Process", "Function", "Component", "KEGG", "RCTM", "WikiPathways", "MPO")
   enrich_sig <- enrich |> filter(category %in% keep_cats, fdr < 0.05)
 
+  # <figure name="plot_enrichment">
   plot_enrichment <- function(df, cat, title, n = 15) {
     d <- df |> filter(category == cat)
     if (nrow(d) == 0) {
@@ -270,16 +294,20 @@ if (length(hits) >= 2) {
       labs(x = "Gene ratio", y = NULL, color = "FDR", size = "Gene count", title = title) +
       theme_bw(base_size = 12)
   }
+  # </figure>
+  # <figure name="reactome">
   reac <- plot_enrichment(enrich_sig, "RCTM", "Reactome enrichment")
   wp   <- plot_enrichment(enrich_sig, "WikiPathways", "WikiPathways enrichment")
   if (!is.null(reac)) save_plot("plots/reactome.png", reac, width = 8, height = 5)
   if (!is.null(wp))   save_plot("plots/wikipathways.png", wp, width = 8, height = 5)
+  # </figure>
 
   mpo <- enrich_sig |> filter(category == "MPO")
   if (nrow(mpo)) print(mpo[, c("term", "description", "number_of_genes",
                                "number_of_genes_in_background", "fdr")])
 
   if (nrow(enrich_sig) > 0) {
+    # <figure name="enrichment_combined">
     multi_df <- enrich_sig |>
       group_by(category) |>
       slice_min(fdr, n = 8, with_ties = FALSE) |>
@@ -293,6 +321,7 @@ if (length(hits) >= 2) {
       theme_bw(base_size = 11) +
       theme(legend.position = "none")
     save_plot("plots/enrichment_combined.png", comb, width = 9, height = 10)
+    # </figure>
   }
 } else {
   message("Fewer than 2 DEGs mapped to STRING; skipping network and enrichment.")

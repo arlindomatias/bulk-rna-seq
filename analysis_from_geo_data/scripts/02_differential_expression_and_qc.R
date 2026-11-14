@@ -44,6 +44,7 @@ write.csv(tt, "results/top_table.csv", row.names = F)  # Export top table
 ### 1. Create DEG and QC plots ---------------------------------------
 message("Creating QC and DEG plots")
 
+# <figure name="pca_vst">
 # PCA
 vsd <- vst(dds, blind = TRUE)
 pca_data   <- plotPCA(vsd, intgroup = "group", returnData = TRUE)
@@ -60,7 +61,9 @@ pca <- ggplot(pca_data, aes(x = PC1, y = PC2, color = group)) +
 
 ggsave("plots/pca_vst.png", plot = pca,
        width = 6, height = 5, dpi = 300)
+# </figure>
 
+# <figure name="volcano">
 # Volcano plot
 keyvals <- ifelse(tt$padj < 0.05 & tt$log2FoldChange >  0.5, "#CC0000",
                   ifelse(tt$padj < 0.05 & tt$log2FoldChange < -0.5, "#3399FF", "gray"))
@@ -92,7 +95,9 @@ vp <- EnhancedVolcano(tt,
 
 ggsave("plots/volcano.png", plot = vp, width = 8, height = 7,
        units = "in", dpi = 300)
+# </figure>
 
+# <figure name="heatmap">
 # Heatmap of DEGs (VST-transformed counts, row-scaled)
 deg_genes <- tt_filtered$SYMBOL[tt_filtered$SYMBOL %in% rownames(vsd)]
 deg_mat <- assay(vsd)[deg_genes, , drop = FALSE]
@@ -113,7 +118,9 @@ hm <- pheatmap(deg_mat,
 
 ggsave("plots/heatmap.png", plot = hm, 
        width = 4, height = 12, units = "in", dpi = 300, bg = "white")
+# </figure>
 
+# <figure name="fdr_histogram">
 # FDR histogram 
 histo <- ggplot(tt, aes(x = padj)) +
   geom_histogram(binwidth = 0.05, fill = "skyblue", color = "black",
@@ -123,7 +130,9 @@ histo <- ggplot(tt, aes(x = padj)) +
 
 ggsave("plots/fdr_histogram.png", plot = histo,
        width = 8, height = 5, units = "in", dpi = 300)
+# </figure>
 
+# <figure name="boxplot">
 # Box plot of normalized counts, colored by group
 norm_counts <- counts(dds, normalized = TRUE)
 
@@ -146,13 +155,17 @@ bp <- ggplot(df_long, aes(x = sample, y = log2(expression + 1), fill = group)) +
 
 ggsave("plots/boxplot.png", plot = bp,
        width = 8, height = 5, units = "in", dpi = 300)
+# </figure>
 
+# <figure name="QQPlot">
 # QQ-Plot
 png("plots/QQPlot.png", 
     width = 6, height = 6, units = "in", res = 300)
 qqman::qq(tt$pvalue)
 dev.off()
+# </figure>
 
+# <figure name="MAplot">
 # MA plot
 resultsNames(dds)
 res_shr <- lfcShrink(dds, coef = "group_CHEM_vs_VEH", type = "apeglm")
@@ -178,13 +191,17 @@ p_ma <- ggplot(ma_df, aes(x = baseMean, y = log2FoldChange, color = sig)) +
 
 ggsave("plots/MAplot.png", plot = p_ma,
        width = 6, height = 5, dpi = 300)
+# </figure>
 
+# <figure name="dispersion_plot">
 # Dispersion plot
 png("plots/dispersion_plot.png",
     width = 6, height = 5, units = "in", res = 300)
 plotDispEsts(dds, main = "Dispersion estimates")
 dev.off()
+# </figure>
 
+# <figure name="density_counts">
 # Normalized counts density
 norm_counts <- counts(dds, normalized = TRUE)
 
@@ -201,7 +218,9 @@ p_dens <- ggplot(df_dens, aes(x = log2_expr, color = sample, linetype = group)) 
 
 ggsave("plots/density_counts.png", plot = p_dens,
        width = 7, height = 5, dpi = 300)
+# </figure>
 
+# <figure name="cooks_distance">
 # Cooks Distance
 png("plots/cooks_distance.png",
     width = 7, height = 5, units = "in", res = 300)
@@ -209,5 +228,6 @@ par(mar = c(8, 4.5, 3, 1))
 boxplot(log10(assays(dds)[["cooks"]]), range = 0, las = 2,
         ylab = "log10(Cook's distance)", main = "Cook's distance")
 dev.off()
+# </figure>
 
 #============================================================================

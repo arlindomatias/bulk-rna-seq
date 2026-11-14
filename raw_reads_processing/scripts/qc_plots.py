@@ -58,6 +58,7 @@ group = dict(zip(samples["run"], samples["condition"]))
 qc = pd.read_csv(qc_tsv, sep="\t").set_index("run").loc[order].reset_index()
 qc["unmapped"] = qc["num_processed"] - qc["num_mapped"]
 
+# <figure name="qc_reads_mapping">
 fig, ax = plt.subplots(figsize=(8, 4.6))
 y = np.arange(len(qc))[::-1]
 ax.barh(y, qc["num_mapped"] / 1e6, color="#2a78d6", height=0.7, label="Mapped (Salmon)",
@@ -72,6 +73,7 @@ for yi, (tot, pct) in zip(y, zip(qc["num_processed"] / 1e6, qc["percent_mapped"]
 ax.set_xlim(0, qc["num_processed"].max() / 1e6 * 1.12)
 ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.1), ncol=2)
 save(fig, "qc_reads_mapping.png")
+# </figure>
 
 # ---------------------------------------------------------------- FastQC
 STATUS_COL = {"PASS": "#0ca30c", "WARN": "#fab219", "FAIL": "#d03b3b"}
@@ -115,6 +117,7 @@ for run in order:
             fq[(run, read)] = read_fastqc(z)
 
 if fq:
+    # <figure name="fastqc_per_base_quality">
     # Mean quality per position
     fig, axes = plt.subplots(1, 2, figsize=(11, 3.8), sharey=True)
     for read, ax in zip((1, 2), axes):
@@ -131,7 +134,9 @@ if fq:
     axes[0].set_ylim(0, 41)
     group_legend(axes[1], loc="lower left")
     save(fig, "fastqc_per_base_quality.png")
+    # </figure>
 
+    # <figure name="fastqc_gc_content">
     # GC content distribution
     fig, axes = plt.subplots(1, 2, figsize=(11, 3.8), sharey=True)
     for read, ax in zip((1, 2), axes):
@@ -147,7 +152,9 @@ if fq:
     axes[0].set_ylabel("Reads (%)")
     group_legend(axes[1], loc="upper right")
     save(fig, "fastqc_gc_content.png")
+    # </figure>
 
+    # <figure name="fastqc_adapter_content">
     # Adapter content (max over adapter types per position)
     fig, axes = plt.subplots(1, 2, figsize=(11, 3.4), sharey=True)
     for read, ax in zip((1, 2), axes):
@@ -163,7 +170,9 @@ if fq:
     axes[0].set_ylim(bottom=0)
     group_legend(axes[1], loc="upper left")
     save(fig, "fastqc_adapter_content.png")
+    # </figure>
 
+    # <figure name="fastqc_module_status">
     # Module status grid (PASS / WARN / FAIL), with letters so it never relies on colour alone
     keys = [k for k in fq]
     mods = list(fq[keys[0]][1].keys())
@@ -186,6 +195,7 @@ if fq:
     handles = [plt.Rectangle((0, 0), 1, 1, color=c, label=f"{s[0]} = {s}") for s, c in STATUS_COL.items()]
     ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.0 + 1.0 / (len(mods) + 3)), ncol=3)
     save(fig, "fastqc_module_status.png")
+    # </figure>
 
     stat_rows = [{"run": r, "read": rd, "module": m, "status": s}
                  for (r, rd), (_, st) in fq.items() for m, s in st.items()]
@@ -220,6 +230,7 @@ comp = counts.groupby(cat).sum().reindex(CATS).fillna(0)
 frac = 100 * comp / comp.sum()
 frac.T.rename(index=label).round(3).to_csv(os.path.join(results_dir, "count_composition.tsv"), sep="\t")
 
+# <figure name="count_composition">
 fig, ax = plt.subplots(figsize=(8, 4.6))
 left = np.zeros(len(order))
 y = np.arange(len(order))[::-1]
@@ -233,7 +244,9 @@ ax.set_xlabel("Share of assigned reads (%)")
 ax.grid(axis="y", visible=False)
 ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.12), ncol=5, fontsize=9)
 save(fig, "count_composition.png")
+# </figure>
 
+# <figure name="detected_genes">
 # Detected genes
 detected = (counts >= 10).sum()
 fig, ax = plt.subplots(figsize=(5, 3.8))
@@ -246,7 +259,9 @@ ax.set_xlim(-0.6, len(GROUP_ORDER) - 0.4)
 ax.set_ylabel("Genes with ≥ 10 counts")
 ax.grid(axis="x", visible=False)
 save(fig, "detected_genes.png")
+# </figure>
 
+# <figure name="top_expressed_genes">
 # Most abundant genes
 share = counts.div(counts.sum()) * 100
 top = share.mean(axis=1).sort_values(ascending=False).head(20)
@@ -257,6 +272,7 @@ ax.set_yticks(yy, [names[g] for g in top.index], fontsize=9)
 ax.set_xlabel("Mean share of assigned reads (%)")
 ax.grid(axis="y", visible=False)
 save(fig, "top_expressed_genes.png")
+# </figure>
 pd.DataFrame({"gene_id": top.index, "gene_name": [names[g] for g in top.index],
               "mean_percent_of_reads": top.values.round(3)}).to_csv(
     os.path.join(results_dir, "top_expressed_genes.tsv"), sep="\t", index=False)
@@ -271,6 +287,7 @@ pd.DataFrame(corr, index=[label[r] for r in order], columns=[label[r] for r in o
 # Sequential blue ramp (single hue, light -> dark) for a magnitude
 from matplotlib.colors import LinearSegmentedColormap
 
+# <figure name="sample_correlation">
 blues = LinearSegmentedColormap.from_list("blues", ["#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"])
 fig, ax = plt.subplots(figsize=(7.6, 6.4))
 im = ax.imshow(corr, cmap=blues, vmin=np.floor(corr.min() * 100) / 100, vmax=1)
@@ -286,7 +303,9 @@ cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.03)
 cb.set_label("Pearson r (log2 CPM)")
 cb.outline.set_visible(False)
 save(fig, "sample_correlation.png")
+# </figure>
 
+# <figure name="pca_logcpm">
 # PCA on the 1,000 most variable genes
 var = lcpm.var(axis=1).sort_values(ascending=False)
 X = lcpm.loc[var.index[:1000]].T.values
@@ -303,6 +322,7 @@ ax.set_xlabel(f"PC1 ({pve[0]:.1f}%)")
 ax.set_ylabel(f"PC2 ({pve[1]:.1f}%)")
 group_legend(ax, loc="best")
 save(fig, "pca_logcpm.png")
+# </figure>
 pd.DataFrame({"run": order, "label": [label[r] for r in order], "PC1": pcs[:, 0].round(3),
               "PC2": pcs[:, 1].round(3)}).to_csv(os.path.join(results_dir, "pca_logcpm.tsv"), sep="\t", index=False)
 

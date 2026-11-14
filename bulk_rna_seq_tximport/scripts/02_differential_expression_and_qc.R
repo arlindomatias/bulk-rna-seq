@@ -65,6 +65,7 @@ message("Creating QC and DEG plots")
 sample_labels <- setNames(dds$label, colnames(dds))
 vsd <- vst(dds, blind = TRUE)
 
+# <figure name="pca_vst">
 # PCA
 pca_data   <- plotPCA(vsd, intgroup = "group", returnData = TRUE)
 percentVar <- round(100 * attr(pca_data, "percentVar"))
@@ -80,7 +81,9 @@ pca <- ggplot(pca_data, aes(x = PC1, y = PC2, color = group, label = label)) +
   coord_fixed() +
   theme_bw(base_size = 12)
 ggsave(out$pca, plot = pca, width = 6, height = 5, dpi = 300)
+# </figure>
 
+# <figure name="sample_distances">
 # Sample-to-sample distances (VST)
 annot_col  <- data.frame(Group = dds$group, row.names = colnames(dds))
 annot_cols <- list(Group = group_colors)
@@ -94,7 +97,9 @@ pheatmap(dist_mat,
          color = colorRampPalette(c("#08306B", "#F7FBFF"))(100),
          main = "Euclidean distance between samples (VST)",
          filename = out$sample_dist, width = 7, height = 6)
+# </figure>
 
+# <figure name="marker_genes">
 # Marker genes (e.g. sex and cell type markers) per sample
 markers <- unlist(cfg$plots$marker_genes)
 mk_idx  <- which(mcols(dds)$SYMBOL %in% markers)
@@ -118,7 +123,9 @@ p_mk <- ggplot(mk_df, aes(x = label, y = log2(count + 1), fill = group)) +
   theme_bw(base_size = 10) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ggsave(out$markers, plot = p_mk, width = 9, height = 6, dpi = 300)
+# </figure>
 
+# <figure name="volcano">
 # Volcano plot
 keyvals <- ifelse(tt$padj < padj_cut & tt$log2FoldChange >  lfc_cut, "#CC0000",
                   ifelse(tt$padj < padj_cut & tt$log2FoldChange < -lfc_cut, "#3399FF", "gray"))
@@ -147,7 +154,9 @@ vp <- EnhancedVolcano(tt,
                       widthConnectors = 0.3,
                       max.overlaps = 15)
 ggsave(out$volcano, plot = vp, width = 8, height = 7, units = "in", dpi = 300)
+# </figure>
 
+# <figure name="heatmap">
 # Heatmap: top genes by FDR (DEGs first; capped so the plot stays legible)
 n_max <- cfg$plots$heatmap_max_genes
 hm_genes <- head(tt_filtered$gene_id, n_max)
@@ -170,7 +179,9 @@ pheatmap(hm_mat,
          main          = hm_title,
          filename = out$heatmap, width = 6,
          height = min(4 + 0.13 * length(hm_genes), 14))
+# </figure>
 
+# <figure name="fdr_histogram">
 # FDR histogram
 histo <- ggplot(tt, aes(x = padj)) +
   geom_histogram(binwidth = 0.05, fill = "skyblue", color = "black",
@@ -178,7 +189,9 @@ histo <- ggplot(tt, aes(x = padj)) +
   labs(title = "FDR distribution", x = "padj", y = "Number of genes") +
   theme_classic()
 ggsave(out$fdr, plot = histo, width = 8, height = 5, units = "in", dpi = 300)
+# </figure>
 
+# <figure name="boxplot">
 # Box plot of normalized counts, colored by group
 meta <- data.frame(sample = colnames(dds), group = dds$group,
                    label = factor(sample_labels, levels = sample_labels))
@@ -195,12 +208,16 @@ bp <- ggplot(df_long, aes(x = label, y = log2(expression + 1), fill = group)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ggsave(out$boxplot, plot = bp, width = 8, height = 5, units = "in", dpi = 300)
+# </figure>
 
+# <figure name="QQPlot">
 # QQ-Plot
 png(out$qqplot, width = 6, height = 6, units = "in", res = 300)
 qqman::qq(tt$pvalue[!is.na(tt$pvalue)])
 dev.off()
+# </figure>
 
+# <figure name="MAplot">
 # MA plot (shrunken log2FC)
 ma_df <- as.data.frame(res_shr)
 ma_df <- ma_df[ma_df$baseMean > 0, ]
@@ -220,12 +237,16 @@ p_ma <- ggplot(ma_df, aes(x = baseMean, y = log2FoldChange, color = sig)) +
   coord_cartesian(ylim = c(-3, 3)) +
   theme_classic(base_size = 12)
 ggsave(out$ma, plot = p_ma, width = 6, height = 5, dpi = 300)
+# </figure>
 
+# <figure name="dispersion_plot">
 # Dispersion plot
 png(out$dispersion, width = 6, height = 5, units = "in", res = 300)
 plotDispEsts(dds, main = "Dispersion estimates")
 dev.off()
+# </figure>
 
+# <figure name="density_counts">
 # Normalized counts density
 df_dens <- df_long |> mutate(log2_expr = log2(expression + 1))
 p_dens <- ggplot(df_dens, aes(x = log2_expr, color = label, linetype = group)) +
@@ -234,7 +255,9 @@ p_dens <- ggplot(df_dens, aes(x = log2_expr, color = label, linetype = group)) +
        title = "Density of normalized counts") +
   theme_classic(base_size = 12)
 ggsave(out$density, plot = p_dens, width = 7, height = 5, dpi = 300)
+# </figure>
 
+# <figure name="cooks_distance">
 # Cook's distance
 cooks <- assays(dds)[["cooks"]]
 colnames(cooks) <- sample_labels[colnames(cooks)]
@@ -243,3 +266,4 @@ par(mar = c(8, 4.5, 3, 1))
 boxplot(log10(cooks), range = 0, las = 2,
         ylab = "log10(Cook's distance)", main = "Cook's distance")
 dev.off()
+# </figure>

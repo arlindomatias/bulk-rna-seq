@@ -139,6 +139,7 @@ rule report:
         session=rules.enrichment.output.session,
         config="config.yaml",
         scripts=["scripts/report.py", "scripts/html_report.py"],
+        code=["scripts/02_differential_expression_and_qc.R", "scripts/03_enrichment.R"],
     output:
         html="reports/report.html",
     params:

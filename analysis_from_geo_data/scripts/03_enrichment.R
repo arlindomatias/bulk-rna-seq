@@ -77,6 +77,7 @@ if (has_go) {
   # 2. Dotplot
   # ----------------------------------------------------------
   
+  # <figure name="dotplot_GO">
   dot <- dotplot(
     gse_GO_all,
     showCategory = 10,
@@ -97,6 +98,7 @@ if (has_go) {
     dpi = 300,
     bg = "white"
   )
+  # </figure>
   
   
   # ----------------------------------------------------------
@@ -114,6 +116,7 @@ if (has_go) {
   
   if (length(onts) > 0) {
     
+    # <figure name="ridge">
     make_ridge <- function(obj, ont, n = 10) {
       
       sub <- obj
@@ -153,12 +156,14 @@ if (has_go) {
       dpi = 300,
       bg = "white"
     )
+    # </figure>
     
     
     # --------------------------------------------------------
     # 5. Cnetplot
     # --------------------------------------------------------
     
+    # <figure name="cnet">
     make_cnet <- function(obj, ont, n = 20) {
       
       sub <- obj
@@ -205,12 +210,14 @@ if (has_go) {
       dpi = 300,
       bg = "white"
     )
+    # </figure>
     
     
     # --------------------------------------------------------
     # 6. Emaplot
     # --------------------------------------------------------
     
+    # <figure name="emaplot">
     make_ema <- function(obj, ont, n = 20) {
       
       sub <- obj
@@ -227,7 +234,8 @@ if (has_go) {
         min_edge = 0.2,
         color_edge = "grey",
         size_edge = 0.5,
-        node_label = "category_grouped",
+        node_label = "category",  # enrichplot >= 1.30: category, group, all or none
+        node_label_size = 3,
         label_format = 30,
         clusterFunction = stats::kmeans,
         nWords = 4,
@@ -253,10 +261,11 @@ if (has_go) {
       "plots/emaplot.png",
       plot = ema_all,
       width = 9,
-      height = 40,
+      height = 8 * length(onts),
       dpi = 300,
       bg = "white"
     )
+    # </figure>
     
   } else {
     
@@ -271,6 +280,7 @@ if (has_go) {
   # 7. Single pathway GSEA plot
   # ----------------------------------------------------------
   
+  # <figure name="gsea">
   gsea <- gseaplot2(
     gse_GO_all,
     geneSetID = 1,
@@ -288,6 +298,7 @@ if (has_go) {
     dpi = 300,
     bg = "white"
   )
+  # </figure>
   
   
 } else {
@@ -338,6 +349,7 @@ if (has_kegg && nrow(gse_kegg@result) >= 2) {
 # KEGG visualizations
 if (has_kegg) {
   
+  # <figure name="dotplot_kegg">
   # Dotplot
   dot_k <- dotplot(
     gse_kegg,
@@ -354,7 +366,9 @@ if (has_kegg) {
     height = 12,
     dpi = 300
   )
+  # </figure>
   
+  # <figure name="ema_kegg">
   # Emaplot
   emakegg <- emapplot(gse_kegg)
   
@@ -366,7 +380,9 @@ if (has_kegg) {
     dpi = 300,
     bg = "white"
   )
+  # </figure>
   
+  # <figure name="cnet_kegg">
   # Cnetplot
   cnetkegg <- cnetplot(
     gse_kegg,
@@ -391,7 +407,9 @@ if (has_kegg) {
     dpi = 300,
     bg = "white"
   )
+  # </figure>
   
+  # <figure name="ridge_kegg">
   # Ridgeplot
   ridgekegg <- ridgeplot(
     gse_kegg,
@@ -410,7 +428,9 @@ if (has_kegg) {
     dpi = 300,
     bg = "white"
   )
+  # </figure>
   
+  # <figure name="gsea_kegg">
   gsea_kegg <- gseaplot2(
     gse_kegg,
     geneSetID = 1,
@@ -428,6 +448,7 @@ if (has_kegg) {
     dpi = 300,
     bg = "white"
   )
+  # </figure>
   
 } else {
   
@@ -467,6 +488,7 @@ mapped <- mapped[!duplicated(mapped$STRING_id), ] # and one gene per STRING_id
 message("Mapped to STRING: ", nrow(mapped), " of ", nrow(tt_filtered))
 hits <- mapped$STRING_id
 
+# <figure name="rede_PPI">
 # ---- PPI network ------------------------------------------
 colored <- string_db$add_diff_exp_color(mapped, logFcColStr = "log2FoldChange")
 payload <- string_db$post_payload(colored$STRING_id, colors = colored$color)
@@ -474,6 +496,7 @@ payload <- string_db$post_payload(colored$STRING_id, colors = colored$color)
 png("plots/rede_PPI.png", width = 3000, height = 3000, res = 300)
 string_db$plot_network(hits, payload_id = payload)
 dev.off()
+# </figure>
 
 # Export for Cytoscape (edges and node attributes with gene symbols)
 edges <- string_db$get_interactions(hits)
@@ -503,6 +526,7 @@ keep_cats <- c("Process", "Function", "Component", "KEGG", "RCTM",
 enrich_sig <- enrich |>
   filter(category %in% keep_cats, fdr < 0.05)
 
+# <figure name="plot_enrichment">
 # ---- Plot helper ------------------------------------------
 plot_enrichment <- function(df, cat, title, n = 15) {
   d <- df |> filter(category == cat)
@@ -527,7 +551,9 @@ plot_enrichment <- function(df, cat, title, n = 15) {
          size = "Gene count", title = title) +
     theme_bw(base_size = 12)
 }
+# </figure>
 
+# <figure name="reactome">
 # ---- Reactome, WikiPathways ------------------------------
 reac <- plot_enrichment(enrich_sig, "RCTM", "Reactome enrichment")
 wp   <- plot_enrichment(enrich_sig, "WikiPathways", "WikiPathways enrichment")
@@ -538,6 +564,7 @@ if (!is.null(reac)) {
 if (!is.null(wp)) {
   ggsave("plots/wikipathways.png", wp, width = 8, height = 4, dpi = 300)
 }
+# </figure>
 
 # ---- Mammalian Phenotype (MPO) ---------------------------
 # Few terms expected; report as a table instead of a plot when n < 3
@@ -547,6 +574,7 @@ print(mpo[, c("term", "description", "number_of_genes",
 
 # ---- Combined plot (all significant categories) ------------------------
 if (nrow(enrich_sig) > 0) {
+  # <figure name="enrichment_combined">
   multi_df <- enrich_sig |>
     group_by(category) |>
     slice_min(fdr, n = 8, with_ties = FALSE) |>
@@ -564,6 +592,7 @@ if (nrow(enrich_sig) > 0) {
   
   ggsave("plots/enrichment_combined.png", comb,
          width = 9, height = 8, dpi = 300)
+  # </figure>
 }
 
 # ============================================================

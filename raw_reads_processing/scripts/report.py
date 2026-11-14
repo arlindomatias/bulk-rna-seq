@@ -33,7 +33,7 @@ salmon_versions = ", ".join(sorted(qc["salmon_version"].astype(str).unique()))
 lib_types = ", ".join(sorted(qc["library_type"].unique()))
 
 r = Report(f"{cfg['data_subdir']}: from raw reads to a gene count table",
-           subtitle="Bulk RNA-seq · SRA → FastQC → Salmon → tximport")
+           subtitle="Bulk RNA-seq · SRA → FastQC → Salmon → tximport", code_files=list(inp.code))
 
 r.kpis([
     (n, "samples"),
