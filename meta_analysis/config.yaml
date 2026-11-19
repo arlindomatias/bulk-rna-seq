@@ -29,3 +29,18 @@ datasets:
     gene_id_type: ENSEMBL
     method: limma-trend
     stat_type: moderated t
+
+# Cross-dataset gene key: every gene is matched by the Ensembl ID of its `key_species` gene. Genes of
+# other species get the key of their 1:1 ortholog (Ensembl Compara `ortholog_one2one`); genes without one
+# are not matched across species. Compara release 104 matches the GSE236404 rat IDs (Ensembl 104, rn6);
+# the mouse IDs are stable GRCm39 IDs. Downloaded once by the `orthologs` rule into cache/compara/.
+orthologs:
+  key_species: mus_musculus
+  release: 104
+  url: https://ftp.ensembl.org/pub/release-104/tsv/ensembl-compara/homologies
+  # Compara files are per species, and each species pair is in one file only (mouse–rat pairs are in the
+  # mus_musculus files, not the rattus_norvegicus ones). Protein-coding and ncRNA gene trees.
+  files:
+    mus_musculus:
+      - Compara.104.protein_default.homologies.tsv.gz
+      - Compara.104.ncrna_default.homologies.tsv.gz

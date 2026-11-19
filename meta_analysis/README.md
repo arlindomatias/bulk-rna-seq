@@ -20,13 +20,22 @@ stops if the DEG counts differ from `de_summary.tsv`. Rerun the DE projects firs
 
 | File | Contents |
 |---|---|
-| `results/all_degs.csv` | One row per gene and dataset where it is a DEG: `SYMBOL`, `ENTREZID`, `ENSEMBL`, `dataset`, `species`, `contrast`, `method`, `direction`, `log2FoldChange`, `stat`, `stat_type`, `pvalue`, `padj`, `deg_criterion`, `n_datasets`, `datasets` |
-| `results/pairwise_overlap.csv` | Shared DEGs of each pair of datasets (universe = genes tested in both), hypergeometric p, same/opposite direction |
+| `results/gene_map.csv` | Every gene tested in every dataset with its cross-dataset `key` (mouse Ensembl ID), `key_symbol` and `map_status` |
+| `results/all_degs.csv` | One row per gene and dataset where it is a DEG: `key`, `key_symbol`, `SYMBOL`, `ENTREZID`, `ENSEMBL`, `dataset`, `species`, `contrast`, `method`, `direction`, `log2FoldChange`, `stat`, `stat_type`, `pvalue`, `padj`, `deg_criterion`, `n_datasets`, `datasets` |
+| `results/pairwise_overlap.csv` | Shared DEGs of each pair of datasets (universe = keys tested in both), hypergeometric p, same/opposite direction |
 | `plots/deg_counts.png`, `plots/shared_degs_lfc.png` | DEGs per dataset; log2FC of the genes that are DEGs in more than one dataset |
 | `reports/report.html`, `reports/sessionInfo.txt` | Report and R session |
 
 Identifiers missing from a project's table come from `org.Mm.eg.db` / `org.Rn.eg.db`; several IDs for one
-gene are joined with `;`. Genes are matched across datasets (and species) by upper-case symbol.
+gene are joined with `;`.
+
+**Gene matching.** Genes are matched across datasets and species by `key`, the Ensembl ID of the mouse
+gene. Mouse genes use their own ID (GSE178812 symbols are mapped through `org.Mm.eg.db` when a symbol has
+exactly one Ensembl ID); rat genes use their 1:1 mouse ortholog (`ortholog_one2one`) from Ensembl Compara
+release 104, the release of the GSE236404 rat IDs (rn6). Genes without a unique key (no 1:1 ortholog,
+ambiguous symbol, or a key shared by two genes of one dataset) are not matched. The `orthologs` rule
+downloads the Compara tables once into `cache/compara/` (internet needed on the first run; delete the folder
+to refresh). Ensembl BioMart is not used: it did not answer in November 2026.
 `stat` is the DESeq2 Wald statistic or the limma moderated t (`stat_type`), so it is not on the same scale
 across methods.
 
@@ -34,13 +43,14 @@ across methods.
 
 ```
 .
-├── Snakefile          # collect_degs (R) -> plots (Python) -> report (Python)
-├── config.yaml        # datasets: project folder, species, OrgDb, gene ID type, method
+├── Snakefile          # orthologs (download) -> gene_map (R) -> collect_degs (R) -> plots (Python) -> report (Python)
+├── config.yaml        # datasets (project folder, species, OrgDb, gene ID type, method); orthologs (Compara)
+├── cache/compara/     # Ensembl Compara homology tables (downloaded, git-ignored)
 ├── envs/              # limma (R + org.Mm.eg.db + org.Rn.eg.db, pinned), report (Python)
 ├── results/, plots/, reports/
 ```
 
-Scripts: [`../scripts/meta/`](../scripts/meta) (`collect_degs.R`, `plots.py`, `report.py`).
+Scripts: [`../scripts/meta/`](../scripts/meta) (`gene_map.R`, `collect_degs.R`, `plots.py`, `report.py`).
 
 ## Running
 

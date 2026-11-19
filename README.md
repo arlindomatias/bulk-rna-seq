@@ -12,7 +12,7 @@ The repository contains five projects. Each has its own Snakefile, conda environ
 | [`bulk_rna_seq_tximport/`](bulk_rna_seq_tximport) | GSE295281 | tximport object from `raw_reads_processing` | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING; configured through `config.yaml` |
 | [`analysis_from_geo_data/GSE178812/`](analysis_from_geo_data/GSE178812) | [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) | Count matrix deposited in GEO | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
 | [`analysis_from_geo_data/GSE236404/`](analysis_from_geo_data/GSE236404) | [GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404) | Normalized count table deposited in GEO (rat) | limma-trend, QC, GSEA (GO/KEGG), pathview, STRING |
-| [`meta_analysis/`](meta_analysis) | all three | DE results of the three DE projects | One table with every DEG (symbol, Entrez, Ensembl, log2FC, stat, p, padj per dataset) and their overlap |
+| [`meta_analysis/`](meta_analysis) | all three | DE results of the three DE projects | One table with every DEG (symbol, Entrez, Ensembl, log2FC, stat, p, padj per dataset) and their overlap, genes matched by 1:1 mouse–rat orthologs |
 
 ```
 SRA (GSE295281) ──► raw_reads_processing ──► data/txi_gene.rds ──► bulk_rna_seq_tximport ──► DE + enrichment
@@ -72,6 +72,7 @@ scripts/
 │   ├── qc_plots.py
 │   └── report.py
 └── meta/                                  # meta_analysis
+    ├── gene_map.R                         # cross-dataset gene key (mouse Ensembl; rat via 1:1 Compara orthologs)
     ├── collect_degs.R                     # DEGs of every DE project -> results/all_degs.csv
     ├── plots.py                           # DEG counts, pairwise overlap, shared-DEG heatmap
     └── report.py

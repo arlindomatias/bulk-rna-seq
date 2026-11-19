@@ -1,11 +1,12 @@
 """Figures and overlap tables for the cross-dataset DEG table (meta_analysis).
 
-Run through Snakemake (`script:` directive, rule `plots`). Reads results/all_degs.csv and each
-project's top_table.csv (to know which genes were tested in each dataset) and writes:
+Run through Snakemake (`script:` directive, rule `plots`). Reads results/all_degs.csv and
+results/gene_map.csv (the genes tested in each dataset) and writes:
   plots/deg_counts.png         DEGs up/down per dataset
   plots/shared_degs_lfc.png    log2FC of the genes that are DEGs in more than one dataset
   results/pairwise_overlap.csv DEG overlap for each pair of datasets, with a hypergeometric test
-Genes are matched across datasets (and species) by upper-case symbol.
+Genes are matched across datasets (and species) by `key` from gene_map.csv: the mouse Ensembl ID, through
+the 1:1 ortholog for rat genes. Genes without a key are left out of the overlap.
 """
 import itertools
 import math
@@ -31,7 +32,8 @@ plt.rcParams.update({
 })
 
 degs = pd.read_csv(inp.degs)
-degs["key"] = degs["SYMBOL"].str.upper()
+degs["label"] = degs["key_symbol"].fillna(degs["SYMBOL"])
+gene_map = pd.read_csv(inp.gene_map, dtype=str)
 
 
 def save(fig, path):
@@ -50,16 +52,14 @@ def hypergeom_sf(x, N, K, n):
 
 
 # ---------------------------------------------------------------- pairwise overlap
-tested = {}
-for name, path in zip(datasets, inp.top_tables):
-    tt = pd.read_csv(path, usecols=["SYMBOL"])
-    tested[name] = set(tt["SYMBOL"].dropna().str.upper())
+tested = {d: set(gene_map.loc[gene_map.dataset == d, "key"].dropna()) for d in datasets}
 
 rows = []
 for a, b in itertools.combinations(datasets, 2):
     universe = tested[a] & tested[b]
-    da = degs[(degs.dataset == a) & degs.key.isin(universe)].drop_duplicates("key").set_index("key")
-    db = degs[(degs.dataset == b) & degs.key.isin(universe)].drop_duplicates("key").set_index("key")
+    da = degs[(degs.dataset == a) & degs.key.isin(universe)].set_index("key")
+    db = degs[(degs.dataset == b) & degs.key.isin(universe)].set_index("key")
+    assert da.index.is_unique and db.index.is_unique
     shared = da.index.intersection(db.index)
     same = int((np.sign(da.loc[shared, "log2FoldChange"]) == np.sign(db.loc[shared, "log2FoldChange"])).sum())
     N, K, n, x = len(universe), len(da), len(db), len(shared)
@@ -69,7 +69,7 @@ for a, b in itertools.combinations(datasets, 2):
         "expected_by_chance": K * n / N if N else np.nan,
         "hypergeometric_p": hypergeom_sf(x, N, K, n) if x else 1.0,
         "same_direction": same, "opposite_direction": x - same,
-        "shared_genes": ";".join(sorted(da.loc[shared, "SYMBOL"])),
+        "shared_genes": ";".join(sorted(da.loc[shared, "label"])),
     })
 pd.DataFrame(rows).to_csv(out.overlap, index=False)
 
@@ -97,7 +97,7 @@ save(fig, out.deg_counts)
 shared = degs[degs.n_datasets > 1]
 mat = shared.pivot_table(index="key", columns="dataset", values="log2FoldChange", aggfunc="first")
 mat = mat.reindex(columns=datasets)
-labels = shared.drop_duplicates("key").set_index("key")["SYMBOL"]
+labels = shared.drop_duplicates("key").set_index("key")["label"]
 order = mat.notna().astype(int).mul([2 ** i for i in range(len(datasets))]).sum(axis=1)
 mat = mat.loc[sorted(mat.index, key=lambda k: (order[k], mat.loc[k].mean()))]
 fig, ax = plt.subplots(figsize=(4.2, 0.28 * len(mat) + 1.2))

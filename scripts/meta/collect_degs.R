@@ -3,6 +3,8 @@
 # One row per gene per dataset where it is a DEG. The DEG criterion of each dataset is read from its
 # de_summary.tsv (deg_criterion = padj or pvalue, deg_cutoff, lfc_cutoff), so it matches the project's
 # own report. Missing identifiers are filled from the species OrgDb; several IDs are joined with ";".
+# Genes are matched across datasets by `key` from results/gene_map.csv (mouse Ensembl ID; rat genes through
+# their 1:1 ortholog); genes without a key are never matched.
 # ============================================================
 if (!exists("snakemake")) {
   stop("Run this script through Snakemake (`snakemake --use-conda --cores 1`).")
@@ -19,6 +21,8 @@ suppressPackageStartupMessages({
 })
 
 cfg <- snakemake@config
+gene_map <- read_csv(snakemake@input$gene_map, show_col_types = FALSE,
+                     col_types = cols(.default = col_character()))
 
 # All values of `column` for each key, joined with ";" (NA when there is none).
 map_ids <- function(orgdb, keys, keytype, column) {
@@ -70,7 +74,13 @@ collect_one <- function(gse, d) {
           ", |log2FC| > ", lfc, "); without Entrez: ", sum(is.na(entrez)),
           "; without Ensembl: ", sum(is.na(ensembl)))
 
+  gm <- gene_map[gene_map$dataset == gse, ]
+  gm_row <- match(deg$gene_id, gm$gene_id)
+  stopifnot(!anyNA(gm_row))
+
   tibble(
+    key            = gm$key[gm_row],
+    key_symbol     = gm$key_symbol[gm_row],
     SYMBOL         = symbol,
     ENTREZID       = entrez,
     ENSEMBL        = ensembl,
@@ -91,18 +101,17 @@ collect_one <- function(gse, d) {
 
 all_degs <- bind_rows(Map(collect_one, names(cfg$datasets), cfg$datasets))
 
-# Datasets in which each symbol is a DEG (case-insensitive, so mouse and rat symbols match).
-key <- toupper(all_degs$SYMBOL)
+# Datasets in which each gene (key) is a DEG. Genes without a key only count their own dataset.
 all_degs <- all_degs %>%
-  mutate(.key = key) %>%
+  mutate(.key = ifelse(is.na(key), paste(dataset, row_number()), key)) %>%
   group_by(.key) %>%
   mutate(n_datasets = n_distinct(dataset),
          datasets   = paste(sort(unique(dataset)), collapse = ";")) %>%
   ungroup() %>%
   dplyr::select(-.key) %>%
-  arrange(desc(n_datasets), toupper(SYMBOL), dataset)
+  arrange(desc(n_datasets), toupper(coalesce(key_symbol, SYMBOL)), dataset)
 
 write_csv(all_degs, snakemake@output$table, na = "")
 writeLines(capture.output(sessionInfo()), snakemake@output$session)
-message("Rows: ", nrow(all_degs), "; genes DEG in more than one dataset: ",
-        n_distinct(toupper(all_degs$SYMBOL[all_degs$n_datasets > 1])))
+message("Rows: ", nrow(all_degs), "; without key: ", sum(is.na(all_degs$key)),
+        "; genes DEG in more than one dataset: ", n_distinct(all_degs$key[all_degs$n_datasets > 1]))

@@ -4,6 +4,10 @@
 # writes results/all_degs.csv: one row per gene per dataset where it is a DEG, with symbol, Entrez ID,
 # Ensembl ID, log2FC, statistic, p-value and padj.
 #
+# Genes are matched across datasets and species by results/gene_map.csv: every tested gene with a key
+# (the mouse Ensembl ID; rat genes get the one of their 1:1 ortholog from Ensembl Compara, downloaded once
+# by the `orthologs` rule into cache/compara/; needs internet on the first run).
+#
 # plots/ and results/pairwise_overlap.csv show the DEG overlap between datasets, and reports/report.html
 # explains everything. Shared scripts: ../scripts/meta/ (collect_degs.R, plots.py, report.py).
 #
@@ -18,18 +22,60 @@ configfile: "config.yaml"
 ENV = "envs/limma.yaml"
 ENV_REPORT = "envs/report.yaml"
 DATASETS = config["datasets"]
+ORTHO = config["orthologs"]
+ORTHO_FILES = [f"cache/compara/{sp}/{f}" for sp, files in ORTHO["files"].items() for f in files]
+TOP_TABLES = [f"{d['project']}/results/top_table.csv" for d in DATASETS.values()]
 
 
 rule all:
     input:
+        "results/gene_map.csv",
         "results/all_degs.csv",
         "results/pairwise_overlap.csv",
         "reports/report.html",
 
 
+# ------------------------------------------------------------
+# Orthologs: Ensembl Compara homology tables (one download per file; delete cache/compara/ to refresh).
+# ------------------------------------------------------------
+rule orthologs:
+    output:
+        "cache/compara/{species}/{file}",
+    wildcard_constraints:
+        file=r"Compara\.[0-9]+\.[a-z_]+\.homologies\.tsv\.gz",
+    params:
+        url=lambda wc: f"{ORTHO['url']}/{wc.species}/{wc.file}",
+    log:
+        "logs/orthologs/{species}/{file}.log",
+    shell:
+        """
+        (date -Iseconds
+         curl -fsS --retry 10 --retry-all-errors --retry-delay 30 -C - -m 3600 \\
+             -o {output}.part {params.url}
+         gzip -t {output}.part
+         mv {output}.part {output}
+         ls -l {output}) > {log} 2>&1
+        """
+
+
+rule gene_map:
+    input:
+        top_tables=TOP_TABLES,
+        homologies=ORTHO_FILES,
+    output:
+        table="results/gene_map.csv",
+    conda:
+        ENV
+    log:
+        "logs/gene_map.log",
+    script:
+        "../scripts/meta/gene_map.R"
+
+
 rule collect_degs:
     input:
-        top_tables=[f"{d['project']}/results/top_table.csv" for d in DATASETS.values()],
+        top_tables=TOP_TABLES,
+        gene_map="results/gene_map.csv",
         summaries=[f"{d['project']}/results/de_summary.tsv" for d in DATASETS.values()],
     output:
         table="results/all_degs.csv",
@@ -45,7 +91,7 @@ rule collect_degs:
 rule plots:
     input:
         degs="results/all_degs.csv",
-        top_tables=[f"{d['project']}/results/top_table.csv" for d in DATASETS.values()],
+        gene_map="results/gene_map.csv",
     output:
         overlap="results/pairwise_overlap.csv",
         deg_counts="plots/deg_counts.png",
@@ -61,6 +107,7 @@ rule plots:
 rule report:
     input:
         degs="results/all_degs.csv",
+        gene_map="results/gene_map.csv",
         overlap=rules.plots.output.overlap,
         deg_counts=rules.plots.output.deg_counts,
         shared_lfc=rules.plots.output.shared_lfc,
