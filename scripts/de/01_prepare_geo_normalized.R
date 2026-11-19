@@ -2,7 +2,11 @@
 # SCRIPT 01 (GEO normalized-table projects): normalized expression table + sample sheet from GEO
 # -> SummarizedExperiment for limma (02_differential_expression_limma.R).
 #
-# For series that only deposit normalized (non-integer) counts, so DESeq2 cannot be used.
+# For series that only deposit normalized (non-integer) values (normalized counts, FPKM), so DESeq2 cannot
+# be used. The table can be .csv(.gz) or .xlsx (`input.expression_sheet`). Samples come from the GEO sample
+# sheet (`input.samples_url`) or, when the series has none, from the sample columns of the table:
+# columns starting with `input.sample_column_prefix` (prefix removed = sample id), with the condition given
+# by the first matching regex of `geo.sample_patterns` (condition -> regex on the sample id).
 # Writes data/se_raw.rds (assay "normalized", rowData gene_id and SYMBOL), data/expression.csv
 # (gene-level table) and data/colData.csv (built with build_coldata()), so 03 does not depend on the
 # data source. Rows that share a gene ID (several features per gene in the deposited table) are summed:
@@ -23,8 +27,31 @@ download_once <- function(url, path) {
 }
 
 ### 1. Normalized table and sample sheet -------------------------------------
-expr_raw <- read_csv(download_once(icfg$expression_url, icfg$expression_file), show_col_types = FALSE)
-samples  <- read_csv(download_once(icfg$samples_url, icfg$samples_file), show_col_types = FALSE)
+expr_path <- download_once(icfg$expression_url, icfg$expression_file)
+if (grepl("\\.xlsx$", expr_path, ignore.case = TRUE)) {
+  expr_raw <- readxl::read_excel(expr_path, sheet = icfg$expression_sheet %||% 1)
+} else {
+  expr_raw <- read_csv(expr_path, show_col_types = FALSE)
+}
+
+if (!is.null(icfg$samples_url)) {
+  samples <- read_csv(download_once(icfg$samples_url, icfg$samples_file), show_col_types = FALSE)
+} else {
+  prefix <- icfg$sample_column_prefix %||% ""
+  cols <- names(expr_raw)[startsWith(names(expr_raw), prefix) & nzchar(prefix)]
+  if (!length(cols)) stop("No column starts with input.sample_column_prefix '", prefix, "'")
+  ids <- substring(cols, nchar(prefix) + 1)
+  names(expr_raw)[match(cols, names(expr_raw))] <- ids
+  patterns <- unlist(cfg$geo$sample_patterns)
+  condition <- vapply(ids, function(id) {
+    hit <- names(patterns)[vapply(patterns, grepl, logical(1), x = id)]
+    if (length(hit)) hit[1] else NA_character_
+  }, character(1), USE.NAMES = FALSE)
+  if (anyNA(condition)) stop("Samples without a match in geo.sample_patterns: ",
+                             paste(ids[is.na(condition)], collapse = ", "))
+  samples <- tibble(!!cfg$samples$id_column := ids, !!cfg$samples$condition_column := condition)
+  message("Samples from the table columns: ", paste(ids, "=", condition, collapse = ", "))
+}
 
 # Conditions outside the analysis (e.g. a third treatment group) are dropped before build_coldata().
 cond_col <- cfg$samples$condition_column

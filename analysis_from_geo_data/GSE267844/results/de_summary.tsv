@@ -1,0 +1,2 @@
+contrast	design	samples	genes_tested	padj_cutoff	deg_criterion	deg_cutoff	lfc_cutoff	deg_up	deg_down	padj_only
+DTX vs NC	~group	6	13869	0.05	pvalue	0.01	0.5	31	34	0

@@ -23,9 +23,10 @@ coldata  <- as.data.frame(colData(se))
 
 ### 1. Filter and fit --------------------------------------------------------
 norm <- assay(se, "normalized")
+value_name <- cfg$input$value_name %||% "normalized counts"  # e.g. "FPKM": used in plot labels
 min_samples <- cfg$filter$min_samples %||% min(table(coldata$group))
 keep <- rowSums(norm >= cfg$filter$min_count) >= min_samples
-message("Filter: >= ", cfg$filter$min_count, " normalized counts in >= ", min_samples,
+message("Filter: >= ", cfg$filter$min_count, " ", value_name, " in >= ", min_samples,
         " samples -> ", sum(keep), " of ", nrow(se), " genes")
 se   <- se[keep, ]
 norm <- norm[keep, , drop = FALSE]
@@ -128,7 +129,7 @@ pheatmap(dist_mat,
          clustering_distance_cols = as.dist(dist_mat),
          annotation_col = annot_col, annotation_colors = annot_cols,
          color = colorRampPalette(c("#08306B", "#F7FBFF"))(100),
-         main = "Euclidean distance between samples (log2 normalized counts)",
+         main = paste0("Euclidean distance between samples (log2 ", value_name, ")"),
          filename = out$sample_dist, width = 7, height = 6)
 # </figure>
 
@@ -154,7 +155,7 @@ if (!length(markers)) {
     geom_col() +
     facet_wrap(~ SYMBOL, scales = "free_y") +
     scale_fill_manual(values = group_colors) +
-    labs(x = NULL, y = "log2(normalized counts + 1)", fill = "Group",
+    labs(x = NULL, y = paste0("log2(", value_name, " + 1)"), fill = "Group",
          title = "Marker genes",
          caption = if (length(not_found)) paste("Filtered out / absent:",
                                                 paste(not_found, collapse = ", "))) +
@@ -245,7 +246,7 @@ bp <- ggplot(df_long, aes(x = label, y = log2_expr, fill = group)) +
   geom_boxplot(width = 0.6, outlier.shape = NA) +
   scale_fill_manual(values = group_colors) +
   labs(title = "Normalized expression",
-       x = NULL, y = "log2(normalized counts + 1)", fill = "Group") +
+       x = NULL, y = paste0("log2(", value_name, " + 1)"), fill = "Group") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ggsave(out$boxplot, plot = bp, width = 8, height = 5, units = "in", dpi = 300)
@@ -269,7 +270,7 @@ p_ma <- ggplot(ma_df, aes(x = AveExpr, y = log2FoldChange, color = sig)) +
   geom_point(size = 0.8, alpha = 0.6, na.rm = TRUE) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   scale_color_manual(values = c("Up" = "#CC0000", "Down" = "#0066CC", "ns" = "grey70")) +
-  labs(x = "Average log2(normalized counts + 1)",
+  labs(x = paste0("Average log2(", value_name, " + 1)"),
        y = "log2 fold change",
        color = NULL,
        title = "MA plot") +
@@ -305,8 +306,8 @@ ggsave(out$sample_weights, plot = p_w, width = 7, height = 4.5, dpi = 300)
 # Normalized counts density
 p_dens <- ggplot(df_long, aes(x = log2_expr, color = label, linetype = group)) +
   geom_density(linewidth = 0.7) +
-  labs(x = "log2(normalized counts + 1)", y = "Density", color = "Sample",
-       title = "Density of normalized counts") +
+  labs(x = paste0("log2(", value_name, " + 1)"), y = "Density", color = "Sample",
+       title = paste0("Density of ", value_name)) +
   theme_classic(base_size = 12)
 ggsave(out$density, plot = p_dens, width = 7, height = 5, dpi = 300)
 # </figure>

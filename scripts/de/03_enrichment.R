@@ -93,33 +93,33 @@ if (has_go) {
 
   if (length(onts) > 0) {
     # <figure name="ridge">
-    ridge_list <- lapply(onts, function(o)
+    # The plot lists are built inside save_plot() (lazy argument), so a failing plot is logged, not fatal.
+    save_plot("plots/ridge.png", wrap_plots(lapply(onts, function(o)
       ridgeplot(sub_ont(gse_GO_all, o), showCategory = 10, fill = "p.adjust",
-                core_enrichment = TRUE, label_format = 50, decreasing = TRUE) + ggtitle(o))
-    save_plot("plots/ridge.png", wrap_plots(ridge_list, ncol = 1),
+                core_enrichment = TRUE, label_format = 50, decreasing = TRUE) + ggtitle(o)), ncol = 1),
               width = 7, height = 4 * length(onts))
     # </figure>
 
     # <figure name="cnet">
-    cnet_list <- lapply(onts, function(o)
+    save_plot("plots/cnet.png", wrap_plots(lapply(onts, function(o)
       cnetplot(sub_ont(gse_GO_all, o), layout = igraph::layout_nicely, showCategory = 20,
                color_category = "#E5C494", size_category = 1, color_item = "#B3B3B3",
                size_item = 1, color_edge = "grey", size_edge = 0.5,
                node_label = "category", foldChange = fc_list,
-               hilight = "none", hilight_alpha = 0.3) + ggtitle(o))
-    save_plot("plots/cnet.png", wrap_plots(cnet_list, ncol = 1),
+               hilight = "none", hilight_alpha = 0.3) + ggtitle(o)), ncol = 1),
               width = 10, height = 6 * length(onts))
     # </figure>
 
     # <figure name="emaplot">
-    ema_list <- lapply(onts, function(o)
-      emapplot(sub_ont(gse_GO_all, o), layout = igraph::layout_with_kk, showCategory = 20,
+    # Term similarity is computed within each ontology: pairwise_termsim() on the whole object only covers
+    # the 200 most significant terms overall, which can miss the top 20 of a smaller ontology.
+    save_plot("plots/emaplot.png", wrap_plots(lapply(onts, function(o)
+      emapplot(pairwise_termsim(sub_ont(gse_GO_all, o)), layout = igraph::layout_with_kk, showCategory = 20,
                color = "p.adjust", size_category = 1, min_edge = 0.2,
                color_edge = "grey", size_edge = 0.5,
                node_label = "category",  # enrichplot >= 1.30: category, group, all or none
                node_label_size = 3, label_format = 30, clusterFunction = stats::kmeans, nWords = 4,
-               nCluster = NULL) + ggtitle(o))
-    save_plot("plots/emaplot.png", wrap_plots(ema_list, ncol = 1),
+               nCluster = NULL) + ggtitle(o)), ncol = 1),
               width = 9, height = 8 * length(onts), limitsize = FALSE)
     # </figure>
   } else {

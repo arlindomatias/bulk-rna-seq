@@ -23,6 +23,7 @@ cfg = snakemake.config  # noqa: F821
 ecfg = cfg.get("enrichment", {})
 n_gsea_plot = ecfg.get("gsea_plot_top_n", 3)
 limma = cfg.get("de", {}).get("method", "deseq2") == "limma"
+value_name = cfg.get("input", {}).get("value_name", "normalized counts")  # limma projects: FPKM, normalized counts
 kegg_org = ecfg.get("organism_kegg", "mmu")
 species = ecfg.get("species_name", "Mus musculus")
 
@@ -82,7 +83,7 @@ if prm.notes:
 if limma:
     model_name, rank_stat = "limma-trend", "moderated t statistic"
     weights = " with sample quality weights (`arrayWeights`)" if cfg.get("de", {}).get("array_weights") else ""
-    model_text = (f"`lmFit` on log2(normalized counts + 1){weights} and `eBayes(trend = TRUE, robust = TRUE)` "
+    model_text = (f"`lmFit` on log2({value_name} + 1){weights} and `eBayes(trend = TRUE, robust = TRUE)` "
                   "(the prior variance follows the mean-variance trend)")
 else:
     model_name, rank_stat = "DESeq2", "Wald statistic"
@@ -109,6 +110,13 @@ if prm.upstream_qc and os.path.exists(prm.upstream_qc):
     up_qc = pd.read_csv(prm.upstream_qc, sep="\t", dtype={"mouse_id": str})
     r.table(up_qc[["run", "condition", "mouse_id", "num_processed", "percent_mapped", "library_type"]],
             "Read pairs and Salmon mapping rate per sample (from the upstream project).", digits=4)
+# Optional input-step table and figure (e.g. the Visium spot selection of the pseudobulk projects).
+input_table = getattr(prm, "input_table", "")
+if input_table and os.path.exists(input_table):
+    r.table(pd.read_csv(input_table), getattr(prm, "input_table_caption", ""), digits=3)
+input_figure = getattr(prm, "input_figure", "")
+if input_figure and os.path.exists(input_figure):
+    r.figure(input_figure, getattr(prm, "input_figure_caption", ""))
 show_cols = [c for c in coldata.columns if c not in ("fastq_1", "fastq_2", "md5_1", "md5_2")]
 r.table(coldata[show_cols], "Samples used in the model (`data/colData.csv`).", collapsed=True)
 
@@ -123,9 +131,9 @@ r.figure(f"{P}/density_counts.png", "Density of normalized log counts per sample
 r.figure(f"{P}/boxplot.png", "Normalized log counts per sample, colored by group.", optional=True)
 r.h3("Sample similarity")
 if limma:
-    r.figure(f"{P}/pca.png", "PCA of log2(normalized counts + 1), 500 most variable genes.",
+    r.figure(f"{P}/pca.png", f"PCA of log2({value_name} + 1), 500 most variable genes.",
              width="80%", optional=True)
-    r.figure(f"{P}/sample_distances.png", "Euclidean distances between samples (log2 normalized counts).",
+    r.figure(f"{P}/sample_distances.png", f"Euclidean distances between samples (log2 {value_name}).",
              width="75%", optional=True)
 else:
     r.figure(f"{P}/pca_vst.png", "PCA of variance-stabilized counts (VST).", width="80%", optional=True)
@@ -166,7 +174,7 @@ r.figure(f"{P}/volcano.png", "Volcano plot: log2 fold change vs "
          + ("unadjusted p-value." if fallback else "adjusted p-value."), optional=True)
 if limma:
     r.figure(f"{P}/MAplot.png", "MA plot: average log2 expression vs log2 fold change.", optional=True)
-    r.figure(f"{P}/heatmap.png", "Top genes by FDR, row-scaled log2 normalized counts.", optional=True)
+    r.figure(f"{P}/heatmap.png", f"Top genes by FDR, row-scaled log2 {value_name}.", optional=True)
 else:
     r.figure(f"{P}/MAplot.png", "MA plot: mean expression vs shrunken log2 fold change.", optional=True)
     r.figure(f"{P}/heatmap.png", "Top genes by FDR, scaled VST counts.", optional=True)

@@ -1,0 +1,49 @@
+# Same pinned package set as ../GSE178812/envs/rna-seq.yaml plus limma (explicit) and org.Rn.eg.db (rat).
+# DESeq2/apeglm/GEOquery are not used here but are kept so the pins stay identical to rna-seq.
+name: limma
+
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  # R
+  - r-base=4.5.3
+
+  # CRAN
+  - r-ggplot2
+  - r-readr
+  - r-dplyr
+  - r-tidyr
+  - r-pheatmap
+  - r-readxl
+  - r-gridextra
+  - r-shadowtext
+  - r-qqman
+  - r-ggridges
+  - r-ggrepel
+  - r-tibble
+  - r-ggforce
+  - r-stringr
+  - r-patchwork
+  - r-igraph
+  - r-ggtangle=0.1.4
+  
+  # Bioconductor
+  - bioconductor-limma
+  - bioconductor-deseq2
+  - bioconductor-enhancedvolcano
+  - bioconductor-geoquery
+  - bioconductor-stringdb
+  - bioconductor-enrichplot
+  - bioconductor-clusterprofiler
+  - bioconductor-dose
+  - bioconductor-apeglm
+  - bioconductor-org.mm.eg.db
+  - bioconductor-org.rn.eg.db
+  - bioconductor-pathview
+  - bioconductor-reactomepa
+  - bioconductor-summarizedexperiment
+
+  # Check that the package is available in the channels
+  - r-ggtangle

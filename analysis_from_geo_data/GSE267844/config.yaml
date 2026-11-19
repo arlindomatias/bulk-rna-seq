@@ -1,0 +1,91 @@
+# ============================================================
+# Dataset configuration. Same structure as ../GSE236404/config.yaml, so the shared scripts in
+# ../../scripts/de/ can run it. GEO only has an FPKM table for this series, so the DE step is limma-trend
+# (de.method: limma) on log2(FPKM + 1) instead of DESeq2.
+# ============================================================
+
+dataset: GSE267844
+title: "Docetaxel (DTX) vs saline (NC), rat hippocampus"
+
+# FPKM table deposited by the authors in GEO (no sample sheet: samples come from its FPKM.* columns).
+# Downloaded once into data/ by the `prepare` rule.
+input:
+  geo_accession: GSE267844
+  expression_url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE267nnn/GSE267844/suppl/GSE267844_2024-5-17_genes_fpkm_expression.xlsx
+  expression_file: data/GSE267844_2024-5-17_genes_fpkm_expression.xlsx
+  expression_sheet: 1
+  sample_column_prefix: "FPKM."   # FPKM.DTXmodel1 ... FPKM.NC3 -> sample ids DTXmodel1 ... NC3
+  gene_id_column: gene_id         # Ensembl rat gene IDs (rn6 era, same as GSE236404)
+  symbol_column: gene_name
+  value_name: FPKM                # label of the values in plots and report
+
+# Condition of each sample, from its id (first matching regex). GEO: DTXmodel = docetaxel,
+# DTXtreat = docetaxel + edaravone dexborneol (not analysed), NC = saline.
+geo:
+  sample_patterns:
+    DTX: "^DTXmodel"
+    DTX_ED: "^DTXtreat"
+    NC: "^NC"
+  exclude_conditions: ["DTX_ED"]
+
+# Gene identifiers of the table: ENSEMBL or SYMBOL. Sets the GO keyType and the Entrez mapping for KEGG.
+gene_id_type: ENSEMBL
+
+samples:
+  id_column: sample
+  condition_column: condition
+  label_column: sample
+
+# Raw value in `condition_column` -> label used in the model (valid R names).
+groups:
+  labels:
+    NC: NC
+    DTX: DTX
+  reference: NC
+  treatment: DTX
+  colors:
+    NC: "#3399FF"
+    DTX: "#CC0000"
+
+# Columns added to the model before the group (~ cov1 + cov2 + group).
+covariates: []
+
+# Sample ids removed from the analysis.
+exclude_samples: []
+
+# On FPKM values (no raw counts available).
+filter:
+  min_count: 1        # FPKM
+  min_samples: 3      # smallest group size (n = 3)
+
+de:
+  method: limma       # limma-trend on log2(FPKM + 1)
+  trend: true
+  robust: true
+  array_weights: false
+  padj: 0.05          # DEG cutoff on padj
+  pvalue_fallback: 0.01  # used on the unadjusted p-value only when no gene has padj < padj (exploratory)
+  lfc: 0.5            # minimum |log2FC| for a DEG
+
+plots:
+  heatmap_max_genes: 60
+  marker_genes: []        # sex not reported
+
+enrichment:
+  organism_kegg: rno
+  orgdb: org.Rn.eg.db
+  species_name: Rattus norvegicus
+  min_gs_size: 10
+  max_gs_size: 800
+  pvalue_cutoff: 0.05
+  string_version: "12.0"
+  string_species: 10116
+  string_score: 700
+  string_cache: cache/
+  # Pathview maps and single-pathway GSEA plots: the `top_n` most significant pathways/terms
+  # (an explicit list in pathview_pathways overrides the top N).
+  pathview_pathways: []
+  pathview_top_n: 3
+  gsea_plot_top_n: 3
+
+seed: 123

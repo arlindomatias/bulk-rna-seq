@@ -19,6 +19,12 @@
 /analysis_from_geo_data/GSE236404/*.png
 /analysis_from_geo_data/GSE236404/*.pdf
 /analysis_from_geo_data/GSE236404/logs/
+/analysis_from_geo_data/GSE267844/*.png
+/analysis_from_geo_data/GSE267844/*.pdf
+/analysis_from_geo_data/GSE267844/logs/
+/analysis_from_geo_data/GSE325554/*.png
+/analysis_from_geo_data/GSE325554/*.pdf
+/analysis_from_geo_data/GSE325554/logs/
 /meta_analysis/logs/
 
 # ---- Large raw data (never version) -----------------------
