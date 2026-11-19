@@ -23,8 +23,11 @@ dir_up   <- paste0("Enriched_", trt_level)
 dir_down <- paste0("Enriched_", ref_level)
 
 tt <- as.data.frame(read_csv(snakemake@input$top_table, show_col_types = FALSE))
-tt_filtered <- subset(tt, padj < cfg$de$padj & abs(log2FoldChange) > cfg$de$lfc)
-message("DEGs: ", nrow(tt_filtered))
+deg_rule <- deg_criterion(tt)
+sig_col <- deg_rule$col
+tt_filtered <- tt[!is.na(tt[[sig_col]]) & tt[[sig_col]] < deg_rule$cut &
+                    abs(tt$log2FoldChange) > cfg$de$lfc, ]
+message("DEGs: ", nrow(tt_filtered), " (", sig_col, " < ", deg_rule$cut, ")")
 
 write_empty <- function(path, what) {
   write_csv(data.frame(), path)
@@ -148,7 +151,7 @@ gene_list_entrez <- sort(setNames(map$stat, map$ENTREZID), decreasing = TRUE)
 fc_entrez <- setNames(fc_list[map[[gene_id_type]]], map$ENTREZID)
 
 # Local annotation (kegg_annotation rule) instead of gseKEGG downloading it on every run.
-# Formats: "path:mmu00010<TAB>mmu:100042025" and "mmu00010<TAB>Glycolysis ... - Mus musculus ...".
+# Formats: "path:mmu00010<TAB>mmu:100042025" and "mmu00010<TAB>Glycolysis ... - Mus musculus (house mouse)".
 kegg_link <- read_tsv(snakemake@input$kegg_link, col_names = c("term", "gene"),
                       col_types = "cc") |>
   mutate(term = sub("^path:", "", term), gene = sub("^[a-z]+:", "", gene))
@@ -166,7 +169,8 @@ has_kegg <- !is.null(gse_kegg) && nrow(gse_kegg@result) > 0
 
 if (has_kegg) {
   gse_kegg <- setReadable(gse_kegg, OrgDb = orgdb, keyType = "ENTREZID")
-  gse_kegg@result$Description <- sub(" - Mus musculus.*$", "", gse_kegg@result$Description)
+  # KEGG names end in " - <species> (<common name>)", e.g. " - Mus musculus (house mouse)".
+  gse_kegg@result$Description <- sub(" - [^-]+ \\([^)]*\\)$", "", gse_kegg@result$Description)
   kegg_df <- as.data.frame(gse_kegg) |>
     mutate(direction = ifelse(NES > 0, dir_up, dir_down)) |>
     arrange(p.adjust)
@@ -248,7 +252,7 @@ string_db <- STRINGdb$new(version = ecfg$string_version, species = ecfg$string_s
 # One gene per symbol (lowest padj) before mapping.
 degs_sym <- tt_filtered |>
   filter(!is.na(SYMBOL)) |>
-  arrange(padj) |>
+  arrange(.data[[sig_col]]) |>
   distinct(SYMBOL, .keep_all = TRUE) |>
   as.data.frame()
 
@@ -277,7 +281,7 @@ if (length(hits) >= 2) {
   edges$from <- mapped$SYMBOL[match(edges$from, mapped$STRING_id)]
   edges$to   <- mapped$SYMBOL[match(edges$to,   mapped$STRING_id)]
   write_csv(edges, out$edges)
-  write_csv(mapped[, c("SYMBOL", "gene_id", "log2FoldChange", "padj")], out$nodes)
+  write_csv(mapped[, unique(c("SYMBOL", "gene_id", "log2FoldChange", "padj", sig_col))], out$nodes)
   message("Genes with at least one interaction: ",
           length(unique(c(edges$from, edges$to))), " of ", nrow(mapped))
 

@@ -93,7 +93,8 @@ details.code .src { font-size: 12px; color: var(--ink2); margin: 4px 0 0; }
 <ul>
 <li><strong>Filter:</strong> genes with ≥ 10 counts in at least 3 samples.</li>
 <li><strong>DESeq2:</strong> <code>fitType = "local"</code>, VEH as reference. Positive log2FC = higher in <strong>CHEM</strong>.
-  DEGs: <code>padj &lt; 0.05</code> and <code>|log2FC| &gt; 0.5</code>.</li>
+  DEGs: <code>padj &lt; 0.05</code> and <code>|log2FC| &gt; 0.5</code>; if no gene has <code>padj &lt; 0.05</code>, the unadjusted
+  <code>pvalue &lt; 0.01</code> is used instead (exploratory).</li>
 <li><strong>GSEA:</strong> genes ranked by the Wald statistic; GO (BP, CC, MF) and KEGG (<code>mmu</code>) with clusterProfiler,
   Benjamini-Hochberg adjustment, fixed seed. Positive NES = enriched in CHEM.</li>
 <li><strong>STRING:</strong> v12.0, <em>Mus musculus</em>, combined score ≥ 700, all tested genes as background.</li>
@@ -177,8 +178,8 @@ dev.off()</code></pre><p class="src">From <code>02_differential_expression_and_q
 <strong>7 up</strong> and <strong>51 down</strong> in CHEM. Without the fold-change cutoff,
 123 genes have <code>padj &lt; 0.05</code>.</p>
 <details class="code"><summary></summary><pre><code class="r"><span class="hl-c"># Volcano plot</span>
-keyvals &lt;- ifelse(tt$padj &lt; padj_cut &amp; tt$log2FoldChange &gt;  lfc_cut, <span class="hl-s">&quot;#CC0000&quot;</span>,
-                  ifelse(tt$padj &lt; padj_cut &amp; tt$log2FoldChange &lt; -lfc_cut, <span class="hl-s">&quot;#3399FF&quot;</span>, <span class="hl-s">&quot;gray&quot;</span>))
+keyvals &lt;- ifelse(tt[[sig_col]] &lt; sig_cut &amp; tt$log2FoldChange &gt;  lfc_cut, <span class="hl-s">&quot;#CC0000&quot;</span>,
+                  ifelse(tt[[sig_col]] &lt; sig_cut &amp; tt$log2FoldChange &lt; -lfc_cut, <span class="hl-s">&quot;#3399FF&quot;</span>, <span class="hl-s">&quot;gray&quot;</span>))
 keyvals[is.na(keyvals)] &lt;- <span class="hl-s">&quot;gray&quot;</span>
 names(keyvals) &lt;- ifelse(keyvals == <span class="hl-s">&quot;#CC0000&quot;</span>, <span class="hl-s">&quot;Up&quot;</span>,
                          ifelse(keyvals == <span class="hl-s">&quot;#3399FF&quot;</span>, <span class="hl-s">&quot;Down&quot;</span>, <span class="hl-s">&quot;NS&quot;</span>))
@@ -186,13 +187,14 @@ names(keyvals) &lt;- ifelse(keyvals == <span class="hl-s">&quot;#CC0000&quot;</s
 vp &lt;- EnhancedVolcano(tt,
                       lab = tt$label,
                       x = <span class="hl-s">&quot;log2FoldChange&quot;</span>,
-                      y = <span class="hl-s">&quot;padj&quot;</span>,
+                      y = sig_col,
                       xlab = bquote(~Log[2]~ <span class="hl-s">&quot;fold change&quot;</span>),
-                      ylab = bquote(~-Log[10]~ <span class="hl-s">&quot;FDR&quot;</span>),
+                      ylab = if (sig_col == <span class="hl-s">&quot;padj&quot;</span>) bquote(~-Log[10]~ <span class="hl-s">&quot;FDR&quot;</span>) else
+                        bquote(~-Log[10]~ <span class="hl-s">&quot;p-value (unadjusted)&quot;</span>),
                       title = cfg$title,
                       subtitle = paste(trt_level, <span class="hl-s">&quot;vs&quot;</span>, ref_level),
                       caption = paste(<span class="hl-s">&quot;Total genes:&quot;</span>, nrow(tt)),
-                      pCutoff = padj_cut,
+                      pCutoff = sig_cut,
                       FCcutoff = lfc_cut,
                       pointSize = 1.0,
                       labSize = 3,
@@ -207,7 +209,7 @@ ggsave(out$volcano, plot = vp, width = 8, height = 7, units = <span class="hl-s"
 <details class="code"><summary></summary><pre><code class="r"><span class="hl-c"># MA plot (shrunken log2FC)</span>
 ma_df &lt;- as.data.frame(res_shr)
 ma_df &lt;- ma_df[ma_df$baseMean &gt; 0, ]
-ma_df$sig &lt;- ifelse(is.na(ma_df$padj) | ma_df$padj &gt;= padj_cut, <span class="hl-s">&quot;ns&quot;</span>,
+ma_df$sig &lt;- ifelse(is.na(ma_df[[sig_col]]) | ma_df[[sig_col]] &gt;= sig_cut, <span class="hl-s">&quot;ns&quot;</span>,
                     ifelse(ma_df$log2FoldChange &gt; 0, <span class="hl-s">&quot;Up&quot;</span>, <span class="hl-s">&quot;Down&quot;</span>))
 ma_df$sig &lt;- factor(ma_df$sig, levels = c(<span class="hl-s">&quot;Up&quot;</span>, <span class="hl-s">&quot;Down&quot;</span>, <span class="hl-s">&quot;ns&quot;</span>))
 
@@ -226,7 +228,8 @@ ggsave(out$ma, plot = p_ma, width = 6, height = 5, dpi = 300)</code></pre><p cla
 <details class="code"><summary></summary><pre><code class="r"><span class="hl-c"># Heatmap: top genes by FDR (DEGs first; capped so the plot stays legible)</span>
 n_max &lt;- cfg$plots$heatmap_max_genes
 hm_genes &lt;- head(tt_filtered$gene_id, n_max)
-hm_title &lt;- paste0(<span class="hl-s">&quot;Top &quot;</span>, length(hm_genes), <span class="hl-s">&quot; of &quot;</span>, nrow(tt_filtered), <span class="hl-s">&quot; DEGs&quot;</span>)
+hm_title &lt;- paste0(<span class="hl-s">&quot;Top &quot;</span>, length(hm_genes), <span class="hl-s">&quot; of &quot;</span>, nrow(tt_filtered), <span class="hl-s">&quot; DEGs&quot;</span>,
+                   if (sig_col == <span class="hl-s">&quot;pvalue&quot;</span>) paste0(<span class="hl-s">&quot; (unadjusted p &lt; &quot;</span>, sig_cut, <span class="hl-s">&quot;)&quot;</span>) else <span class="hl-s">&quot;&quot;</span>)
 if (length(hm_genes) &lt; 2) {
   hm_genes &lt;- head(tt$gene_id[!is.na(tt$padj)], n_max)
   hm_title &lt;- paste0(<span class="hl-s">&quot;No DEGs: top &quot;</span>, length(hm_genes), <span class="hl-s">&quot; genes by FDR&quot;</span>)
@@ -516,6 +519,7 @@ filter:
 de:
   fit_type: local
   padj: 0.05          # also the `alpha` of DESeq2 results() (independent filtering)
+  pvalue_fallback: 0.01  # used on the unadjusted p-value only when no gene has padj &lt; padj (exploratory)
   lfc: 0.5            # minimum |log2FC| for a DEG
 
 plots:
@@ -545,7 +549,7 @@ Platform: x86_64-conda-linux-gnu
 Running under: Ubuntu 26.04.1 LTS
 
 Matrix products: default
-BLAS/LAPACK: /home/arlindo/github/bulk-rna-seq/analysis_from_geo_data/.snakemake/conda/dcbcc7376eb88e1d33026f5d575ebd38_/lib/libopenblasp-r0.3.34.so;  LAPACK version 3.12.0
+BLAS/LAPACK: /home/arlindo/github/bulk-rna-seq/analysis_from_geo_data/GSE178812/.snakemake/conda/b9d977c17380d1bbc17de42dea078a58_/lib/libopenblasp-r0.3.34.so;  LAPACK version 3.12.0
 
 locale:
  [1] LC_CTYPE=pt_BR.UTF-8       LC_NUMERIC=C              

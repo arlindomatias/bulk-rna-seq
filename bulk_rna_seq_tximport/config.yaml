@@ -47,6 +47,7 @@ filter:
 de:
   fit_type: local
   padj: 0.05          # also the `alpha` of DESeq2 results() (independent filtering)
+  pvalue_fallback: 0.01  # used on the unadjusted p-value only when no gene has padj < padj (exploratory)
   lfc: 0.5            # minimum |log2FC| for a DEG
 
 plots:

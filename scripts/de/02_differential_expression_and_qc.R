@@ -37,7 +37,12 @@ tt <- data.frame(ann, as.data.frame(res), log2FoldChange_shrunk = res_shr$log2Fo
                  row.names = NULL, check.names = FALSE)
 tt$label <- gene_label(tt$SYMBOL, tt$gene_id)
 tt <- tt[order(tt$padj, tt$pvalue), ]
-tt_filtered <- subset(tt, padj < padj_cut & abs(log2FoldChange) > lfc_cut)
+deg_rule <- deg_criterion(tt)
+sig_col <- deg_rule$col
+sig_cut <- deg_rule$cut
+if (sig_col == "pvalue") message("No gene with padj < ", padj_cut,
+                                 ": DEGs use the unadjusted p-value < ", sig_cut, " (exploratory)")
+tt_filtered <- tt[!is.na(tt[[sig_col]]) & tt[[sig_col]] < sig_cut & abs(tt$log2FoldChange) > lfc_cut, ]
 
 write_csv(tt, out$top_table)
 
@@ -47,6 +52,8 @@ de_summary <- tibble(
   samples    = ncol(dds),
   genes_tested = nrow(tt),
   padj_cutoff  = padj_cut,
+  deg_criterion = sig_col,
+  deg_cutoff    = sig_cut,
   lfc_cutoff   = lfc_cut,
   deg_up   = sum(tt_filtered$log2FoldChange > 0),
   deg_down = sum(tt_filtered$log2FoldChange < 0),
@@ -133,8 +140,8 @@ if (!length(markers)) {
 
 # <figure name="volcano">
 # Volcano plot
-keyvals <- ifelse(tt$padj < padj_cut & tt$log2FoldChange >  lfc_cut, "#CC0000",
-                  ifelse(tt$padj < padj_cut & tt$log2FoldChange < -lfc_cut, "#3399FF", "gray"))
+keyvals <- ifelse(tt[[sig_col]] < sig_cut & tt$log2FoldChange >  lfc_cut, "#CC0000",
+                  ifelse(tt[[sig_col]] < sig_cut & tt$log2FoldChange < -lfc_cut, "#3399FF", "gray"))
 keyvals[is.na(keyvals)] <- "gray"
 names(keyvals) <- ifelse(keyvals == "#CC0000", "Up",
                          ifelse(keyvals == "#3399FF", "Down", "NS"))
@@ -142,13 +149,14 @@ names(keyvals) <- ifelse(keyvals == "#CC0000", "Up",
 vp <- EnhancedVolcano(tt,
                       lab = tt$label,
                       x = "log2FoldChange",
-                      y = "padj",
+                      y = sig_col,
                       xlab = bquote(~Log[2]~ "fold change"),
-                      ylab = bquote(~-Log[10]~ "FDR"),
+                      ylab = if (sig_col == "padj") bquote(~-Log[10]~ "FDR") else
+                        bquote(~-Log[10]~ "p-value (unadjusted)"),
                       title = cfg$title,
                       subtitle = paste(trt_level, "vs", ref_level),
                       caption = paste("Total genes:", nrow(tt)),
-                      pCutoff = padj_cut,
+                      pCutoff = sig_cut,
                       FCcutoff = lfc_cut,
                       pointSize = 1.0,
                       labSize = 3,
@@ -166,7 +174,8 @@ ggsave(out$volcano, plot = vp, width = 8, height = 7, units = "in", dpi = 300)
 # Heatmap: top genes by FDR (DEGs first; capped so the plot stays legible)
 n_max <- cfg$plots$heatmap_max_genes
 hm_genes <- head(tt_filtered$gene_id, n_max)
-hm_title <- paste0("Top ", length(hm_genes), " of ", nrow(tt_filtered), " DEGs")
+hm_title <- paste0("Top ", length(hm_genes), " of ", nrow(tt_filtered), " DEGs",
+                   if (sig_col == "pvalue") paste0(" (unadjusted p < ", sig_cut, ")") else "")
 if (length(hm_genes) < 2) {
   hm_genes <- head(tt$gene_id[!is.na(tt$padj)], n_max)
   hm_title <- paste0("No DEGs: top ", length(hm_genes), " genes by FDR")
@@ -227,7 +236,7 @@ dev.off()
 # MA plot (shrunken log2FC)
 ma_df <- as.data.frame(res_shr)
 ma_df <- ma_df[ma_df$baseMean > 0, ]
-ma_df$sig <- ifelse(is.na(ma_df$padj) | ma_df$padj >= padj_cut, "ns",
+ma_df$sig <- ifelse(is.na(ma_df[[sig_col]]) | ma_df[[sig_col]] >= sig_cut, "ns",
                     ifelse(ma_df$log2FoldChange > 0, "Up", "Down"))
 ma_df$sig <- factor(ma_df$sig, levels = c("Up", "Down", "ns"))
 

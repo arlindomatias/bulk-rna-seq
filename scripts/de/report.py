@@ -1,8 +1,9 @@
-"""HTML report for a DESeq2 + enrichment project: input → QC → DE → GSEA → STRING.
+"""HTML report for a DE (DESeq2 or limma) + enrichment project: input → QC → DE → GSEA → STRING.
 
 Run through Snakemake (`script:` directive, rule `report`). Everything specific to a project comes
-from `snakemake.params` (title, design text, cutoffs, notes), so the same script is used by
-bulk_rna_seq_tximport and GSE178812. It only reads plots/ and results/.
+from `snakemake.params` (title, design text, cutoffs, notes) and the config (`de.method`, organism),
+so the same script is used by bulk_rna_seq_tximport, GSE178812 (DESeq2) and GSE236404 (limma).
+It only reads plots/ and results/.
 """
 import glob
 import os
@@ -18,7 +19,12 @@ inp, out, prm = snakemake.input, snakemake.output, snakemake.params  # noqa: F82
 P = "plots"
 padj_cut, lfc_cut = float(prm.padj), float(prm.lfc)
 trt, ref = prm.treatment, prm.reference
-n_gsea_plot = snakemake.config.get("enrichment", {}).get("gsea_plot_top_n", 3)  # noqa: F821
+cfg = snakemake.config  # noqa: F821
+ecfg = cfg.get("enrichment", {})
+n_gsea_plot = ecfg.get("gsea_plot_top_n", 3)
+limma = cfg.get("de", {}).get("method", "deseq2") == "limma"
+kegg_org = ecfg.get("organism_kegg", "mmu")
+species = ecfg.get("species_name", "Mus musculus")
 
 
 def read_csv(path):
@@ -37,7 +43,11 @@ nodes = read_csv(inp.nodes)
 edges = read_csv(inp.edges)
 
 tested = len(tt)  # every gene in top_table was tested (padj is NA after independent filtering)
-deg = tt[(tt["padj"] < padj_cut) & (tt["log2FoldChange"].abs() > lfc_cut)]
+# Same rule as deg_criterion() in 00_common.R: padj, or the unadjusted p-value when no gene has padj < cutoff.
+fallback = not bool((tt["padj"] < padj_cut).any())
+sig_col = "pvalue" if fallback else "padj"
+sig_cut = float(cfg.get("de", {}).get("pvalue_fallback", 0.01)) if fallback else padj_cut
+deg = tt[(tt[sig_col] < sig_cut) & (tt["log2FoldChange"].abs() > lfc_cut)]
 up = deg[deg["log2FoldChange"] > 0]
 down = deg[deg["log2FoldChange"] < 0]
 padj_only = int((tt["padj"] < padj_cut).sum())
@@ -52,11 +62,12 @@ string_sig = sig(string, "fdr")
 groups = coldata["group"].value_counts() if "group" in coldata else pd.Series(dtype=int)
 
 r = Report(prm.title, subtitle=prm.subtitle, code_files=list(inp.code))
+deg_kind = f" (unadjusted p < {sig_cut:g})" if fallback else ""
 r.kpis([
     (len(coldata), "samples"),
     (f"{tested:,}", "genes tested"),
-    (f"{len(up):,}", f"up in {trt}"),
-    (f"{len(down):,}", f"down in {trt}"),
+    (f"{len(up):,}", f"up in {trt}{deg_kind}"),
+    (f"{len(down):,}", f"down in {trt}{deg_kind}"),
     (f"{len(go_sig):,} / {len(kegg_sig):,}", "GSEA terms GO / KEGG (padj < 0.05)"),
     (f"{len(nodes):,}", "DEGs mapped to STRING"),
 ])
@@ -68,17 +79,27 @@ r.md("\n".join(f"* **{g}**: {groups.get(g, 0)} samples." for g in (ref, trt)))
 if prm.notes:
     r.md(prm.notes)
 
+if limma:
+    model_name, rank_stat = "limma-trend", "moderated t statistic"
+    weights = " with sample quality weights (`arrayWeights`)" if cfg.get("de", {}).get("array_weights") else ""
+    model_text = (f"`lmFit` on log2(normalized counts + 1){weights} and `eBayes(trend = TRUE, robust = TRUE)` "
+                  "(the prior variance follows the mean-variance trend)")
+else:
+    model_name, rank_stat = "DESeq2", "Wald statistic"
+    model_text = '`fitType = "local"`'
+
 r.h2("Pipeline")
 r.md(prm.pipeline)
 r.md(f"""
 Shared settings:
 
 * **Filter:** {prm.filter_text}
-* **DESeq2:** `fitType = "local"`, {ref} as reference. Positive log2FC = higher in **{trt}**.
-  DEGs: `padj < {padj_cut}` and `|log2FC| > {lfc_cut}`.
-* **GSEA:** genes ranked by the Wald statistic; GO (BP, CC, MF) and KEGG (`mmu`) with clusterProfiler,
+* **{model_name}:** {model_text}, {ref} as reference. Positive log2FC = higher in **{trt}**.
+  DEGs: `padj < {padj_cut}` and `|log2FC| > {lfc_cut}`; if no gene has `padj < {padj_cut}`, the unadjusted
+  `pvalue < {cfg.get("de", {}).get("pvalue_fallback", 0.01):g}` is used instead (exploratory).
+* **GSEA:** genes ranked by the {rank_stat}; GO (BP, CC, MF) and KEGG (`{kegg_org}`) with clusterProfiler,
   Benjamini-Hochberg adjustment, fixed seed. Positive NES = enriched in {trt}.
-* **STRING:** v12.0, *Mus musculus*, combined score ≥ 700, all tested genes as background.
+* **STRING:** v12.0, *{species}*, combined score ≥ 700, all tested genes as background.
 """)
 
 # ---------------------------------------------------------------- input
@@ -101,26 +122,54 @@ r.h3("Count distributions")
 r.figure(f"{P}/density_counts.png", "Density of normalized log counts per sample.", optional=True)
 r.figure(f"{P}/boxplot.png", "Normalized log counts per sample, colored by group.", optional=True)
 r.h3("Sample similarity")
-r.figure(f"{P}/pca_vst.png", "PCA of variance-stabilized counts (VST).", width="80%", optional=True)
-r.figure(f"{P}/sample_distances.png", "Euclidean distances between samples (VST).", width="75%", optional=True)
+if limma:
+    r.figure(f"{P}/pca.png", "PCA of log2(normalized counts + 1), 500 most variable genes.",
+             width="80%", optional=True)
+    r.figure(f"{P}/sample_distances.png", "Euclidean distances between samples (log2 normalized counts).",
+             width="75%", optional=True)
+else:
+    r.figure(f"{P}/pca_vst.png", "PCA of variance-stabilized counts (VST).", width="80%", optional=True)
+    r.figure(f"{P}/sample_distances.png", "Euclidean distances between samples (VST).", width="75%", optional=True)
 if snakemake.config.get("plots", {}).get("marker_genes"):  # noqa: F821
     r.h3("Marker genes")
     r.figure(f"{P}/marker_genes.png",
              "Normalized counts of sex and cell-type marker genes per sample.", optional=True)
 r.h3("Model fit")
-r.figure(f"{P}/dispersion_plot.png", "DESeq2 dispersion estimates and fitted trend.", width="70%", optional=True)
-r.figure(f"{P}/cooks_distance.png", "Cook's distance per sample (outlier counts).", optional=True)
+if limma:
+    r.figure(f"{P}/sample_weights.png", "Sample weights used in the limma fit (arrayWeights; "
+             "1 = average quality, lower = less consistent with its group).", width="75%", optional=True)
+    r.figure(f"{P}/mean_variance.png", "limma-trend: residual standard deviation (sqrt sigma) vs average "
+             "log2 expression, with the fitted prior trend.", width="70%", optional=True)
+else:
+    r.figure(f"{P}/dispersion_plot.png", "DESeq2 dispersion estimates and fitted trend.", width="70%", optional=True)
+    r.figure(f"{P}/cooks_distance.png", "Cook's distance per sample (outlier counts).", optional=True)
 
 # ---------------------------------------------------------------- DE
 r.h2("Differential expression")
-r.md(f"""
+if fallback:
+    n_p = int((tt["pvalue"] < sig_cut).sum())
+    r.md(f"""
+> **No gene reaches `padj < {padj_cut}`** (smallest padj: {tt["padj"].min():.3g}). The DEGs below, the
+> volcano/MA/heatmap colors and the STRING analysis therefore use the **unadjusted p-value**
+> (`pvalue < {sig_cut:g}` and `|log2FC| > {lfc_cut}`): **{len(deg):,} genes**, {len(up):,} up and
+> {len(down):,} down in {trt}. With {tested:,} tests, about {round(sig_cut * tested):,} genes are expected
+> below p = {sig_cut:g} by chance alone ({n_p:,} observed, without the fold-change cutoff), so this list is
+> exploratory and contains many false positives. GSEA does not depend on this cutoff.
+""")
+else:
+    r.md(f"""
 {tested:,} genes were tested. **{len(deg):,} genes** pass `padj < {padj_cut}` and `|log2FC| > {lfc_cut}`:
 **{len(up):,} up** and **{len(down):,} down** in {trt}. Without the fold-change cutoff,
 {padj_only:,} genes have `padj < {padj_cut}`.
 """)
-r.figure(f"{P}/volcano.png", "Volcano plot: log2 fold change vs adjusted p-value.", optional=True)
-r.figure(f"{P}/MAplot.png", "MA plot: mean expression vs shrunken log2 fold change.", optional=True)
-r.figure(f"{P}/heatmap.png", "Top genes by FDR, scaled VST counts.", optional=True)
+r.figure(f"{P}/volcano.png", "Volcano plot: log2 fold change vs "
+         + ("unadjusted p-value." if fallback else "adjusted p-value."), optional=True)
+if limma:
+    r.figure(f"{P}/MAplot.png", "MA plot: average log2 expression vs log2 fold change.", optional=True)
+    r.figure(f"{P}/heatmap.png", "Top genes by FDR, row-scaled log2 normalized counts.", optional=True)
+else:
+    r.figure(f"{P}/MAplot.png", "MA plot: mean expression vs shrunken log2 fold change.", optional=True)
+    r.figure(f"{P}/heatmap.png", "Top genes by FDR, scaled VST counts.", optional=True)
 r.h3("P-value diagnostics")
 r.md("A well-behaved test has a flat p-value histogram with a peak near zero, and a QQ plot that "
      "follows the diagonal for most genes.")
@@ -129,9 +178,10 @@ r.figure(f"{P}/QQPlot.png", "QQ plot of p-values.", width="60%", optional=True)
 
 r.h3("Top genes")
 gene_col = "SYMBOL"
-cols = [c for c in ["gene_id", gene_col, "baseMean", "log2FoldChange", "log2FoldChange_shrunk", "padj"] if c in tt]
-r.table(up.sort_values("padj")[cols], f"Top up-regulated genes in {trt} (by padj).", max_rows=15)
-r.table(down.sort_values("padj")[cols], f"Top down-regulated genes in {trt} (by padj).", max_rows=15)
+cols = [c for c in ["gene_id", gene_col, "baseMean", "log2FoldChange", "log2FoldChange_shrunk",
+                    "pvalue" if fallback else None, "padj"] if c in tt]
+r.table(up.sort_values(sig_col)[cols], f"Top up-regulated genes in {trt} (by {sig_col}).", max_rows=15)
+r.table(down.sort_values(sig_col)[cols], f"Top down-regulated genes in {trt} (by {sig_col}).", max_rows=15)
 r.md("The full table is `results/top_table.csv`.")
 
 # ---------------------------------------------------------------- GSEA
@@ -190,7 +240,7 @@ if pv:
 r.h2("Protein-protein interactions (STRING)")
 linked = len(set(edges["from"]).union(edges["to"])) if len(edges) else 0
 r.md(f"""
-The {len(deg):,} DEGs were mapped to STRING: **{len(nodes):,}** proteins were found, **{linked:,}** of them with at
+The {len(deg):,} DEGs{deg_kind} were mapped to STRING: **{len(nodes):,}** proteins were found, **{linked:,}** of them with at
 least one interaction (**{len(edges):,}** edges, score ≥ 700). Edge and node tables for Cytoscape are
 `results/edges_PPI.csv` and `results/nodes_PPI.csv`.
 """)
@@ -212,13 +262,13 @@ if len(string_sig):
 # ---------------------------------------------------------------- appendix
 r.appendix(
     outputs=[
-        ("results/top_table.csv", "DESeq2 results for every tested gene"),
+        ("results/top_table.csv", f"{model_name} results for every tested gene"),
         ("results/GSEA_GO_all_full.csv", "Full GSEA table, GO (BP, CC, MF)"),
         ("results/GSEA_KEGG_full.csv", "Full GSEA table, KEGG"),
         ("results/enrichment_STRING_full.csv", "STRING enrichment of the DEGs"),
         ("results/edges_PPI.csv", "PPI edges for Cytoscape"),
         ("results/nodes_PPI.csv", "PPI node attributes (log2FC, padj)"),
-        ("data/dds.rds", "Fitted DESeq2 object"),
+        ("data/fit.rds", "Fitted limma model (MArrayLM)") if limma else ("data/dds.rds", "Fitted DESeq2 object"),
     ],
     env_files=sorted(inp.envs),
     config_files=list(inp.config),

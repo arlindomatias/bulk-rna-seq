@@ -37,6 +37,17 @@ group_colors <- unlist(cfg$groups$colors)
 gene_id_type <- cfg$gene_id_type %||% "ENSEMBL"
 stopifnot(gene_id_type %in% c("ENSEMBL", "SYMBOL"))
 
+# DEG criterion: padj < de$padj; when no gene reaches it, the unadjusted p-value with the stricter
+# cutoff de$pvalue_fallback (default 0.01) is used instead (exploratory; report.py applies the same rule).
+# Returns the column and its cutoff.
+deg_criterion <- function(tt) {
+  if (any(tt$padj < cfg$de$padj, na.rm = TRUE)) {
+    list(col = "padj", cut = cfg$de$padj)
+  } else {
+    list(col = "pvalue", cut = cfg$de$pvalue_fallback %||% 0.01)
+  }
+}
+
 # Readable gene label: symbol, or the Ensembl ID when there is no symbol.
 gene_label <- function(symbol, gene_id) {
   ifelse(is.na(symbol) | symbol == "", gene_id, symbol)

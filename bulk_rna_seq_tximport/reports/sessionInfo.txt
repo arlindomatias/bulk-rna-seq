@@ -3,7 +3,7 @@ Platform: x86_64-conda-linux-gnu
 Running under: Ubuntu 26.04.1 LTS
 
 Matrix products: default
-BLAS/LAPACK: /home/arlindo/github/bulk-rna-seq/bulk_rna_seq_tximport/.snakemake/conda/7aba86630694e7c6aee70d718d7419ae_/lib/libopenblasp-r0.3.34.so;  LAPACK version 3.12.0
+BLAS/LAPACK: /home/arlindo/github/bulk-rna-seq/bulk_rna_seq_tximport/.snakemake/conda/1d8ae15d96aee7a0451c94a18a818f81_/lib/libopenblasp-r0.3.34.so;  LAPACK version 3.12.0
 
 locale:
  [1] LC_CTYPE=pt_BR.UTF-8       LC_NUMERIC=C              
