@@ -1,0 +1,86 @@
+# ============================================================
+# Dataset configuration. Same structure as ../GSE178812/config.yaml, so the shared scripts in
+# ../../scripts/de/ can run it. GEO only has normalized (non-integer) counts for this series, so the
+# DE step is limma-trend (de.method: limma) instead of DESeq2.
+# ============================================================
+
+dataset: GSE236404
+title: "Doxorubicin (DOX) vs vehicle (VEH), rat dentate gyrus"
+
+# Normalized count table and sample sheet deposited by the authors in GEO.
+# Both are downloaded once into data/ by the `prepare` rule.
+input:
+  geo_accession: GSE236404
+  expression_url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE236nnn/GSE236404/suppl/GSE236404_DOX_Normalized_Count-6-23-23.csv.gz
+  expression_file: data/GSE236404_DOX_Normalized_Count-6-23-23.csv.gz
+  samples_url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE236nnn/GSE236404/suppl/GSE236404_DG-DOX-Sample-Attributes-12-16-22.csv.gz
+  samples_file: data/GSE236404_DG-DOX-Sample-Attributes-12-16-22.csv.gz
+  gene_id_column: gene_id     # Ensembl rat gene IDs (Ensembl 104, rn6)
+  symbol_column: gene_name
+
+# Conditions of the sample sheet that are not analysed (doxorubicin + senolytic ABT-263).
+geo:
+  exclude_conditions: ["Dox + ABT-263"]
+
+# Gene identifiers of the count table: ENSEMBL or SYMBOL. Sets the GO keyType and the Entrez mapping for KEGG.
+gene_id_type: ENSEMBL
+
+samples:
+  id_column: "Sample name"    # column names of the normalized table (V1, D1, ...)
+  condition_column: Treatment # Vehicle / Dox / Dox + ABT-263
+  label_column: "Sample name"
+
+# Raw value in `condition_column` -> label used in the model (valid R names).
+groups:
+  labels:
+    Vehicle: VEH
+    Dox: DOX
+  reference: VEH
+  treatment: DOX
+  colors:
+    VEH: "#3399FF"
+    DOX: "#CC0000"
+
+# Columns added to the model before the group (~ cov1 + cov2 + group).
+covariates: []
+
+# Sample ids removed from the analysis.
+exclude_samples: []
+
+# On normalized counts (no raw counts available).
+filter:
+  min_count: 10
+  min_samples: 8      # smallest group size (DOX, n = 8)
+
+de:
+  method: limma       # limma-trend on log2(normalized + 1)
+  trend: true
+  robust: true
+  array_weights: false # limma arrayWeights: tested 2026-11-19, weights followed a hidden factor (PC1)
+                       # that is not the group and inflated p-values; kept off
+  padj: 0.05          # DEG cutoff on padj
+  pvalue_fallback: 0.01  # used on the unadjusted p-value only when no gene has padj < padj (exploratory)
+  lfc: 0.5            # minimum |log2FC| for a DEG
+
+plots:
+  heatmap_max_genes: 60
+  marker_genes: []        # all animals are male
+
+enrichment:
+  organism_kegg: rno
+  orgdb: org.Rn.eg.db
+  species_name: Rattus norvegicus
+  min_gs_size: 10
+  max_gs_size: 800
+  pvalue_cutoff: 0.05
+  string_version: "12.0"
+  string_species: 10116
+  string_score: 700
+  string_cache: cache/
+  # Pathview maps and single-pathway GSEA plots: the `top_n` most significant pathways/terms
+  # (an explicit list in pathview_pathways overrides the top N).
+  pathview_pathways: []
+  pathview_top_n: 3
+  gsea_plot_top_n: 3
+
+seed: 123

@@ -1,0 +1,2 @@
+contrast	design	samples	genes_tested	padj_cutoff	deg_criterion	deg_cutoff	lfc_cutoff	deg_up	deg_down	padj_only
+DOX vs VEH	~group	18	14569	0.05	pvalue	0.01	0.5	49	120	0

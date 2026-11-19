@@ -1,0 +1,203 @@
+# ============================================================
+# Bulk RNA-seq: differential expression and enrichment from a GEO normalized count table (GSE236404)
+# GEO only has normalized (non-integer) counts for this series, so the DE step uses limma-trend
+# (../../scripts/de/02_differential_expression_limma.R) instead of DESeq2. Enrichment and report are the
+# shared scripts in ../../scripts/de/ (same as GSE178812 and bulk_rna_seq_tximport); everything specific
+# to this dataset is in config.yaml.
+#
+# Requires Snakemake 9. Usage (from this folder):
+#   conda activate genomic-variants        # Snakemake 9
+#   snakemake -n --use-conda               # dry-run
+#   snakemake --use-conda --cores 2
+#
+# The R environment (limma) is built from envs/limma.yaml, pinned to the exact package versions in
+# envs/limma.linux-64.pin.txt (the rna-seq pins of ../GSE178812 plus org.Rn.eg.db). The report uses
+# envs/report.yaml.
+# ============================================================
+
+configfile: "config.yaml"
+
+ENV = "envs/limma.yaml"
+ENV_REPORT = "envs/report.yaml"
+
+
+rule all:
+    input:
+        "results/top_table.csv",
+        "results/de_summary.tsv",
+        "results/GSEA_GO_all_full.csv",
+        "results/GSEA_KEGG_full.csv",
+        "results/enrichment_STRING_full.csv",
+        "reports/sessionInfo.txt",
+        "reports/report.html",
+
+
+# ------------------------------------------------------------
+# 01: GEO normalized table + sample sheet -> SummarizedExperiment (gene level).
+# Downloads both files into data/ the first time.
+# ------------------------------------------------------------
+rule prepare:
+    output:
+        expression="data/expression.csv",
+        se="data/se_raw.rds",
+        coldata="data/colData.csv",
+    conda:
+        ENV
+    log:
+        "logs/prepare.log",
+    script:
+        "../../scripts/de/01_prepare_geo_normalized.R"
+
+
+# ------------------------------------------------------------
+# 02: QC and differential expression (limma-trend)
+# ------------------------------------------------------------
+rule differential:
+    input:
+        se="data/se_raw.rds",
+    output:
+        fit="data/fit.rds",
+        top_table="results/top_table.csv",
+        summary="results/de_summary.tsv",
+        log_expression="results/log2_normalized_counts.csv",
+        pca="plots/pca.png",
+        sample_dist="plots/sample_distances.png",
+        markers="plots/marker_genes.png",
+        volcano="plots/volcano.png",
+        heatmap="plots/heatmap.png",
+        fdr="plots/fdr_histogram.png",
+        boxplot="plots/boxplot.png",
+        qqplot="plots/QQPlot.png",
+        ma="plots/MAplot.png",
+        mean_variance="plots/mean_variance.png",
+        sample_weights="plots/sample_weights.png",
+        density="plots/density_counts.png",
+    conda:
+        ENV
+    log:
+        "logs/differential.log",
+    script:
+        "../../scripts/de/02_differential_expression_limma.R"
+
+
+# ------------------------------------------------------------
+# KEGG annotation downloaded once (the REST API is slow and sometimes hangs). Delete cache/kegg/ to refresh.
+# ------------------------------------------------------------
+KEGG_ORG = config["enrichment"]["organism_kegg"]
+
+rule kegg_annotation:
+    output:
+        link=f"cache/kegg/{KEGG_ORG}_link_pathway.tsv",
+        names=f"cache/kegg/{KEGG_ORG}_list_pathway.tsv",
+    params:
+        url="https://rest.kegg.jp",
+        org=KEGG_ORG,
+    log:
+        "logs/kegg_annotation.log",
+    shell:
+        """
+        (date -Iseconds
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 1800 \\
+             -o {output.link}.part {params.url}/link/{params.org}/pathway
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 600 \\
+             -o {output.names}.part {params.url}/list/pathway/{params.org}
+         test -s {output.link}.part && test -s {output.names}.part
+         mv {output.link}.part {output.link}
+         mv {output.names}.part {output.names}
+         wc -l {output.link} {output.names}) > {log} 2>&1
+        """
+
+
+# ------------------------------------------------------------
+# 03: GSEA (GO, KEGG), pathview and STRING. Needs internet access (pathview, STRING).
+# Ranking uses the `stat` column of top_table.csv (limma moderated t).
+# ------------------------------------------------------------
+rule enrichment:
+    input:
+        top_table="results/top_table.csv",
+        kegg_link=rules.kegg_annotation.output.link,
+        kegg_names=rules.kegg_annotation.output.names,
+    output:
+        go="results/GSEA_GO_all_full.csv",
+        kegg="results/GSEA_KEGG_full.csv",
+        string="results/enrichment_STRING_full.csv",
+        edges="results/edges_PPI.csv",
+        nodes="results/nodes_PPI.csv",
+        session="reports/sessionInfo.txt",
+    conda:
+        ENV
+    log:
+        "logs/enrichment.log",
+    script:
+        "../../scripts/de/03_enrichment.R"
+
+
+# ------------------------------------------------------------
+# Report: HTML summary of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+rule report:
+    input:
+        coldata=rules.prepare.output.coldata,
+        top_table=rules.differential.output.top_table,
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
+        go=rules.enrichment.output.go,
+        kegg=rules.enrichment.output.kegg,
+        string=rules.enrichment.output.string,
+        edges=rules.enrichment.output.edges,
+        nodes=rules.enrichment.output.nodes,
+        session=rules.enrichment.output.session,
+        config=["config.yaml"],
+        envs=["envs/report.yaml", "envs/limma.yaml"],
+        scripts=["../../scripts/de/report.py", "../../scripts/html_report.py"],
+        code=["../../scripts/de/02_differential_expression_limma.R", "../../scripts/de/03_enrichment.R"],
+    output:
+        html="reports/report.html",
+    params:
+        title=f"{config['dataset']}: differential expression and enrichment",
+        subtitle=config["title"],
+        reference=config["groups"]["reference"],
+        treatment=config["groups"]["treatment"],
+        padj=config["de"]["padj"],
+        lfc=config["de"]["lfc"],
+        design="""
+Dentate gyrus (DG) of the hippocampus of young (6-month) male F344 rats treated with doxorubicin (**DOX**)
+or vehicle (**VEH**) (GEO GSE236404, PMID 38225896; Ion Torrent, reads aligned with STAR to rn6 and
+counted on Ensembl 104 in Partek Flow). The series also has a doxorubicin + ABT-263 (senolytic) group,
+which is not used here.
+""",
+        notes="""
+**Why limma instead of DESeq2.** GEO only provides normalized, non-integer counts for this series (about
+14–20 million per sample; the processing notes do not say which normalization was used), and the raw reads
+are only in SRA. DESeq2 and
+voom need raw counts and library sizes, so this project fits **limma-trend** on log2(normalized counts + 1):
+the empirical-Bayes prior variance follows the mean-variance trend of the log values. Sample quality weights
+(`arrayWeights`) are available (`de.array_weights`) but off: when tested, the weights followed a hidden factor
+(PC1) that does not match the groups and inflated the p-values. Fold changes and
+p-values are therefore not numerically comparable to the DESeq2 results of the other projects, although the
+cutoffs are the same.
+""",
+        pipeline="""
+1. **prepare**: downloads the normalized count table and the sample sheet from GEO, drops the
+   doxorubicin + ABT-263 group, sums rows that share an Ensembl gene ID (the deposited table has several
+   features for some genes) and builds a `SummarizedExperiment`.
+2. **differential**: filtering, limma-trend fit and the QC/DE plots.
+3. **kegg_annotation**: downloads the KEGG gene–pathway table (`rno`) once into `cache/kegg/`.
+4. **enrichment**: GSEA (GO, KEGG), pathview maps, STRING network and enrichment.
+5. **report**: this page.
+
+The enrichment and report scripts are shared with `GSE178812` and `bulk_rna_seq_tximport`
+(`../../scripts/de/`); dataset-specific values are in `config.yaml`.
+""",
+        filter_text="genes with ≥ 10 normalized counts in at least 8 samples (the smallest group).",
+        input_text="""
+The analysis starts from the normalized count table deposited by the authors in GEO (Ensembl rat gene IDs ×
+samples) and their sample sheet, so raw reads are not processed here. Ensembl gene IDs are used as
+identifiers; symbols are annotation.
+""",
+        upstream_qc="",
+    conda:
+        ENV_REPORT
+    log:
+        "logs/report.log",
+    script:
+        "../../scripts/de/report.py"

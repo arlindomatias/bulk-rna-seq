@@ -16,6 +16,9 @@
 /analysis_from_geo_data/GSE178812/*.png
 /analysis_from_geo_data/GSE178812/*.pdf
 /analysis_from_geo_data/GSE178812/logs/
+/analysis_from_geo_data/GSE236404/*.png
+/analysis_from_geo_data/GSE236404/*.pdf
+/analysis_from_geo_data/GSE236404/logs/
 
 # ---- Large raw data (never version) -----------------------
 *.fastq
