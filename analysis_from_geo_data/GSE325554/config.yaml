@@ -1,0 +1,92 @@
+# ============================================================
+# Dataset configuration. Same structure as ../GSE178812/config.yaml, so the shared scripts in
+# ../../scripts/de/ can run it. The input is Visium spatial transcriptomics: the counts of the hippocampal
+# spots of each section are summed (pseudobulk, 01_prepare_visium.R) and analysed with DESeq2.
+# ============================================================
+
+dataset: GSE325554
+title: "Paclitaxel (PTX) vs vehicle (Ctrl), mouse hippocampus (Visium pseudobulk)"
+
+# Space Ranger outputs from GEO (GSE325554_RAW.tar, extracted), read from $DATA/<raw_dir>.
+input:
+  geo_accession: GSE325554
+  raw_url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE325nnn/GSE325554/suppl/GSE325554_RAW.tar
+  raw_dir: GSE325554/GSE325554_RAW
+
+# Condition of each sample, from its name (first matching regex). GEO: Ctrl = vehicle, PTX = paclitaxel,
+# ABT = PTX + ABT263 (senolytic), GCV = PTX + ganciclovir (clears p16-positive cells in p16-3MR mice).
+geo:
+  sample_patterns:
+    Ctrl: "^Ctrl"
+    PTX: "^PTX"
+    ABT: "^ABT"
+    GCV: "^GCV"
+  exclude_conditions: ["ABT", "GCV"]
+
+# Hippocampal spots: mean z-score of the markers > score_threshold, spatially connected components of at
+# least min_component spots, grown by `dilate` rings of neighbouring spots (see 01_prepare_visium.R).
+# Markers: dentate gyrus granule cells (Prox1, C1ql2, Dsp), CA pyramidal cells (Spink8, Fibcd1, Hpca) and
+# Zbtb20 (hippocampal neurons). Checked on every section (plots/region_spots.png).
+visium:
+  region: hippocampus
+  markers: [Prox1, C1ql2, Dsp, Spink8, Fibcd1, Zbtb20, Hpca]
+  score_threshold: 0.75
+  min_component: 10
+  dilate: 1
+
+# Gene identifiers of the count table: ENSEMBL or SYMBOL. Sets the GO keyType and the Entrez mapping for KEGG.
+gene_id_type: ENSEMBL
+
+samples:
+  id_column: sample           # Ctrl1, Ctrl2, PTX1, PTX2
+  condition_column: condition
+  label_column: sample
+
+# Raw value in `condition_column` -> label used in the model (valid R names).
+groups:
+  labels:
+    Ctrl: Ctrl
+    PTX: PTX
+  reference: Ctrl
+  treatment: PTX
+  colors:
+    Ctrl: "#3399FF"
+    PTX: "#CC0000"
+
+# Columns added to the model before the group (~ cov1 + cov2 + group).
+covariates: []
+
+# Sample ids removed from the analysis.
+exclude_samples: []
+
+filter:
+  min_count: 10
+  min_samples: 2      # group size
+
+de:
+  fit_type: local
+  padj: 0.05          # also the `alpha` of DESeq2 results() (independent filtering)
+  pvalue_fallback: 0.01  # used on the unadjusted p-value only when no gene has padj < padj (exploratory)
+  lfc: 0.5            # minimum |log2FC| for a DEG
+
+plots:
+  heatmap_max_genes: 60
+  marker_genes: []        # sex not reported
+
+enrichment:
+  organism_kegg: mmu
+  orgdb: org.Mm.eg.db
+  min_gs_size: 10
+  max_gs_size: 800
+  pvalue_cutoff: 0.05
+  string_version: "12.0"
+  string_species: 10090
+  string_score: 700
+  string_cache: cache/
+  # Pathview maps and single-pathway GSEA plots: the `top_n` most significant pathways/terms
+  # (an explicit list in pathview_pathways overrides the top N).
+  pathview_pathways: []
+  pathview_top_n: 3
+  gsea_plot_top_n: 3
+
+seed: 123

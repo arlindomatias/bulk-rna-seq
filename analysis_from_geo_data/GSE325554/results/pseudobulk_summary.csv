@@ -1,0 +1,5 @@
+sample,GEO_ID,condition,spots_in_tissue,components_kept,spots_selected,umi_selected,median_umi_per_spot
+Ctrl1,GSM9608398,Ctrl,2453,2,138,730802,2615.5
+Ctrl2,GSM9608399,Ctrl,2700,1,123,2270784,16928
+PTX1,GSM9608400,PTX,2636,1,205,4224175,17408
+PTX2,GSM9608401,PTX,2770,1,159,2267673,11231

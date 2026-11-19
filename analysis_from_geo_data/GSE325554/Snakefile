@@ -1,0 +1,215 @@
+# ============================================================
+# Bulk RNA-seq: differential expression and enrichment from Visium pseudobulk (GSE325554)
+# The hippocampal spots of each Visium section are selected by marker genes and their UMI counts summed
+# per sample (../../scripts/de/01_prepare_visium.R); the pseudobulk counts then go through the shared
+# DESeq2, enrichment and report scripts in ../../scripts/de/ (same as GSE178812). Everything specific to this
+# dataset is in config.yaml. Raw Space Ranger files are read from $DATA/GSE325554/GSE325554_RAW.
+#
+# Requires Snakemake 9. Usage (from this folder):
+#   conda activate genomic-variants        # Snakemake 9
+#   snakemake -n --use-conda               # dry-run
+#   snakemake --use-conda --cores 2
+#
+# The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned by envs/rna-seq.linux-64.pin.txt
+# (same as ../GSE178812). The report uses envs/report.yaml.
+# ============================================================
+
+configfile: "config.yaml"
+
+ENV = "envs/rna-seq.yaml"
+ENV_REPORT = "envs/report.yaml"
+
+
+rule all:
+    input:
+        "results/top_table.csv",
+        "results/de_summary.tsv",
+        "results/GSEA_GO_all_full.csv",
+        "results/GSEA_KEGG_full.csv",
+        "results/enrichment_STRING_full.csv",
+        "reports/sessionInfo.txt",
+        "reports/report.html",
+
+
+# ------------------------------------------------------------
+# 01: GEO count table + series matrix -> DESeq2 object (not fitted yet).
+# Downloads both files into data/ the first time.
+# ------------------------------------------------------------
+rule prepare:
+    output:
+        counts="data/pseudobulk_counts.csv",
+        dds="data/dds_raw.rds",
+        coldata="data/colData.csv",
+        spots="results/region_spots.csv",
+        summary="results/pseudobulk_summary.csv",
+        spots_plot="plots/region_spots.png",
+    conda:
+        ENV
+    log:
+        "logs/prepare.log",
+    script:
+        "../../scripts/de/01_prepare_visium.R"
+
+
+# ------------------------------------------------------------
+# 02: QC and differential expression
+# ------------------------------------------------------------
+rule differential:
+    input:
+        dds="data/dds_raw.rds",
+    output:
+        dds="data/dds.rds",
+        top_table="results/top_table.csv",
+        summary="results/de_summary.tsv",
+        norm_counts="results/normalized_counts.csv",
+        pca="plots/pca_vst.png",
+        sample_dist="plots/sample_distances.png",
+        markers="plots/marker_genes.png",
+        volcano="plots/volcano.png",
+        heatmap="plots/heatmap.png",
+        fdr="plots/fdr_histogram.png",
+        boxplot="plots/boxplot.png",
+        qqplot="plots/QQPlot.png",
+        ma="plots/MAplot.png",
+        dispersion="plots/dispersion_plot.png",
+        density="plots/density_counts.png",
+        cooks="plots/cooks_distance.png",
+    conda:
+        ENV
+    log:
+        "logs/differential.log",
+    script:
+        "../../scripts/de/02_differential_expression_and_qc.R"
+
+
+# ------------------------------------------------------------
+# KEGG annotation downloaded once (the REST API is slow and sometimes hangs; gseKEGG
+# downloaded it on every run). Delete cache/kegg/ to refresh.
+# ------------------------------------------------------------
+KEGG_ORG = config["enrichment"]["organism_kegg"]
+
+rule kegg_annotation:
+    output:
+        link=f"cache/kegg/{KEGG_ORG}_link_pathway.tsv",
+        names=f"cache/kegg/{KEGG_ORG}_list_pathway.tsv",
+    params:
+        url="https://rest.kegg.jp",
+        org=KEGG_ORG,
+    log:
+        "logs/kegg_annotation.log",
+    shell:
+        """
+        (date -Iseconds
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 1800 \\
+             -o {output.link}.part {params.url}/link/{params.org}/pathway
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 600 \\
+             -o {output.names}.part {params.url}/list/pathway/{params.org}
+         test -s {output.link}.part && test -s {output.names}.part
+         mv {output.link}.part {output.link}
+         mv {output.names}.part {output.names}
+         wc -l {output.link} {output.names}) > {log} 2>&1
+        """
+
+
+# ------------------------------------------------------------
+# 03: GSEA (GO, KEGG), pathview and STRING. Needs internet access (pathview, STRING).
+# ------------------------------------------------------------
+rule enrichment:
+    input:
+        top_table="results/top_table.csv",
+        kegg_link=rules.kegg_annotation.output.link,
+        kegg_names=rules.kegg_annotation.output.names,
+    output:
+        go="results/GSEA_GO_all_full.csv",
+        kegg="results/GSEA_KEGG_full.csv",
+        string="results/enrichment_STRING_full.csv",
+        edges="results/edges_PPI.csv",
+        nodes="results/nodes_PPI.csv",
+        session="reports/sessionInfo.txt",
+    conda:
+        ENV
+    log:
+        "logs/enrichment.log",
+    script:
+        "../../scripts/de/03_enrichment.R"
+
+
+# ------------------------------------------------------------
+# Report: HTML summary of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+rule report:
+    input:
+        coldata=rules.prepare.output.coldata,
+        spots_plot=rules.prepare.output.spots_plot,
+        pseudobulk=rules.prepare.output.summary,
+        top_table=rules.differential.output.top_table,
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
+        go=rules.enrichment.output.go,
+        kegg=rules.enrichment.output.kegg,
+        string=rules.enrichment.output.string,
+        edges=rules.enrichment.output.edges,
+        nodes=rules.enrichment.output.nodes,
+        session=rules.enrichment.output.session,
+        config=["config.yaml"],
+        envs=["envs/report.yaml", "envs/rna-seq.yaml"],
+        scripts=["../../scripts/de/report.py", "../../scripts/html_report.py"],
+        code=["../../scripts/de/01_prepare_visium.R", "../../scripts/de/02_differential_expression_and_qc.R",
+              "../../scripts/de/03_enrichment.R"],
+    output:
+        html="reports/report.html",
+    params:
+        title=f"{config['dataset']}: differential expression and enrichment",
+        subtitle=config["title"],
+        reference=config["groups"]["reference"],
+        treatment=config["groups"]["treatment"],
+        padj=config["de"]["padj"],
+        lfc=config["de"]["lfc"],
+        design="""
+Brains of p16-3MR mice treated with paclitaxel (**PTX**, 5 mg/kg/day, 2 cycles) or vehicle (**Ctrl**),
+collected 6 months after treatment (GEO GSE325554, spatial transcriptomics part of the paclitaxel chemobrain
+study; 10x Visium, Space Ranger 1.2.1), n = 2 sections (mice) per group. The series also has PTX + ABT263
+and PTX + ganciclovir (senolytic) groups, which are not used here.
+""",
+        notes="""
+**Pseudobulk of the hippocampus.** Visium measures expression in ~55 µm spots over a whole coronal
+hemisection, and each section here is cut at a different level and orientation, so summing every spot would
+compare different mixtures of brain regions. The other datasets of this repository are hippocampus, so only
+the hippocampal spots are summed: spots are scored by hippocampal markers (dentate gyrus and CA pyramidal
+layers), spatially connected groups of high-score spots are kept and grown by one ring of neighbours (see the
+figure in the input section). The pseudobulk counts are then analysed like bulk RNA-seq with DESeq2.
+With n = 2 per group, power is very low and the results are exploratory. One control section (Ctrl1)
+has a much lower depth per spot than the others (pseudobulk table in *Input data*) and separates from them on the PCA, so it drives
+much of the contrast; depth-related genes (ribosome, oxidative phosphorylation) and blood (haemoglobin) or
+neighbouring-tissue genes among the top results should be read with that in mind.
+""",
+        pipeline="""
+1. **prepare**: reads the Space Ranger outputs from `$DATA/GSE325554/GSE325554_RAW`, selects the hippocampal
+   spots of each section, sums their counts (Ensembl gene IDs) and builds a `DESeqDataSetFromMatrix` object.
+2. **differential**: filtering, DESeq2 fit, apeglm-shrunken log2FC and the QC/DE plots.
+3. **kegg_annotation**: downloads the KEGG gene–pathway table once into `cache/kegg/`.
+4. **enrichment**: GSEA (GO, KEGG), pathview maps, STRING network and enrichment.
+5. **report**: this page.
+
+The scripts are shared with the other DE projects (`../../scripts/de/`); dataset-specific values are in
+`config.yaml`.
+""",
+        filter_text="genes with ≥ 10 pseudobulk counts in at least 2 samples.",
+        input_text="""
+The analysis starts from the Visium count matrices deposited in GEO (Space Ranger 1.2.1, spots under the
+tissue × genes). Only the spots of the hippocampus are used (`results/region_spots.csv`,
+`results/pseudobulk_summary.csv`); the figure below shows them on each section. Ensembl gene IDs are used
+as identifiers; symbols are annotation.
+""",
+        upstream_qc="",
+        input_table=rules.prepare.output.summary,
+        input_table_caption="Hippocampal spots selected per section and their pseudobulk counts "
+        "(`results/pseudobulk_summary.csv`).",
+        input_figure=rules.prepare.output.spots_plot,
+        input_figure_caption="Spots under the tissue (blue) and hippocampal spots used for the pseudobulk "
+        "(orange) on the low-resolution H&E image of each section.",
+    conda:
+        ENV_REPORT
+    log:
+        "logs/report.log",
+    script:
+        "../../scripts/de/report.py"
