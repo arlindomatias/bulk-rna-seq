@@ -1,10 +1,12 @@
 """Figures and overlap tables for the cross-dataset DEG table (meta_analysis).
 
-Run through Snakemake (`script:` directive, rule `plots`). Reads results/all_degs.csv and
-results/gene_map.csv (the genes tested in each dataset) and writes:
+Run through Snakemake (`script:` directive, rule `plots`). Reads results/all_degs.csv,
+results/gene_map.csv (the genes tested in each dataset) and results/meta_random_effects.csv, and writes:
   plots/deg_counts.png         DEGs up/down per dataset
   plots/shared_degs_lfc.png    log2FC of the genes that are DEGs in more than one dataset
   results/pairwise_overlap.csv DEG overlap for each pair of datasets, with a hypergeometric test
+  plots/meta_volcano.png       pooled log2FC vs p of the random-effects meta-analysis
+  plots/meta_forest.png        per-dataset and pooled log2FC of the top meta DEGs
 Genes are matched across datasets (and species) by `key` from gene_map.csv: the mouse Ensembl ID, through
 the 1:1 ortholog for rat genes. Genes without a key are left out of the overlap.
 """
@@ -114,4 +116,67 @@ for s in ax.spines.values():
     s.set_visible(False)
 fig.colorbar(im, ax=ax, label="log2FC (treated vs control)", shrink=0.6)
 save(fig, out.shared_lfc)
+# </figure>
+
+# ---------------------------------------------------------------- random-effects meta-analysis
+meta = pd.read_csv(inp.meta)
+mcfg = cfg["meta"]
+DS_COLORS = dict(zip(datasets, ["#2a78d6", "#1baf7a", "#8a5cc2", "#d6a32a"]))
+
+# <figure name="meta_volcano">
+fig, ax = plt.subplots(figsize=(6, 4.6))
+y = -np.log10(meta["pvalue"].clip(lower=1e-300))
+sig = meta["meta_deg"].astype(bool)
+ax.scatter(meta.loc[~sig, "estimate"], y[~sig], s=5, color="#c4c4c4", alpha=0.6, linewidths=0, label="not significant")
+for d, col in (("up", UP), ("down", DOWN)):
+    m = sig & (meta["direction"] == d)
+    ax.scatter(meta.loc[m, "estimate"], y[m], s=10, color=col, linewidths=0, label=f"meta DEG {d} ({int(m.sum())})")
+padj_line = meta.loc[meta["padj"] < mcfg["padj"], "pvalue"].max()
+if pd.notna(padj_line):
+    ax.axhline(-np.log10(padj_line), color="#9a9a9a", lw=0.8, ls="--")
+for v in (-mcfg["lfc"], mcfg["lfc"]):
+    ax.axvline(v, color="#9a9a9a", lw=0.8, ls="--")
+# Label the most significant meta DEGs, skipping labels that would overlap one already placed.
+placed = []
+xr = ax.get_xlim()[1] - ax.get_xlim()[0]
+yr = ax.get_ylim()[1] - ax.get_ylim()[0]
+for _, r in meta[sig].nsmallest(25, "pvalue").iterrows():
+    x0, y0 = r["estimate"], -np.log10(r["pvalue"])
+    if any(abs(x0 - x1) < 0.14 * xr and abs(y0 - y1) < 0.035 * yr for x1, y1 in placed):
+        continue
+    placed.append((x0, y0))
+    ax.annotate(r["key_symbol"], (x0, y0), fontsize=7, fontstyle="italic",
+                xytext=(3, 2), textcoords="offset points", color=INK2)
+ax.set_xlabel("pooled log2FC (random effects)")
+ax.set_ylabel("-log10 p")
+ax.grid(color="#ebebeb")
+ax.legend(loc="upper left", fontsize=8, markerscale=1.5)
+save(fig, out.meta_volcano)
+# </figure>
+
+# <figure name="meta_forest">
+n_top = int(mcfg["forest_top_n"])
+top = meta[sig].nsmallest(n_top, "pvalue")
+if top.empty:
+    top = meta.nsmallest(n_top, "pvalue")
+top = top.iloc[::-1]
+fig, ax = plt.subplots(figsize=(6.4, 0.34 * len(top) + 1.4))
+offsets = np.linspace(-0.27, 0.27, len(datasets) + 1)
+for i, (_, r) in enumerate(top.iterrows()):
+    for j, d in enumerate(datasets):
+        lfc, se = r.get(f"log2FC_{d}"), r.get(f"lfcSE_{d}")
+        if pd.notna(lfc):
+            ax.errorbar(lfc, i + offsets[j], xerr=1.96 * se, fmt="o", ms=3, color=DS_COLORS[d],
+                        elinewidth=0.8, capsize=0, label=d if i == 0 else None)
+    yy = i + offsets[-1]
+    ax.fill([r["ci_lb"], r["estimate"], r["ci_ub"], r["estimate"]], [yy, yy + 0.1, yy, yy - 0.1],
+            color="black", label="pooled (95% CI)" if i == 0 else None)
+ax.axvline(0, color="#9a9a9a", lw=0.8)
+ax.set_yticks(range(len(top)), [f"{s}  (I² {i2:.0f}%)" for s, i2 in zip(top["key_symbol"], top["I2"])],
+              fontstyle="italic", fontsize=8)
+ax.set_xlabel("log2FC ± 95% CI (treated vs control)")
+ax.grid(axis="x", color="#ebebeb")
+ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.6 / (0.34 * len(top) + 1.4)),
+          ncol=len(datasets) + 1, fontsize=8)
+save(fig, out.meta_forest)
 # </figure>

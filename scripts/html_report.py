@@ -328,7 +328,7 @@ class Report:
         outputs: list of (file, description) rows.
         env_files: conda environment YAML files (envs/*.yaml); a matching *.linux-64.pin.txt is noted.
         config_files: files with the run parameters (config.yaml, or the Snakefile when there is none).
-        session_file: text file with the R sessionInfo() of the analysis environment.
+        session_file: text file (or list of files) with the R sessionInfo() of the analysis environments.
         """
         self.h2("Appendix")
         self.h3("Outputs")
@@ -358,10 +358,13 @@ class Report:
                 self.code(fh.read(), lang, collapsed=True, summary=f"Show {os.path.basename(f)}")
 
         self.h3("Session info")
-        if session_file and os.path.exists(session_file):
-            with open(session_file, encoding="utf-8") as fh:
-                self.code(fh.read(), collapsed=True, summary="Show R sessionInfo()")
-        else:
+        files = [session_file] if isinstance(session_file, str) else list(session_file or [])
+        files = [f for f in files if f and os.path.exists(f)]
+        for f in files:
+            label = "" if len(files) == 1 else f" ({os.path.basename(f)})"
+            with open(f, encoding="utf-8") as fh:
+                self.code(fh.read(), collapsed=True, summary=f"Show R sessionInfo(){label}")
+        if not files:
             self.md("No session information was recorded.")
 
     # ---- output ------------------------------------------------------------

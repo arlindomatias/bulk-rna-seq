@@ -1,0 +1,12 @@
+# Random-effects meta-analysis per gene (metafor). Same R version as envs/limma.yaml.
+name: metafor
+
+channels:
+  - conda-forge
+
+dependencies:
+  - r-base=4.5.3
+  - r-metafor=5.0_1
+  - r-readr
+  - r-dplyr
+  - r-tidyr

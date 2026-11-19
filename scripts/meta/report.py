@@ -37,6 +37,7 @@ r.kpis([
     (f"{n_genes:,}", "distinct genes"),
     (n_shared, "genes that are DEGs in > 1 dataset"),
     (max_n, "most datasets for one gene"),
+    (int(pd.read_csv(inp.meta, usecols=["meta_deg"])["meta_deg"].sum()), "meta DEGs (random effects)"),
 ])
 
 # ---------------------------------------------------------------- datasets
@@ -144,18 +145,82 @@ r.figure(inp.shared_lfc, "log2FC of the genes that are DEGs in more than one dat
 cols = ["label", "SYMBOL", "dataset", "direction", "log2FoldChange", "stat", "pvalue", "padj"]
 r.table(shared[cols], "Genes that are DEGs in more than one dataset.", digits=3, collapsed=True)
 
+# ---------------------------------------------------------------- random-effects meta-analysis
+r.h2("Random-effects meta-analysis")
+meta = pd.read_csv(inp.meta)
+mcfg = cfg["meta"]
+kc = meta["k"].value_counts().sort_index()
+k_text = ", ".join(f"{n:,} in {k}" for k, n in kc.items())
+md_ = meta[meta["meta_deg"]]
+n_up, n_down = int((md_.direction == "up").sum()), int((md_.direction == "down").sum())
+n_padj = int((meta["padj"] < mcfg["padj"]).sum())
+new = md_["deg_in"].isna()
+n_k3 = int((md_["k"] >= 3).sum())
+robust = md_[(md_["loo_max_pvalue"] < 0.05) & (~md_["loo_sign_flip"].astype(bool))]
+robust3 = robust[robust["k"] >= 3]
+n_knha = int((md_["pvalue_knha"] < 0.05).sum())
+n_het = int((md_["I2"] > 50).sum())
+all_same = int((md_["n_same_sign"] == md_["k"]).sum())
+by_ds = {d: int(md_["datasets"].str.contains(d).sum()) for d in ds}
+mouse_only = int((md_["datasets"] == ";".join(d for d in ds if ds[d]["species"] == "Mus musculus")).sum())
+
+r.md(f"""
+The DEG overlap above only asks whether a gene passes a cutoff in each dataset. A meta-analysis uses the
+effect sizes directly: for every gene (key) tested in at least {mcfg['min_datasets']} datasets, the
+`log2FoldChange` of each dataset is combined with its standard error (`lfcSE`) in a **random-effects model**
+(`metafor::rma`, τ² by {mcfg['method']}, z test). The random effect lets the true effect differ between studies
+(different treatments, species, regions and platforms), so genes whose changes disagree get a wide CI.
+p-values are BH-adjusted over all {len(meta):,} genes ({k_text} datasets). A **meta DEG** has
+padj < {mcfg['padj']} and |pooled log2FC| > {mcfg['lfc']}.
+
+**{len(md_):,} meta DEGs** ({n_up} up / {n_down} down; {n_padj:,} genes at padj < {mcfg['padj']} with any effect
+size). {int((~new).sum())} of them are DEGs in at least one project and **{int(new.sum())} are DEGs in none**:
+small but consistent changes that no single study detected. By the datasets they were tested in:
+{", ".join(f"{d} {n}" for d, n in by_ds.items())}; {mouse_only} were tested only in the two mouse datasets.
+{all_same} meta DEGs change in the same direction in every dataset and {n_het} {"has" if n_het == 1 else "have"} I² > 50%
+(heterogeneous effects).
+
+Checks of robustness:
+
+* **Leave-one-out** (`loo_max_pvalue`, `loo_sign_flip`): {len(robust)} of the {len(md_)} meta DEGs keep
+  p < 0.05 and the same sign whichever dataset is dropped ({len(robust3)} of the {n_k3} tested in 3 datasets).
+  For a gene tested in 2 datasets this means each dataset alone has p < 0.05; the others are driven
+  mostly by one study.
+* **Knapp-Hartung** test (`pvalue_knha`): {n_knha} meta DEGs keep p < 0.05. With 2–3 studies this test has
+  1–2 degrees of freedom, so it is very conservative; the z test is the usual choice but is anti-conservative
+  when τ² is estimated from so few studies.
+
+Caveats: the effect sizes are not on exactly the same scale (DESeq2 maximum-likelihood log2FC on counts,
+limma log2FC on log2(normalized + 1) for GSE236404), and the treatments differ (AC-T in GSE295281,
+doxorubicin alone in the others). With only 2–3 studies, τ² is imprecise; read the pooled p-values as a
+ranking of consistent changes rather than exact error rates.
+""")
+r.figure(inp.meta_volcano, "Pooled log2FC and p-value of every meta-analysed gene. Dashed lines: the "
+         "|log2FC| cutoff and the p-value of the last gene at padj < " + str(mcfg["padj"]) + ".", width="60%")
+r.figure(inp.meta_forest, f"The {min(int(mcfg['forest_top_n']), len(md_))} meta DEGs with the smallest p: "
+         "log2FC ± 95% CI in each dataset and the pooled estimate (diamond).", width="65%")
+cols = ["key_symbol", "k", "estimate", "ci_lb", "ci_ub", "pvalue", "padj", "pvalue_knha", "I2",
+        "loo_max_pvalue", "deg_in"]
+r.table(md_[cols].rename(columns={"key_symbol": "gene", "estimate": "pooled log2FC"}),
+        "Meta DEGs (`results/meta_random_effects.csv` has every gene, per-dataset log2FC/SE and "
+        "heterogeneity).", digits=3, collapsed=True)
+
 # ---------------------------------------------------------------- appendix
 r.appendix(
     outputs=[
         ("results/gene_map.csv", "Every tested gene of every dataset with its cross-dataset key"),
         ("results/all_degs.csv", "DEGs of every dataset, one row per gene × dataset"),
         ("results/pairwise_overlap.csv", "Pairwise DEG overlap and hypergeometric test"),
+        ("results/meta_random_effects.csv", "Random-effects meta-analysis of every gene in >= 2 datasets"),
+        ("plots/meta_volcano.png", "Meta-analysis volcano"),
+        ("plots/meta_forest.png", "Forest plot of the top meta DEGs"),
         ("plots/deg_counts.png", "DEGs per dataset"),
         ("plots/shared_degs_lfc.png", "log2FC of the shared DEGs"),
         ("reports/sessionInfo.txt", "R session of the table step"),
+        ("reports/sessionInfo_metafor.txt", "R session of the meta-analysis"),
     ],
     env_files=list(inp.envs),
     config_files=[inp.config],
-    session_file=inp.session,
+    session_file=list(inp.session),
 )
 r.write(out.html)

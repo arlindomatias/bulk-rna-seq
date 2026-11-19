@@ -22,12 +22,21 @@ stops if the DEG counts differ from `de_summary.tsv`. Rerun the DE projects firs
 |---|---|
 | `results/gene_map.csv` | Every gene tested in every dataset with its cross-dataset `key` (mouse Ensembl ID), `key_symbol` and `map_status` |
 | `results/all_degs.csv` | One row per gene and dataset where it is a DEG: `key`, `key_symbol`, `SYMBOL`, `ENTREZID`, `ENSEMBL`, `dataset`, `species`, `contrast`, `method`, `direction`, `log2FoldChange`, `stat`, `stat_type`, `pvalue`, `padj`, `deg_criterion`, `n_datasets`, `datasets` |
+| `results/meta_random_effects.csv` | Random-effects meta-analysis of every gene tested in ≥ 2 datasets: pooled log2FC, 95% CI, z, p, BH padj, `meta_deg`, Knapp-Hartung p, τ², I², Q, leave-one-out, per-dataset log2FC/SE, DEG status in each project |
 | `results/pairwise_overlap.csv` | Shared DEGs of each pair of datasets (universe = keys tested in both), hypergeometric p, same/opposite direction |
 | `plots/deg_counts.png`, `plots/shared_degs_lfc.png` | DEGs per dataset; log2FC of the genes that are DEGs in more than one dataset |
-| `reports/report.html`, `reports/sessionInfo.txt` | Report and R session |
+| `plots/meta_volcano.png`, `plots/meta_forest.png` | Meta-analysis volcano; forest plot of the top meta DEGs |
+| `reports/report.html`, `reports/sessionInfo*.txt` | Report and R sessions |
 
 Identifiers missing from a project's table come from `org.Mm.eg.db` / `org.Rn.eg.db`; several IDs for one
 gene are joined with `;`.
+
+**Meta-analysis.** For every gene (key) tested in at least `meta.min_datasets` datasets, the
+`log2FoldChange` and `lfcSE` of each dataset are combined by `metafor::rma` (random effects, τ² by REML, z
+test, BH over genes). A meta DEG has padj < `meta.padj` and |pooled log2FC| > `meta.lfc`. Robustness
+columns: Knapp-Hartung p (very conservative with 2–3 studies) and leave-one-out (largest p and sign flip when
+each dataset is dropped; with 2 datasets, the p of the weaker dataset alone). The log2FC scales differ
+slightly (DESeq2 on counts, limma on log2(normalized + 1)) and the treatments differ (AC-T vs doxorubicin).
 
 **Gene matching.** Genes are matched across datasets and species by `key`, the Ensembl ID of the mouse
 gene. Mouse genes use their own ID (GSE178812 symbols are mapped through `org.Mm.eg.db` when a symbol has
@@ -43,14 +52,14 @@ across methods.
 
 ```
 .
-├── Snakefile          # orthologs (download) -> gene_map (R) -> collect_degs (R) -> plots (Python) -> report (Python)
-├── config.yaml        # datasets (project folder, species, OrgDb, gene ID type, method); orthologs (Compara)
+├── Snakefile          # orthologs (download) -> gene_map (R) -> collect_degs (R) -> meta_random_effects (R) -> plots, report (Python)
+├── config.yaml        # datasets (project folder, species, OrgDb, gene ID type, method); orthologs (Compara); meta
 ├── cache/compara/     # Ensembl Compara homology tables (downloaded, git-ignored)
-├── envs/              # limma (R + org.Mm.eg.db + org.Rn.eg.db, pinned), report (Python)
+├── envs/              # limma (R + org.Mm.eg.db + org.Rn.eg.db), metafor (R + metafor), both pinned; report (Python)
 ├── results/, plots/, reports/
 ```
 
-Scripts: [`../scripts/meta/`](../scripts/meta) (`gene_map.R`, `collect_degs.R`, `plots.py`, `report.py`).
+Scripts: [`../scripts/meta/`](../scripts/meta) (`gene_map.R`, `collect_degs.R`, `meta_random_effects.R`, `plots.py`, `report.py`).
 
 ## Running
 

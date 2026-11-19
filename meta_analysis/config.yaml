@@ -44,3 +44,13 @@ orthologs:
     mus_musculus:
       - Compara.104.protein_default.homologies.tsv.gz
       - Compara.104.ncrna_default.homologies.tsv.gz
+
+# Random-effects meta-analysis per gene (rule meta_random_effects): log2FoldChange and lfcSE of every
+# dataset where the gene (key) was tested, combined with metafor::rma. DESeq2 genes with pvalue NA
+# (Cook's outliers) are left out of that dataset.
+meta:
+  method: REML          # tau² estimator; DL is used when REML does not converge (column tau2_method)
+  min_datasets: 2       # genes tested in fewer datasets are not meta-analysed
+  padj: 0.05            # BH-adjusted p of the z test
+  lfc: 0.5              # |pooled log2FC| for a meta DEG (same cutoff as the projects)
+  forest_top_n: 20      # genes in the forest plot

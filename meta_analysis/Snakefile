@@ -21,6 +21,7 @@ configfile: "config.yaml"
 
 ENV = "envs/limma.yaml"
 ENV_REPORT = "envs/report.yaml"
+ENV_META = "envs/metafor.yaml"
 DATASETS = config["datasets"]
 ORTHO = config["orthologs"]
 ORTHO_FILES = [f"cache/compara/{sp}/{f}" for sp, files in ORTHO["files"].items() for f in files]
@@ -32,6 +33,7 @@ rule all:
         "results/gene_map.csv",
         "results/all_degs.csv",
         "results/pairwise_overlap.csv",
+        "results/meta_random_effects.csv",
         "reports/report.html",
 
 
@@ -88,14 +90,36 @@ rule collect_degs:
         "../scripts/meta/collect_degs.R"
 
 
+# ------------------------------------------------------------
+# Random-effects meta-analysis per gene (metafor), on log2FC / lfcSE of every dataset.
+# ------------------------------------------------------------
+rule meta_random_effects:
+    input:
+        top_tables=TOP_TABLES,
+        gene_map="results/gene_map.csv",
+        degs="results/all_degs.csv",
+    output:
+        table="results/meta_random_effects.csv",
+        session="reports/sessionInfo_metafor.txt",
+    conda:
+        ENV_META
+    log:
+        "logs/meta_random_effects.log",
+    script:
+        "../scripts/meta/meta_random_effects.R"
+
+
 rule plots:
     input:
         degs="results/all_degs.csv",
         gene_map="results/gene_map.csv",
+        meta="results/meta_random_effects.csv",
     output:
         overlap="results/pairwise_overlap.csv",
         deg_counts="plots/deg_counts.png",
         shared_lfc="plots/shared_degs_lfc.png",
+        meta_volcano="plots/meta_volcano.png",
+        meta_forest="plots/meta_forest.png",
     conda:
         ENV_REPORT
     log:
@@ -111,10 +135,13 @@ rule report:
         overlap=rules.plots.output.overlap,
         deg_counts=rules.plots.output.deg_counts,
         shared_lfc=rules.plots.output.shared_lfc,
+        meta="results/meta_random_effects.csv",
+        meta_volcano=rules.plots.output.meta_volcano,
+        meta_forest=rules.plots.output.meta_forest,
         summaries=[f"{d['project']}/results/de_summary.tsv" for d in DATASETS.values()],
-        session="reports/sessionInfo.txt",
+        session=["reports/sessionInfo.txt", "reports/sessionInfo_metafor.txt"],
         config="config.yaml",
-        envs=["envs/limma.yaml", "envs/report.yaml"],
+        envs=["envs/limma.yaml", "envs/metafor.yaml", "envs/report.yaml"],
         scripts=["../scripts/html_report.py"],
         code=["../scripts/meta/plots.py"],
     output:

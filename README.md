@@ -74,6 +74,7 @@ scripts/
 └── meta/                                  # meta_analysis
     ├── gene_map.R                         # cross-dataset gene key (mouse Ensembl; rat via 1:1 Compara orthologs)
     ├── collect_degs.R                     # DEGs of every DE project -> results/all_degs.csv
+    ├── meta_random_effects.R              # random-effects meta-analysis per gene (metafor)
     ├── plots.py                           # DEG counts, pairwise overlap, shared-DEG heatmap
     └── report.py
 ```
