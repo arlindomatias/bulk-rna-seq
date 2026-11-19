@@ -4,7 +4,7 @@ Reproducible Snakemake + R workflows for bulk RNA-seq analysis of public GEO dat
 chemotherapy-induced cognitive impairment ("chemobrain"). They cover everything from raw reads to
 differential expression, functional enrichment and protein-protein interaction (PPI) networks.
 
-The repository contains four projects. Each has its own Snakefile, conda environments and README:
+The repository contains five projects. Each has its own Snakefile, conda environments and README:
 
 | Folder | Dataset | Input | What it does |
 |---|---|---|---|
@@ -12,11 +12,13 @@ The repository contains four projects. Each has its own Snakefile, conda environ
 | [`bulk_rna_seq_tximport/`](bulk_rna_seq_tximport) | GSE295281 | tximport object from `raw_reads_processing` | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING; configured through `config.yaml` |
 | [`analysis_from_geo_data/GSE178812/`](analysis_from_geo_data/GSE178812) | [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) | Count matrix deposited in GEO | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
 | [`analysis_from_geo_data/GSE236404/`](analysis_from_geo_data/GSE236404) | [GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404) | Normalized count table deposited in GEO (rat) | limma-trend, QC, GSEA (GO/KEGG), pathview, STRING |
+| [`meta_analysis/`](meta_analysis) | all three | DE results of the three DE projects | One table with every DEG (symbol, Entrez, Ensembl, log2FC, stat, p, padj per dataset) and their overlap |
 
 ```
 SRA (GSE295281) ──► raw_reads_processing ──► data/txi_gene.rds ──► bulk_rna_seq_tximport ──► DE + enrichment
 GEO counts (GSE178812) ──────────────────────────────────────────► GSE178812 ─► DE + enrichment
 GEO normalized counts (GSE236404) ───────────────────────────────► GSE236404 ─► DE (limma) + enrichment
+DE results of the three projects ────────────────────────────────► meta_analysis ─► DEG table + overlap
 ```
 
 ## Reports
@@ -30,6 +32,7 @@ with figures and tables:
 | `bulk_rna_seq_tximport` | [GSE295281: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html) |
 | `GSE178812` | [GSE178812: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE178812/reports/report.html) |
 | `GSE236404` | [GSE236404: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE236404/reports/report.html) |
+| `meta_analysis` | [Chemotherapy DEGs across datasets](https://arlindomatias.github.io/bulk-rna-seq/meta_analysis/reports/report.html) |
 
 The reports are built by the `report` rule of each Snakefile (`reports/report.html`) and published with
 GitHub Pages.
@@ -64,9 +67,13 @@ scripts/
 │   ├── 02_differential_expression_limma.R   # limma-trend (normalized counts only)
 │   ├── 03_enrichment.R                    # GSEA GO/KEGG, pathview, STRING
 │   └── report.py
-└── raw/                                   # raw_reads_processing
-    ├── tx2gene.py, qc_summary.py, tximport.R
-    ├── qc_plots.py
+├── raw/                                   # raw_reads_processing
+│   ├── tx2gene.py, qc_summary.py, tximport.R
+│   ├── qc_plots.py
+│   └── report.py
+└── meta/                                  # meta_analysis
+    ├── collect_degs.R                     # DEGs of every DE project -> results/all_degs.csv
+    ├── plots.py                           # DEG counts, pairwise overlap, shared-DEG heatmap
     └── report.py
 ```
 
@@ -151,6 +158,19 @@ Current result (DOX vs VEH, 14,569 genes tested): no gene at `padj < 0.05`, so t
 ```bash
 cd analysis_from_geo_data/GSE236404
 snakemake --use-conda --cores 2
+```
+
+### 5. `meta_analysis`: DEGs across datasets
+
+Collects the DEGs of the three DE projects (same DEG rule as each project, read from its `de_summary.tsv`)
+into `results/all_degs.csv`: one row per gene and dataset where it is a DEG, with symbol, Entrez ID, Ensembl ID,
+log2FC, statistic (Wald or moderated t), p-value and padj. Missing IDs come from `org.Mm.eg.db` /
+`org.Rn.eg.db`. `results/pairwise_overlap.csv` tests the DEG overlap of each pair of datasets
+(hypergeometric, genes matched by symbol). Run it after the DE projects:
+
+```bash
+cd meta_analysis
+snakemake --use-conda --cores 1
 ```
 
 ## Shared methods

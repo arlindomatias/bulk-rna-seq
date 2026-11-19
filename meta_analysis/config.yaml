@@ -1,0 +1,31 @@
+# Datasets whose DEGs are collected into results/all_degs.csv.
+# The DEG criterion (padj or the unadjusted-p fallback, and the |log2FC| cutoff) is read from each
+# project's results/de_summary.tsv, so it always matches what that project reports.
+datasets:
+  GSE295281:
+    description: Mouse hippocampus, AC-T (doxorubicin + cyclophosphamide, then paclitaxel) vs saline
+    report: ../bulk_rna_seq_tximport/reports/report.html
+    project: ../bulk_rna_seq_tximport
+    species: Mus musculus
+    orgdb: org.Mm.eg.db
+    gene_id_type: ENSEMBL
+    method: DESeq2
+    stat_type: Wald statistic
+  GSE178812:
+    description: Mouse hippocampus, doxorubicin vs vehicle
+    report: ../analysis_from_geo_data/GSE178812/reports/report.html
+    project: ../analysis_from_geo_data/GSE178812
+    species: Mus musculus
+    orgdb: org.Mm.eg.db
+    gene_id_type: SYMBOL
+    method: DESeq2
+    stat_type: Wald statistic
+  GSE236404:
+    description: Rat dentate gyrus, doxorubicin vs vehicle
+    report: ../analysis_from_geo_data/GSE236404/reports/report.html
+    project: ../analysis_from_geo_data/GSE236404
+    species: Rattus norvegicus
+    orgdb: org.Rn.eg.db
+    gene_id_type: ENSEMBL
+    method: limma-trend
+    stat_type: moderated t

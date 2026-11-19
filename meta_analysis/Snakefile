@@ -1,0 +1,80 @@
+# ============================================================
+# Meta-analysis: one table with the DEGs of every DE project in the repository.
+# Reads each project's results/top_table.csv and results/de_summary.tsv (paths in config.yaml) and
+# writes results/all_degs.csv: one row per gene per dataset where it is a DEG, with symbol, Entrez ID,
+# Ensembl ID, log2FC, statistic, p-value and padj.
+#
+# plots/ and results/pairwise_overlap.csv show the DEG overlap between datasets, and reports/report.html
+# explains everything. Shared scripts: ../scripts/meta/ (collect_degs.R, plots.py, report.py).
+#
+# Requires Snakemake 9. Usage (from this folder):
+#   conda activate genomic-variants
+#   snakemake -n --use-conda
+#   snakemake --use-conda --cores 1
+# ============================================================
+
+configfile: "config.yaml"
+
+ENV = "envs/limma.yaml"
+ENV_REPORT = "envs/report.yaml"
+DATASETS = config["datasets"]
+
+
+rule all:
+    input:
+        "results/all_degs.csv",
+        "results/pairwise_overlap.csv",
+        "reports/report.html",
+
+
+rule collect_degs:
+    input:
+        top_tables=[f"{d['project']}/results/top_table.csv" for d in DATASETS.values()],
+        summaries=[f"{d['project']}/results/de_summary.tsv" for d in DATASETS.values()],
+    output:
+        table="results/all_degs.csv",
+        session="reports/sessionInfo.txt",
+    conda:
+        ENV
+    log:
+        "logs/collect_degs.log",
+    script:
+        "../scripts/meta/collect_degs.R"
+
+
+rule plots:
+    input:
+        degs="results/all_degs.csv",
+        top_tables=[f"{d['project']}/results/top_table.csv" for d in DATASETS.values()],
+    output:
+        overlap="results/pairwise_overlap.csv",
+        deg_counts="plots/deg_counts.png",
+        shared_lfc="plots/shared_degs_lfc.png",
+    conda:
+        ENV_REPORT
+    log:
+        "logs/plots.log",
+    script:
+        "../scripts/meta/plots.py"
+
+
+rule report:
+    input:
+        degs="results/all_degs.csv",
+        overlap=rules.plots.output.overlap,
+        deg_counts=rules.plots.output.deg_counts,
+        shared_lfc=rules.plots.output.shared_lfc,
+        summaries=[f"{d['project']}/results/de_summary.tsv" for d in DATASETS.values()],
+        session="reports/sessionInfo.txt",
+        config="config.yaml",
+        envs=["envs/limma.yaml", "envs/report.yaml"],
+        scripts=["../scripts/html_report.py"],
+        code=["../scripts/meta/plots.py"],
+    output:
+        html="reports/report.html",
+    conda:
+        ENV_REPORT
+    log:
+        "logs/report.log",
+    script:
+        "../scripts/meta/report.py"
