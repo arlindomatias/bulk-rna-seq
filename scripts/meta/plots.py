@@ -121,7 +121,7 @@ save(fig, out.shared_lfc)
 # ---------------------------------------------------------------- random-effects meta-analysis
 meta = pd.read_csv(inp.meta)
 mcfg = cfg["meta"]
-DS_COLORS = dict(zip(datasets, ["#2a78d6", "#1baf7a", "#8a5cc2", "#d6a32a"]))
+DS_COLORS = dict(zip(datasets, ["#2a78d6", "#1baf7a", "#8a5cc2", "#d6a32a", "#d6336c", "#495057"]))
 
 # <figure name="meta_volcano">
 fig, ax = plt.subplots(figsize=(6, 4.6))
@@ -162,12 +162,14 @@ if top.empty:
 top = top.iloc[::-1]
 fig, ax = plt.subplots(figsize=(6.4, 0.34 * len(top) + 1.4))
 offsets = np.linspace(-0.27, 0.27, len(datasets) + 1)
+in_legend = set()
 for i, (_, r) in enumerate(top.iterrows()):
     for j, d in enumerate(datasets):
         lfc, se = r.get(f"log2FC_{d}"), r.get(f"lfcSE_{d}")
         if pd.notna(lfc):
             ax.errorbar(lfc, i + offsets[j], xerr=1.96 * se, fmt="o", ms=3, color=DS_COLORS[d],
-                        elinewidth=0.8, capsize=0, label=d if i == 0 else None)
+                        elinewidth=0.8, capsize=0, label=None if d in in_legend else d)
+            in_legend.add(d)
     yy = i + offsets[-1]
     ax.fill([r["ci_lb"], r["estimate"], r["ci_ub"], r["estimate"]], [yy, yy + 0.1, yy, yy - 0.1],
             color="black", label="pooled (95% CI)" if i == 0 else None)
@@ -176,7 +178,9 @@ ax.set_yticks(range(len(top)), [f"{s}  (I² {i2:.0f}%)" for s, i2 in zip(top["ke
               fontstyle="italic", fontsize=8)
 ax.set_xlabel("log2FC ± 95% CI (treated vs control)")
 ax.grid(axis="x", color="#ebebeb")
-ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.6 / (0.34 * len(top) + 1.4)),
-          ncol=len(datasets) + 1, fontsize=8)
+handles, labels = ax.get_legend_handles_labels()
+order = [labels.index("pooled (95% CI)")] + [labels.index(d) for d in datasets if d in labels]
+ax.legend([handles[k] for k in order], [labels[k] for k in order], loc="upper center",
+          bbox_to_anchor=(0.5, -0.6 / (0.34 * len(top) + 1.4)), ncol=min(len(order), 4), fontsize=8)
 save(fig, out.meta_forest)
 # </figure>

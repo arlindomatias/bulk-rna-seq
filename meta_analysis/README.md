@@ -10,10 +10,12 @@ their overlap between datasets.
 | GSE295281 | [`../bulk_rna_seq_tximport`](../bulk_rna_seq_tximport) | mouse | DESeq2 |
 | GSE178812 | [`../analysis_from_geo_data/GSE178812`](../analysis_from_geo_data/GSE178812) | mouse | DESeq2 |
 | GSE236404 | [`../analysis_from_geo_data/GSE236404`](../analysis_from_geo_data/GSE236404) | rat | limma-trend |
+| GSE267844 | [`../analysis_from_geo_data/GSE267844`](../analysis_from_geo_data/GSE267844) | rat | limma-trend (FPKM) |
+| GSE325554 | [`../analysis_from_geo_data/GSE325554`](../analysis_from_geo_data/GSE325554) | mouse | DESeq2 (Visium hippocampus pseudobulk) |
 
 Nothing is refitted here: the workflow reads each project's `results/top_table.csv` and
 `results/de_summary.tsv` and applies the same DEG rule as that project (`deg_criterion`, `deg_cutoff`,
-`lfc_cutoff`; GSE236404 uses the exploratory unadjusted `p < 0.01` because no gene passes the FDR). The run
+`lfc_cutoff`; GSE236404 and GSE267844 use the exploratory unadjusted `p < 0.01` because no gene passes the FDR). The run
 stops if the DEG counts differ from `de_summary.tsv`. Rerun the DE projects first when their results change.
 
 ## Outputs
@@ -41,7 +43,7 @@ slightly (DESeq2 on counts, limma on log2(normalized + 1)) and the treatments di
 **Gene matching.** Genes are matched across datasets and species by `key`, the Ensembl ID of the mouse
 gene. Mouse genes use their own ID (GSE178812 symbols are mapped through `org.Mm.eg.db` when a symbol has
 exactly one Ensembl ID); rat genes use their 1:1 mouse ortholog (`ortholog_one2one`) from Ensembl Compara
-release 104, the release of the GSE236404 rat IDs (rn6). Genes without a unique key (no 1:1 ortholog,
+release 104, the release of the GSE236404 and GSE267844 rat IDs (rn6). Genes without a unique key (no 1:1 ortholog,
 ambiguous symbol, or a key shared by two genes of one dataset) are not matched. The `orthologs` rule
 downloads the Compara tables once into `cache/compara/` (internet needed on the first run; delete the folder
 to refresh). Ensembl BioMart is not used: it did not answer in November 2026.

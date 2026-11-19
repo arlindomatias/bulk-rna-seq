@@ -4,7 +4,7 @@ Reproducible Snakemake + R workflows for bulk RNA-seq analysis of public GEO dat
 chemotherapy-induced cognitive impairment ("chemobrain"). They cover everything from raw reads to
 differential expression, functional enrichment and protein-protein interaction (PPI) networks.
 
-The repository contains five projects. Each has its own Snakefile, conda environments and README:
+The repository contains seven projects. Each has its own Snakefile, conda environments and README:
 
 | Folder | Dataset | Input | What it does |
 |---|---|---|---|
@@ -12,13 +12,17 @@ The repository contains five projects. Each has its own Snakefile, conda environ
 | [`bulk_rna_seq_tximport/`](bulk_rna_seq_tximport) | GSE295281 | tximport object from `raw_reads_processing` | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING; configured through `config.yaml` |
 | [`analysis_from_geo_data/GSE178812/`](analysis_from_geo_data/GSE178812) | [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) | Count matrix deposited in GEO | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
 | [`analysis_from_geo_data/GSE236404/`](analysis_from_geo_data/GSE236404) | [GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404) | Normalized count table deposited in GEO (rat) | limma-trend, QC, GSEA (GO/KEGG), pathview, STRING |
-| [`meta_analysis/`](meta_analysis) | all three | DE results of the three DE projects | One table with every DEG (symbol, Entrez, Ensembl, log2FC, stat, p, padj per dataset) and their overlap, genes matched by 1:1 mouse–rat orthologs |
+| [`analysis_from_geo_data/GSE267844/`](analysis_from_geo_data/GSE267844) | [GSE267844](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE267844) | FPKM table deposited in GEO (rat) | limma-trend, QC, GSEA (GO/KEGG), pathview, STRING |
+| [`analysis_from_geo_data/GSE325554/`](analysis_from_geo_data/GSE325554) | [GSE325554](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE325554) | Visium spatial counts (mouse) | Hippocampus pseudobulk, then DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
+| [`meta_analysis/`](meta_analysis) | all five | DE results of the five DE projects | DEG table and overlap across datasets, genes matched by 1:1 mouse–rat orthologs; random-effects meta-analysis per gene |
 
 ```
 SRA (GSE295281) ──► raw_reads_processing ──► data/txi_gene.rds ──► bulk_rna_seq_tximport ──► DE + enrichment
 GEO counts (GSE178812) ──────────────────────────────────────────► GSE178812 ─► DE + enrichment
 GEO normalized counts (GSE236404) ───────────────────────────────► GSE236404 ─► DE (limma) + enrichment
-DE results of the three projects ────────────────────────────────► meta_analysis ─► DEG table + overlap
+GEO FPKM (GSE267844) ────────────────────────────────────────────► GSE267844 ─► DE (limma) + enrichment
+GEO Visium (GSE325554) ──► hippocampus pseudobulk ───────────────► GSE325554 ─► DE + enrichment
+DE results of the five projects ─────────────────────────────────► meta_analysis ─► DEG table, overlap, meta-analysis
 ```
 
 ## Reports
@@ -32,6 +36,8 @@ with figures and tables:
 | `bulk_rna_seq_tximport` | [GSE295281: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html) |
 | `GSE178812` | [GSE178812: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE178812/reports/report.html) |
 | `GSE236404` | [GSE236404: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE236404/reports/report.html) |
+| `GSE267844` | [GSE267844: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE267844/reports/report.html) |
+| `GSE325554` | [GSE325554: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE325554/reports/report.html) |
 | `meta_analysis` | [Chemotherapy DEGs across datasets](https://arlindomatias.github.io/bulk-rna-seq/meta_analysis/reports/report.html) |
 
 The reports are built by the `report` rule of each Snakefile (`reports/report.html`) and published with
@@ -58,13 +64,14 @@ Large files (SRA, FASTQ, genomes, indices, Salmon outputs) are never stored in t
 ```
 scripts/
 ├── html_report.py                         # HTML report builder used by every project's report rule
-├── de/                                    # DE projects (bulk_rna_seq_tximport, GSE178812, GSE236404)
+├── de/                                    # DE projects (bulk_rna_seq_tximport and the GEO projects)
 │   ├── 00_common.R                        # config, logging, sample metadata (sourced by every step)
 │   ├── 01_prepare_tximport.R              # tximport object -> DESeq2 object
 │   ├── 01_prepare_geo.R                   # GEO count table + series matrix -> DESeq2 object
-│   ├── 01_prepare_geo_normalized.R        # GEO normalized table + sample sheet -> SummarizedExperiment
+│   ├── 01_prepare_geo_normalized.R        # GEO normalized/FPKM table (+ sample sheet) -> SummarizedExperiment
+│   ├── 01_prepare_visium.R                # Visium Space Ranger outputs -> region pseudobulk -> DESeq2 object
 │   ├── 02_differential_expression_and_qc.R  # DESeq2
-│   ├── 02_differential_expression_limma.R   # limma-trend (normalized counts only)
+│   ├── 02_differential_expression_limma.R   # limma-trend (normalized values only)
 │   ├── 03_enrichment.R                    # GSEA GO/KEGG, pathview, STRING
 │   └── report.py
 ├── raw/                                   # raw_reads_processing
@@ -79,8 +86,8 @@ scripts/
     └── report.py
 ```
 
-The DE projects run the same scripts (GSE236404 swaps the prepare and DE steps for their limma versions,
-`de.method: limma`); everything specific to a dataset (input, groups, gene identifier type,
+The DE projects run the same scripts (GSE236404 and GSE267844 swap the prepare and DE steps for their limma
+versions, `de.method: limma`; GSE325554 has its own Visium prepare step); everything specific to a dataset (input, groups, gene identifier type,
 cutoffs, filter, enrichment settings, seed) is in its `config.yaml`. Each project keeps its own complete
 `Snakefile`.
 
@@ -94,6 +101,11 @@ cutoffs, filter, enrichment settings, seed) is in its `config.yaml`. Each projec
 - **GSE236404**: dentate gyrus of young (6-month) male F344 rats, doxorubicin (DOX, n = 8) vs vehicle (VEH, n = 10).
   The series also has a doxorubicin + ABT-263 (senolytic) group. PMID 38225896. GEO only has normalized counts,
   so the analysis uses limma-trend.
+- **GSE267844**: hippocampus of rats, docetaxel (DTX, n = 3) vs saline (NC, n = 3). The series also has a
+  docetaxel + edaravone dexborneol group. GEO only has FPKM, so the analysis uses limma-trend on log2(FPKM + 1).
+- **GSE325554**: brains of p16-3MR mice 6 months after paclitaxel (PTX, n = 2) vs vehicle (Ctrl, n = 2),
+  10x Visium spatial transcriptomics. The series also has PTX + ABT263 and PTX + ganciclovir groups. The
+  hippocampal spots of each section are summed (pseudobulk) and analysed with DESeq2.
 
 ## Projects
 
@@ -162,13 +174,38 @@ cd analysis_from_geo_data/GSE236404
 snakemake --use-conda --cores 2
 ```
 
-### 5. `meta_analysis`: DEGs across datasets
+### 5. `GSE267844`: DE (limma) and enrichment from a GEO FPKM table
 
-Collects the DEGs of the three DE projects (same DEG rule as each project, read from its `de_summary.tsv`)
+Same pipeline as `GSE236404`: `01_prepare_geo_normalized.R` reads the GEO `.xlsx` table and takes the samples
+from its `FPKM.*` columns (`geo.sample_patterns`), and `02_differential_expression_limma.R` fits limma-trend
+on log2(FPKM + 1). No gene reaches `padj < 0.05`, so the DEGs use the exploratory unadjusted `p < 0.01`.
+
+```bash
+cd analysis_from_geo_data/GSE267844
+snakemake --use-conda --cores 2
+```
+
+### 6. `GSE325554`: Visium hippocampus pseudobulk
+
+`01_prepare_visium.R` reads the Space Ranger outputs from `$DATA/GSE325554/GSE325554_RAW`, selects the
+hippocampal spots of each section by marker genes (spatially connected high-score spots, see
+`plots/region_spots.png`) and sums their counts; the pseudobulk then goes through the shared DESeq2,
+enrichment and report scripts. With n = 2 per group the results are exploratory.
+
+```bash
+cd analysis_from_geo_data/GSE325554
+snakemake --use-conda --cores 2
+```
+
+### 7. `meta_analysis`: DEGs across datasets and meta-analysis
+
+Collects the DEGs of the five DE projects (same DEG rule as each project, read from its `de_summary.tsv`)
 into `results/all_degs.csv`: one row per gene and dataset where it is a DEG, with symbol, Entrez ID, Ensembl ID,
-log2FC, statistic (Wald or moderated t), p-value and padj. Missing IDs come from `org.Mm.eg.db` /
-`org.Rn.eg.db`. `results/pairwise_overlap.csv` tests the DEG overlap of each pair of datasets
-(hypergeometric, genes matched by symbol). Run it after the DE projects:
+log2FC, statistic (Wald or moderated t), p-value and padj. Genes are matched across datasets and species by
+the mouse Ensembl ID (rat genes through their 1:1 ortholog from Ensembl Compara 104; `results/gene_map.csv`).
+`results/pairwise_overlap.csv` tests the DEG overlap of each pair of datasets (hypergeometric), and
+`results/meta_random_effects.csv` combines the log2FC of every gene tested in at least two datasets in a
+random-effects model (metafor). Run it after the DE projects:
 
 ```bash
 cd meta_analysis
@@ -223,8 +260,10 @@ export DATA=/path/to/large/storage
 
 All datasets are public on NCBI GEO. Please cite the original authors of
 [GSE295281](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE295281),
-[GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) and
-[GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404) when using these data.
+[GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812),
+[GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404),
+[GSE267844](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE267844) and
+[GSE325554](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE325554) when using these data.
 
 ## License
 

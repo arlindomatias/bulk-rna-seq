@@ -3,6 +3,7 @@
 # project's results/de_summary.tsv, so it always matches what that project reports.
 datasets:
   GSE295281:
+    treatment: AC-T (doxorubicin + cyclophosphamide, then paclitaxel)
     description: Mouse hippocampus, AC-T (doxorubicin + cyclophosphamide, then paclitaxel) vs saline
     report: ../bulk_rna_seq_tximport/reports/report.html
     project: ../bulk_rna_seq_tximport
@@ -12,6 +13,7 @@ datasets:
     method: DESeq2
     stat_type: Wald statistic
   GSE178812:
+    treatment: doxorubicin
     description: Mouse hippocampus, doxorubicin vs vehicle
     report: ../analysis_from_geo_data/GSE178812/reports/report.html
     project: ../analysis_from_geo_data/GSE178812
@@ -21,6 +23,7 @@ datasets:
     method: DESeq2
     stat_type: Wald statistic
   GSE236404:
+    treatment: doxorubicin
     description: Rat dentate gyrus, doxorubicin vs vehicle
     report: ../analysis_from_geo_data/GSE236404/reports/report.html
     project: ../analysis_from_geo_data/GSE236404
@@ -29,6 +32,26 @@ datasets:
     gene_id_type: ENSEMBL
     method: limma-trend
     stat_type: moderated t
+  GSE267844:
+    treatment: docetaxel
+    description: Rat hippocampus, docetaxel vs saline
+    report: ../analysis_from_geo_data/GSE267844/reports/report.html
+    project: ../analysis_from_geo_data/GSE267844
+    species: Rattus norvegicus
+    orgdb: org.Rn.eg.db
+    gene_id_type: ENSEMBL
+    method: limma-trend (FPKM)
+    stat_type: moderated t
+  GSE325554:
+    treatment: paclitaxel
+    description: Mouse hippocampus (Visium pseudobulk), paclitaxel vs vehicle
+    report: ../analysis_from_geo_data/GSE325554/reports/report.html
+    project: ../analysis_from_geo_data/GSE325554
+    species: Mus musculus
+    orgdb: org.Mm.eg.db
+    gene_id_type: ENSEMBL
+    method: DESeq2 (pseudobulk)
+    stat_type: Wald statistic
 
 # Cross-dataset gene key: every gene is matched by the Ensembl ID of its `key_species` gene. Genes of
 # other species get the key of their 1:1 ortholog (Ensembl Compara `ortholog_one2one`); genes without one

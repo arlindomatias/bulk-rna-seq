@@ -14,6 +14,10 @@ from html_report import Report  # noqa: E402
 
 inp, out, cfg = snakemake.input, snakemake.output, snakemake.config  # noqa: F821
 ds = cfg["datasets"]
+treatments_text = "; ".join(f"{n}: {d.get('treatment', '?')}" for n, d in ds.items())
+limma_ds = [n for n, d in ds.items() if d["method"].startswith("limma")]
+rat_ds = [n for n, d in ds.items() if d["species"] != "Mus musculus"]
+mouse_ds = [n for n, d in ds.items() if d["species"] == "Mus musculus"]
 
 degs = pd.read_csv(inp.degs)
 overlap = pd.read_csv(inp.overlap)
@@ -85,7 +89,7 @@ two datasets has two rows. Columns:
 * `n_datasets`, `datasets`: in how many and which datasets the gene is a DEG, matched by `key`.
 
 Effect sizes from DESeq2 and limma are not on the same scale, and the treatments differ
-(AC-T in GSE295281, doxorubicin alone in the others).
+({treatments_text}).
 """)
 r.figure(inp.deg_counts, "DEGs per dataset, by direction.", width="60%")
 
@@ -113,7 +117,7 @@ mouse gene. Mouse genes use their own Ensembl ID. GSE178812 has symbols, some of
 for *Ccn2*), so they are mapped through `org.Mm.eg.db`: first as current symbols, then as aliases, and only
 when they give exactly one Ensembl ID (an alias whose gene is already in the dataset under its current
 symbol is dropped). Rat genes use their **1:1 mouse ortholog** from Ensembl Compara
-release {ortho['release']} (`ortholog_one2one`), the release of the GSE236404 rat IDs (Ensembl 104, rn6).
+release {ortho['release']} (`ortholog_one2one`), the release of the rat IDs of {", ".join(rat_ds)} (rn6).
 Genes without a unique key are not matched across datasets. This replaces matching by upper-case
 symbol, which pairs genes that merely share a name and misses orthologs named differently.
 
@@ -135,9 +139,11 @@ r.table(show, "Pairwise DEG overlap (`results/pairwise_overlap.csv`).", digits=3
 conc = shared.groupby("key")["direction"].nunique()
 same, opp = int((conc == 1).sum()), int((conc > 1).sum())
 in_all = sorted(shared.loc[shared.n_datasets == len(ds), "label"].unique())
+nd = shared.drop_duplicates("key")["n_datasets"].value_counts().sort_index()
+nd_text = ", ".join(f"{n} in {k}" for k, n in nd.items())
 in_all_text = "none" if not in_all else f"{len(in_all)} ({', '.join(f'*{g}*' for g in in_all)})"
 r.md(f"""
-{n_shared} genes are DEGs in more than one dataset; {in_all_text} in all {len(ds)}.
+{n_shared} genes are DEGs in more than one dataset ({nd_text}); {in_all_text} in all {len(ds)}.
 {same} change in the same direction in every dataset where they are DEGs and {opp} change in opposite directions.
 """)
 r.figure(inp.shared_lfc, "log2FC of the genes that are DEGs in more than one dataset (blank = not a DEG there).",
@@ -162,7 +168,8 @@ n_knha = int((md_["pvalue_knha"] < 0.05).sum())
 n_het = int((md_["I2"] > 50).sum())
 all_same = int((md_["n_same_sign"] == md_["k"]).sum())
 by_ds = {d: int(md_["datasets"].str.contains(d).sum()) for d in ds}
-mouse_only = int((md_["datasets"] == ";".join(d for d in ds if ds[d]["species"] == "Mus musculus")).sum())
+mouse_only = int(md_["datasets"].map(lambda x: set(x.split(";")) <= set(mouse_ds)).sum())
+kmin, kmax = int(meta["k"].min()), int(meta["k"].max())
 
 r.md(f"""
 The DEG overlap above only asks whether a gene passes a cutoff in each dataset. A meta-analysis uses the
@@ -176,23 +183,23 @@ padj < {mcfg['padj']} and |pooled log2FC| > {mcfg['lfc']}.
 **{len(md_):,} meta DEGs** ({n_up} up / {n_down} down; {n_padj:,} genes at padj < {mcfg['padj']} with any effect
 size). {int((~new).sum())} of them are DEGs in at least one project and **{int(new.sum())} are DEGs in none**:
 small but consistent changes that no single study detected. By the datasets they were tested in:
-{", ".join(f"{d} {n}" for d, n in by_ds.items())}; {mouse_only} were tested only in the two mouse datasets.
+{", ".join(f"{d} {n}" for d, n in by_ds.items())}; {mouse_only} were tested only in mouse datasets.
 {all_same} meta DEGs change in the same direction in every dataset and {n_het} {"has" if n_het == 1 else "have"} I² > 50%
 (heterogeneous effects).
 
 Checks of robustness:
 
 * **Leave-one-out** (`loo_max_pvalue`, `loo_sign_flip`): {len(robust)} of the {len(md_)} meta DEGs keep
-  p < 0.05 and the same sign whichever dataset is dropped ({len(robust3)} of the {n_k3} tested in 3 datasets).
+  p < 0.05 and the same sign whichever dataset is dropped ({len(robust3)} of the {n_k3} tested in ≥ 3 datasets).
   For a gene tested in 2 datasets this means each dataset alone has p < 0.05; the others are driven
   mostly by one study.
-* **Knapp-Hartung** test (`pvalue_knha`): {n_knha} meta DEGs keep p < 0.05. With 2–3 studies this test has
-  1–2 degrees of freedom, so it is very conservative; the z test is the usual choice but is anti-conservative
+* **Knapp-Hartung** test (`pvalue_knha`): {n_knha} meta DEGs keep p < 0.05. With {kmin}–{kmax} studies this test
+  has {kmin - 1}–{kmax - 1} degrees of freedom, so it is very conservative; the z test is the usual choice but is anti-conservative
   when τ² is estimated from so few studies.
 
 Caveats: the effect sizes are not on exactly the same scale (DESeq2 maximum-likelihood log2FC on counts,
-limma log2FC on log2(normalized + 1) for GSE236404), and the treatments differ (AC-T in GSE295281,
-doxorubicin alone in the others). With only 2–3 studies, τ² is imprecise; read the pooled p-values as a
+limma log2FC on log2(normalized values + 1) for {", ".join(limma_ds)}), and the treatments differ
+({treatments_text}). With only {kmin}–{kmax} studies per gene, τ² is imprecise; read the pooled p-values as a
 ranking of consistent changes rather than exact error rates.
 """)
 r.figure(inp.meta_volcano, "Pooled log2FC and p-value of every meta-analysed gene. Dashed lines: the "
