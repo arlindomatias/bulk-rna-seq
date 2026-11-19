@@ -1,6 +1,6 @@
 # ============================================================
 # Bulk RNA-seq: differential expression and enrichment from a GEO count table (GSE178812)
-# Uses the shared DE scripts in ../scripts/de/ (same as bulk_rna_seq_tximport); everything specific
+# Uses the shared DE scripts in ../../scripts/de/ (same as bulk_rna_seq_tximport); everything specific
 # to this dataset is in config.yaml.
 #
 # Requires Snakemake 9. Usage (from this folder):
@@ -9,7 +9,7 @@
 #   snakemake --use-conda --cores 2
 #
 # The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned to the exact package versions in
-# envs/rna-seq.linux-64.pin.txt (same versions as ../bulk_rna_seq_tximport/envs/deseq2.linux-64.pin.txt,
+# envs/rna-seq.linux-64.pin.txt (same versions as ../../bulk_rna_seq_tximport/envs/deseq2.linux-64.pin.txt,
 # plus GEOquery and readxl for the prepare step). The report uses envs/report.yaml.
 # ============================================================
 
@@ -44,7 +44,7 @@ rule prepare:
     log:
         "logs/prepare.log",
     script:
-        "../scripts/de/01_prepare_geo.R"
+        "../../scripts/de/01_prepare_geo.R"
 
 
 # ------------------------------------------------------------
@@ -75,7 +75,7 @@ rule differential:
     log:
         "logs/differential.log",
     script:
-        "../scripts/de/02_differential_expression_and_qc.R"
+        "../../scripts/de/02_differential_expression_and_qc.R"
 
 
 # ------------------------------------------------------------
@@ -127,7 +127,7 @@ rule enrichment:
     log:
         "logs/enrichment.log",
     script:
-        "../scripts/de/03_enrichment.R"
+        "../../scripts/de/03_enrichment.R"
 
 
 # ------------------------------------------------------------
@@ -146,8 +146,8 @@ rule report:
         session=rules.enrichment.output.session,
         config=["config.yaml"],
         envs=["envs/report.yaml", "envs/rna-seq.yaml"],
-        scripts=["../scripts/de/report.py", "../scripts/html_report.py"],
-        code=["../scripts/de/02_differential_expression_and_qc.R", "../scripts/de/03_enrichment.R"],
+        scripts=["../../scripts/de/report.py", "../../scripts/html_report.py"],
+        code=["../../scripts/de/02_differential_expression_and_qc.R", "../../scripts/de/03_enrichment.R"],
     output:
         html="reports/report.html",
     params:
@@ -171,7 +171,7 @@ Hippocampus of young C57BL/6J mice treated with doxorubicin (**CHEM**) or vehicl
 4. **enrichment**: GSEA (GO, KEGG), pathview maps, STRING network and enrichment.
 5. **report**: this page.
 
-The scripts are shared with `bulk_rna_seq_tximport` (`../scripts/de/`); dataset-specific values are in
+The scripts are shared with `bulk_rna_seq_tximport` (`../../scripts/de/`); dataset-specific values are in
 `config.yaml`.
 """,
         filter_text="genes with ≥ 10 counts in at least 3 samples.",
@@ -185,4 +185,4 @@ reads are not processed here. Gene symbols are used as identifiers.
     log:
         "logs/report.log",
     script:
-        "../scripts/de/report.py"
+        "../../scripts/de/report.py"

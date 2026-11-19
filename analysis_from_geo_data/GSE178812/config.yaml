@@ -1,6 +1,6 @@
 # ============================================================
-# Dataset configuration. Same structure as ../bulk_rna_seq_tximport/config.yaml, so both projects can run
-# the shared scripts in ../scripts/de/. Values are this project's current settings.
+# Dataset configuration. Same structure as ../../bulk_rna_seq_tximport/config.yaml, so both projects can run
+# the shared scripts in ../../scripts/de/. Values are this project's current settings.
 # ============================================================
 
 dataset: GSE178812

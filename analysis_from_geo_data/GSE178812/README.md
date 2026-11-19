@@ -2,7 +2,7 @@
 
 A reproducible R pipeline for bulk RNA-seq differential expression and functional enrichment analysis of the public dataset **GSE178812** (NCBI GEO), investigating transcriptional alterations induced by doxorubicin, with a focus on mechanisms relevant to chemotherapy-induced cognitive impairment ("chemobrain").
 
-**Report:** [arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/reports/report.html)
+**Report:** [arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE178812/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE178812/reports/report.html)
 
 ## Overview
 
@@ -37,11 +37,11 @@ The pipeline downloads and prepares the data, performs quality control and diffe
 └── cache/                            # STRING and KEGG downloads (generated, not versioned)
 ```
 
-The R scripts are shared with `bulk_rna_seq_tximport` and live in [`../scripts/de/`](../scripts/de).
+The R scripts are shared with `bulk_rna_seq_tximport` and live in [`../../scripts/de/`](../../scripts/de).
 
 ## Pipeline
 
-| Rule | Script (`../scripts/de/`) | Main outputs |
+| Rule | Script (`../../scripts/de/`) | Main outputs |
 |---|---|---|
 | `prepare` | `01_prepare_geo.R` | Downloads the GEO count table and series matrix; `data/counts.csv`, `data/dds_raw.rds`, `data/colData.csv` |
 | `differential` | `02_differential_expression_and_qc.R` | `data/dds.rds`, `results/top_table.csv`, `results/de_summary.tsv`, `results/normalized_counts.csv`, QC/DE plots |
@@ -87,7 +87,7 @@ The R scripts are shared with `bulk_rna_seq_tximport` and live in [`../scripts/d
 
 ```bash
 git clone git@github.com:arlindomatias/bulk-rna-seq.git
-cd bulk-rna-seq/analysis_from_geo_data
+cd bulk-rna-seq/analysis_from_geo_data/GSE178812
 conda activate genomic-variants   # any environment with Snakemake 9
 snakemake -n --use-conda          # dry-run
 snakemake --use-conda --cores 2
@@ -95,7 +95,7 @@ snakemake --use-conda --cores 2
 
 The R environment `rna-seq` is built from `envs/rna-seq.yaml`, pinned to the exact package versions in `envs/rna-seq.linux-64.pin.txt`. Logs of each step are written to `logs/`.
 
-Run all commands from the `analysis_from_geo_data/` folder.
+Run all commands from the `analysis_from_geo_data/GSE178812/` folder.
 Figures are saved to `plots/` and result tables to `results/`.
 
 ## Data

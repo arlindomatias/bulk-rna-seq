@@ -1,4 +1,4 @@
-# Same package set as ../analysis_from_geo_data/envs/rna-seq.yaml, without GEOquery/readxl.
+# Same package set as ../analysis_from_geo_data/GSE178812/envs/rna-seq.yaml, without GEOquery/readxl.
 # Exact versions are in deseq2.linux-64.pin.txt (copied from the rna-seq lock file),
 # which Snakemake uses instead of this file on linux-64.
 name: deseq2

@@ -2,7 +2,7 @@
 
 Differential expression and enrichment of **Salmon quantifications summarized with tximport**, configured per
 dataset in `config.yaml`. It runs the same scripts (`../scripts/de/`) as
-[`analysis_from_geo_data`](../analysis_from_geo_data), which starts from a GEO count table instead.
+[`GSE178812`](../analysis_from_geo_data/GSE178812), which starts from a GEO count table instead.
 
 Current dataset: **GSE295281**: hippocampus of 12-week-old female C57BL/6J mice, one month after AC-T
 chemotherapy (doxorubicin + cyclophosphamide, then paclitaxel) vs saline (n = 5 vs 6). The input comes from
@@ -10,11 +10,11 @@ chemotherapy (doxorubicin + cyclophosphamide, then paclitaxel) vs saline (n = 5 
 
 **Report:** [arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html)
 
-## Differences from `analysis_from_geo_data`
+## Differences from `GSE178812`
 
 Both projects run the same scripts. Only the input differs, and that sets a few options in `config.yaml`:
 
-| | `analysis_from_geo_data` | this project |
+| | `GSE178812` | this project |
 |---|---|---|
 | Input | GEO xlsx of counts by gene symbol (`01_prepare_geo.R`) | `txi_gene.rds` (tximport) + `samples.tsv` + `tx2gene.tsv` (`01_prepare_tximport.R`) |
 | DESeq2 object | `DESeqDataSetFromMatrix` | `DESeqDataSetFromTximport` (uses transcript-length offsets) |
@@ -32,7 +32,7 @@ snakemake --use-conda --cores 2
 ```
 
 The R environment is built from `envs/deseq2.linux-64.pin.txt` (exact package versions, copied from
-`../analysis_from_geo_data/envs/rna-seq.linux-64.pin.txt`); `envs/deseq2.yaml` (env `deseq2`) is the unpinned fallback. Step 03 needs internet access (STRING, pathview).
+`../analysis_from_geo_data/GSE178812/envs/rna-seq.linux-64.pin.txt`); `envs/deseq2.yaml` (env `deseq2`) is the unpinned fallback. Step 03 needs internet access (STRING, pathview).
 The KEGG REST API can be very slow (about 10 min for the 1 MB mouse gene-pathway list on 2026-11-12), so the
 annotation is cached in `cache/kegg/`; delete that folder to refresh it.
 

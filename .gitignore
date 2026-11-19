@@ -13,9 +13,9 @@
 *.rda
 
 # ---- Stray figures in the project root --------------------
-/analysis_from_geo_data/*.png
-/analysis_from_geo_data/*.pdf
-/analysis_from_geo_data/logs/
+/analysis_from_geo_data/GSE178812/*.png
+/analysis_from_geo_data/GSE178812/*.pdf
+/analysis_from_geo_data/GSE178812/logs/
 
 # ---- Large raw data (never version) -----------------------
 *.fastq

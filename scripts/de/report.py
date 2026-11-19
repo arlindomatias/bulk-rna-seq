@@ -2,7 +2,7 @@
 
 Run through Snakemake (`script:` directive, rule `report`). Everything specific to a project comes
 from `snakemake.params` (title, design text, cutoffs, notes), so the same script is used by
-bulk_rna_seq_tximport and analysis_from_geo_data. It only reads plots/ and results/.
+bulk_rna_seq_tximport and GSE178812. It only reads plots/ and results/.
 """
 import glob
 import os

@@ -10,11 +10,11 @@ The repository contains three projects. Each has its own Snakefile, conda enviro
 |---|---|---|---|
 | [`raw_reads_processing/`](raw_reads_processing) | [GSE295281](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE295281) | SRA runs | Download → FASTQ → FastQC/MultiQC → Salmon → tximport (gene-level counts) |
 | [`bulk_rna_seq_tximport/`](bulk_rna_seq_tximport) | GSE295281 | tximport object from `raw_reads_processing` | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING; configured through `config.yaml` |
-| [`analysis_from_geo_data/`](analysis_from_geo_data) | [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) | Count matrix deposited in GEO | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
+| [`analysis_from_geo_data/GSE178812/`](analysis_from_geo_data/GSE178812) | [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812) | Count matrix deposited in GEO | DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
 
 ```
 SRA (GSE295281) ──► raw_reads_processing ──► data/txi_gene.rds ──► bulk_rna_seq_tximport ──► DE + enrichment
-GEO counts (GSE178812) ──────────────────────────────────────────► analysis_from_geo_data ─► DE + enrichment
+GEO counts (GSE178812) ──────────────────────────────────────────► GSE178812 ─► DE + enrichment
 ```
 
 ## Reports
@@ -26,7 +26,7 @@ with figures and tables:
 |---|---|
 | `raw_reads_processing` | [SRA → FastQC → Salmon → count table](https://arlindomatias.github.io/bulk-rna-seq/raw_reads_processing/reports/report.html) |
 | `bulk_rna_seq_tximport` | [GSE295281: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/bulk_rna_seq_tximport/reports/report.html) |
-| `analysis_from_geo_data` | [GSE178812: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/reports/report.html) |
+| `GSE178812` | [GSE178812: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE178812/reports/report.html) |
 
 The reports are built by the `report` rule of each Snakefile (`reports/report.html`) and published with
 GitHub Pages.
@@ -52,7 +52,7 @@ Large files (SRA, FASTQ, genomes, indices, Salmon outputs) are never stored in t
 ```
 scripts/
 ├── html_report.py                         # HTML report builder used by every project's report rule
-├── de/                                    # DE projects (bulk_rna_seq_tximport, analysis_from_geo_data)
+├── de/                                    # DE projects (bulk_rna_seq_tximport, GSE178812)
 │   ├── 00_common.R                        # config, logging, sample metadata (sourced by every step)
 │   ├── 01_prepare_tximport.R              # tximport object -> DESeq2 object
 │   ├── 01_prepare_geo.R                   # GEO count table + series matrix -> DESeq2 object
@@ -118,7 +118,7 @@ snakemake --use-conda --cores 2
 snakemake --use-conda --cores 2 --configfile other.yaml
 ```
 
-### 3. `analysis_from_geo_data`: DE and enrichment from GEO counts
+### 3. `GSE178812`: DE and enrichment from GEO counts
 
 Same scripts as `bulk_rna_seq_tximport`, with a different first step (`01_prepare_geo.R`): it downloads the
 GSE178812 count table and series matrix, takes the groups from the GEO sample titles and uses gene symbols as
@@ -126,7 +126,7 @@ identifiers. Then DESeq2 (`~ group`, VEH as reference), GSEA (GO and KEGG), path
 network and STRING enrichment. Current result: 7 up- and 51 down-regulated DEGs (CHEM vs VEH).
 
 ```bash
-cd analysis_from_geo_data
+cd analysis_from_geo_data/GSE178812
 snakemake --use-conda --cores 2
 ```
 
@@ -150,7 +150,7 @@ pathview maps, PPI network, Reactome and WikiPathways enrichment).
 
 - Linux (x86-64), Conda/Mamba and Snakemake ≥ 9. Each rule creates its own environment with `--use-conda`.
 - Pinned versions: Salmon 2.11.0, sra-tools 3.4.1, FastQC 0.13.0, MultiQC 1.35, R 4.5 / tximport 1.38.2.
-  The R/Bioconductor stack for DE is pinned in `analysis_from_geo_data/envs/rna-seq.linux-64.pin.txt` and
+  The R/Bioconductor stack for DE is pinned in `analysis_from_geo_data/GSE178812/envs/rna-seq.linux-64.pin.txt` and
   `bulk_rna_seq_tximport/envs/deseq2.linux-64.pin.txt`.
 - Internet access (SRA, GENCODE, GEO, KEGG REST, STRING).
 - For `raw_reads_processing`: about 25 GB of fast scratch space per sample running at the same time, plus

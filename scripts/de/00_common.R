@@ -1,6 +1,6 @@
 # ============================================================
 # SCRIPT 00: shared setup (sourced by every step)
-# Shared by every DE project (bulk_rna_seq_tximport, analysis_from_geo_data); all dataset-specific
+# Shared by every DE project (bulk_rna_seq_tximport, GSE178812); all dataset-specific
 # values come from the project's config.yaml (`snakemake@config`).
 # Scripts run through the Snakemake `script:` directive, which creates the `snakemake` object.
 # ============================================================
