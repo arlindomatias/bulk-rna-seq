@@ -106,6 +106,7 @@ cutoffs, filter, enrichment settings, seed) is in its `config.yaml`. Each projec
 - **GSE325554**: brains of p16-3MR mice 6 months after paclitaxel (PTX, n = 2) vs vehicle (Ctrl, n = 2),
   10x Visium spatial transcriptomics. The series also has PTX + ABT263 and PTX + ganciclovir groups. The
   hippocampal spots of each section are summed (pseudobulk) and analysed with DESeq2.
+  Its spatial, spot-level analysis is in the separate [spatial-transcriptomics](https://github.com/arlindomatias/spatial-transcriptomics) repository.
 
 ## Projects
 
@@ -191,6 +192,10 @@ snakemake --use-conda --cores 2
 hippocampal spots of each section by marker genes (spatially connected high-score spots, see
 `plots/region_spots.png`) and sums their counts; the pseudobulk then goes through the shared DESeq2,
 enrichment and report scripts. With n = 2 per group the results are exploratory.
+
+This is the **bulk (pseudobulk)** view of the dataset, comparable with the other hippocampus projects. The
+**spatial** analysis of the same sections (spot level, all brain regions, niches and hotspots) lives in the
+[spatial-transcriptomics](https://github.com/arlindomatias/spatial-transcriptomics) repository ([report](https://arlindomatias.github.io/spatial-transcriptomics/GSE325554/reports/report.html)).
 
 ```bash
 cd analysis_from_geo_data/GSE325554

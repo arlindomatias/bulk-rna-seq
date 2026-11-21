@@ -8,6 +8,14 @@ paclitaxel (**PTX**, 5 mg/kg/day, 2 cycles) or vehicle (**Ctrl**), collected 6 m
 
 **Report:** [arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE325554/reports/report.html](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE325554/reports/report.html)
 
+> **Bulk-style analysis here; spatial analysis in another repository.** This project sums the hippocampal spots
+> of each section (**pseudobulk**) and analyses them like bulk RNA-seq (DESeq2), so it can be compared with the
+> other hippocampus datasets of this repository; the spot positions are only used to select the region. The
+> **spatial** analysis of the same sections (PTX vs Ctrl, spot level, every brain region: anatomical domains,
+> spatially variable genes, niches, senescence hotspots, DE inside each domain) is in
+> [spatial-transcriptomics](https://github.com/arlindomatias/spatial-transcriptomics/tree/main/GSE325554)
+> ([report](https://arlindomatias.github.io/spatial-transcriptomics/GSE325554/reports/report.html)).
+
 ## Hippocampus pseudobulk
 
 Each Visium section covers several brain regions and is cut at a different level and orientation, so the

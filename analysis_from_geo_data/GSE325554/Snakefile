@@ -181,6 +181,12 @@ With n = 2 per group, power is very low and the results are exploratory. One con
 has a much lower depth per spot than the others (pseudobulk table in *Input data*) and separates from them on the PCA, so it drives
 much of the contrast; depth-related genes (ribosome, oxidative phosphorylation) and blood (haemoglobin) or
 neighbouring-tissue genes among the top results should be read with that in mind.
+
+> **Bulk view vs spatial view.** This report is the **pseudobulk** (bulk RNA-seq style) analysis of the
+> hippocampus. The **spatial** analysis of the same sections (spot level, every brain region: anatomical
+> domains, spatially variable genes, niches, senescence hotspots and DE inside each domain) is in the
+> [spatial-transcriptomics](https://github.com/arlindomatias/spatial-transcriptomics) repository:
+> [GSE325554 spatial report](https://arlindomatias.github.io/spatial-transcriptomics/GSE325554/reports/report.html).
 """,
         pipeline="""
 1. **prepare**: reads the Space Ranger outputs from `$DATA/GSE325554/GSE325554_RAW`, selects the hippocampal
