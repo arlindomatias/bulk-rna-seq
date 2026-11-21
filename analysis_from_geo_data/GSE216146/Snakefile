@@ -1,0 +1,227 @@
+# ============================================================
+# Bulk RNA-seq: differential expression and enrichment from scRNA-seq pseudobulk (GSE216146)
+# The cells of each 10x sample (except choroid plexus and ependymal cells) are summed per sample
+# (../../scripts/de/01_prepare_scrna.R); the pseudobulk counts then go through the shared DESeq2,
+# enrichment and report scripts in ../../scripts/de/ (same as GSE325554). Everything specific to this
+# dataset is in config.yaml. The GEO supplementary files are read from $DATA/GSE216146.
+#
+# Requires Snakemake 9. Usage (from this folder):
+#   conda activate genomic-variants        # Snakemake 9
+#   snakemake -n --use-conda               # dry-run
+#   snakemake --use-conda --cores 2
+#
+# The R environment (rna-seq) is built from envs/rna-seq.yaml, pinned by envs/rna-seq.linux-64.pin.txt
+# (same as ../GSE178812). The report uses envs/report.yaml.
+# ============================================================
+
+import os
+
+configfile: "config.yaml"
+
+ENV = "envs/rna-seq.yaml"
+ENV_REPORT = "envs/report.yaml"
+
+
+rule all:
+    input:
+        "results/top_table.csv",
+        "results/de_summary.tsv",
+        "results/GSEA_GO_all_full.csv",
+        "results/GSEA_KEGG_full.csv",
+        "results/enrichment_STRING_full.csv",
+        "reports/sessionInfo.txt",
+        "reports/report.html",
+
+
+# ------------------------------------------------------------
+# 01: cell × gene counts -> sample pseudobulk -> DESeq2 object (not fitted yet).
+# Downloads the series matrix into data/ the first time.
+# ------------------------------------------------------------
+RAW = os.path.join(os.environ["DATA"], config["input"]["raw_dir"])
+
+rule prepare:
+    input:
+        matrix=os.path.join(RAW, config["input"]["matrix_file"]),
+        genes=os.path.join(RAW, config["input"]["genes_file"]),
+        cells=os.path.join(RAW, config["input"]["cells_file"]),
+    output:
+        series=f"data/{config['input']['geo_accession']}_series_matrix.txt.gz",
+        counts="data/pseudobulk_counts.csv",
+        dds="data/dds_raw.rds",
+        coldata="data/colData.csv",
+        summary="results/pseudobulk_summary.csv",
+        composition="results/cell_composition.csv",
+        composition_plot="plots/cell_composition.png",
+    conda:
+        ENV
+    log:
+        "logs/prepare.log",
+    script:
+        "../../scripts/de/01_prepare_scrna.R"
+
+
+# ------------------------------------------------------------
+# 02: QC and differential expression
+# ------------------------------------------------------------
+rule differential:
+    input:
+        dds="data/dds_raw.rds",
+    output:
+        dds="data/dds.rds",
+        top_table="results/top_table.csv",
+        summary="results/de_summary.tsv",
+        norm_counts="results/normalized_counts.csv",
+        pca="plots/pca_vst.png",
+        sample_dist="plots/sample_distances.png",
+        markers="plots/marker_genes.png",
+        volcano="plots/volcano.png",
+        heatmap="plots/heatmap.png",
+        fdr="plots/fdr_histogram.png",
+        boxplot="plots/boxplot.png",
+        qqplot="plots/QQPlot.png",
+        ma="plots/MAplot.png",
+        dispersion="plots/dispersion_plot.png",
+        density="plots/density_counts.png",
+        cooks="plots/cooks_distance.png",
+    conda:
+        ENV
+    log:
+        "logs/differential.log",
+    script:
+        "../../scripts/de/02_differential_expression_and_qc.R"
+
+
+# ------------------------------------------------------------
+# KEGG annotation downloaded once (the REST API is slow and sometimes hangs; gseKEGG
+# downloaded it on every run). Delete cache/kegg/ to refresh.
+# ------------------------------------------------------------
+KEGG_ORG = config["enrichment"]["organism_kegg"]
+
+rule kegg_annotation:
+    output:
+        link=f"cache/kegg/{KEGG_ORG}_link_pathway.tsv",
+        names=f"cache/kegg/{KEGG_ORG}_list_pathway.tsv",
+    params:
+        url="https://rest.kegg.jp",
+        org=KEGG_ORG,
+    log:
+        "logs/kegg_annotation.log",
+    shell:
+        """
+        (date -Iseconds
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 1800 \\
+             -o {output.link}.part {params.url}/link/{params.org}/pathway
+         curl -fsS --retry 5 --retry-all-errors --retry-delay 30 -m 600 \\
+             -o {output.names}.part {params.url}/list/pathway/{params.org}
+         test -s {output.link}.part && test -s {output.names}.part
+         mv {output.link}.part {output.link}
+         mv {output.names}.part {output.names}
+         wc -l {output.link} {output.names}) > {log} 2>&1
+        """
+
+
+# ------------------------------------------------------------
+# 03: GSEA (GO, KEGG), pathview and STRING. Needs internet access (pathview, STRING).
+# ------------------------------------------------------------
+rule enrichment:
+    input:
+        top_table="results/top_table.csv",
+        kegg_link=rules.kegg_annotation.output.link,
+        kegg_names=rules.kegg_annotation.output.names,
+    output:
+        go="results/GSEA_GO_all_full.csv",
+        kegg="results/GSEA_KEGG_full.csv",
+        string="results/enrichment_STRING_full.csv",
+        edges="results/edges_PPI.csv",
+        nodes="results/nodes_PPI.csv",
+        session="reports/sessionInfo.txt",
+    conda:
+        ENV
+    log:
+        "logs/enrichment.log",
+    script:
+        "../../scripts/de/03_enrichment.R"
+
+
+# ------------------------------------------------------------
+# Report: HTML summary of the whole analysis (plots/ + results/)
+# ------------------------------------------------------------
+rule report:
+    input:
+        coldata=rules.prepare.output.coldata,
+        composition_plot=rules.prepare.output.composition_plot,
+        pseudobulk=rules.prepare.output.summary,
+        top_table=rules.differential.output.top_table,
+        plots=[f for k, f in rules.differential.output.items() if f.endswith(".png")],
+        go=rules.enrichment.output.go,
+        kegg=rules.enrichment.output.kegg,
+        string=rules.enrichment.output.string,
+        edges=rules.enrichment.output.edges,
+        nodes=rules.enrichment.output.nodes,
+        session=rules.enrichment.output.session,
+        config=["config.yaml"],
+        envs=["envs/report.yaml", "envs/rna-seq.yaml"],
+        scripts=["../../scripts/de/report.py", "../../scripts/html_report.py"],
+        code=["../../scripts/de/01_prepare_scrna.R", "../../scripts/de/02_differential_expression_and_qc.R",
+              "../../scripts/de/03_enrichment.R"],
+    output:
+        html="reports/report.html",
+    params:
+        title=f"{config['dataset']}: differential expression and enrichment",
+        subtitle=config["title"],
+        reference=config["groups"]["reference"],
+        treatment=config["groups"]["treatment"],
+        padj=config["de"]["padj"],
+        lfc=config["de"]["lfc"],
+        design="""
+Hippocampi of female C57BL/6J mice (9 weeks old) injected with cisplatin (**CIS**, chemobrain model) or PBS
+(**PBS**), collected on day 22 (GEO GSE216146; Park et al. 2024, PMID 38446899; 10x Genomics single-cell
+RNA-seq, Cell Ranger 5.0.0, mm10). The study tested 40 Hz sensory stimulation (GENUS, 1 h a day for 21 days):
+only the **unstimulated** groups are used here (PBS no stim vs cisplatin no stim, n = 3 + 3); the two
+stimulated groups are not used. Replicate 1 of each group (batch D20) holds the two hippocampi of one mouse,
+replicates 2 and 3 (batch D21) the four hippocampi of two mice; batch is a covariate of the model
+(`~ batch + group`).
+""",
+        notes="""
+**Pseudobulk of the whole hippocampus.** The counts of every cell of a sample are summed and analysed like
+bulk RNA-seq, so the result is comparable to the bulk hippocampus datasets of this repository. Cell types come
+from the authors' annotation (`MajorCellType`). **Choroid plexus** and **ependymal** cells are left out: the
+choroid plexus share changes several-fold between samples (figure in *Input data*), following the dissection
+rather than the treatment, and its very high expression of a few genes (e.g. *Ttr*) would dominate the
+pseudobulk. The other cell types are kept in the proportions captured, so a change in composition (e.g. more
+microglia) also shows up as differential expression. Neurons are few, as usual in single-cell suspensions of
+adult brain, so the pseudobulk is mostly glia and vascular cells, unlike bulk tissue. With n = 3 per group and a
+few hundred to a few thousand cells per sample, the results are exploratory.
+""",
+        pipeline="""
+1. **prepare**: reads the cell × gene count matrix, the gene list and the cell table from `$DATA/GSE216146`,
+   drops choroid plexus and ependymal cells, sums the counts per sample (gene symbols) and builds a
+   `DESeqDataSetFromMatrix` object with design `~ batch + group`.
+2. **differential**: filtering, DESeq2 fit, apeglm-shrunken log2FC and the QC/DE plots.
+3. **kegg_annotation**: downloads the KEGG gene–pathway table once into `cache/kegg/`.
+4. **enrichment**: GSEA (GO, KEGG), pathview maps, STRING network and enrichment.
+5. **report**: this page.
+
+The scripts are shared with the other DE projects (`../../scripts/de/`); dataset-specific values are in
+`config.yaml`. The PCA and distance plots use the VST counts without batch correction.
+""",
+        filter_text="genes with ≥ 10 pseudobulk counts in at least 3 samples.",
+        input_text="""
+The analysis starts from the files deposited in GEO: raw UMI counts (Cell Ranger, cells × genes, gene
+symbols) and the authors' cell table (QC-filtered cells, without predicted doublets, with sample, batch and
+cell type). The table below gives the cells and UMIs summed per sample (`results/pseudobulk_summary.csv`);
+the figure shows the cell-type composition of each sample (`results/cell_composition.csv`).
+""",
+        upstream_qc="",
+        input_table=rules.prepare.output.summary,
+        input_table_caption="Cells per sample, cells left out (choroid plexus, ependymal) and pseudobulk "
+        "counts (`results/pseudobulk_summary.csv`).",
+        input_figure=rules.prepare.output.composition_plot,
+        input_figure_caption="Share of each cell type (authors' annotation) per sample; excluded types are "
+        "marked in the legend.",
+    conda:
+        ENV_REPORT
+    log:
+        "logs/report.log",
+    script:
+        "../../scripts/de/report.py"

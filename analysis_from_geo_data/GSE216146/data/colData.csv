@@ -1,0 +1,7 @@
+sample,condition,batch,GEO_ID,title,replicate,label,sample_id,group
+D20-6407,PN,D20,GSM6659280,"PBS nonstim, replicate 1",1,PN1,D20-6407,PBS
+D21-2746,PN,D21,GSM6659284,"PBS nonstim, replicate 2",2,PN2,D21-2746,PBS
+D21-2747,PN,D21,GSM6659285,"PBS nonstim, replicate 3",3,PN3,D21-2747,PBS
+D20-6409,CN,D20,GSM6659282,"Cisplatin nonstim, replicate 1",1,CN1,D20-6409,CIS
+D21-2750,CN,D21,GSM6659288,"Cisplatin nonstim, replicate 2",2,CN2,D21-2750,CIS
+D21-2751,CN,D21,GSM6659289,"Cisplatin nonstim, replicate 3",3,CN3,D21-2751,CIS

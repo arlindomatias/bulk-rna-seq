@@ -4,7 +4,7 @@ Reproducible Snakemake + R workflows for bulk RNA-seq analysis of public GEO dat
 chemotherapy-induced cognitive impairment ("chemobrain"). They cover everything from raw reads to
 differential expression, functional enrichment and protein-protein interaction (PPI) networks.
 
-The repository contains seven projects. Each has its own Snakefile, conda environments and README:
+The repository contains eight projects. Each has its own Snakefile, conda environments and README:
 
 | Folder | Dataset | Input | What it does |
 |---|---|---|---|
@@ -14,6 +14,7 @@ The repository contains seven projects. Each has its own Snakefile, conda enviro
 | [`analysis_from_geo_data/GSE236404/`](analysis_from_geo_data/GSE236404) | [GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404) | Normalized count table deposited in GEO (rat) | limma-trend, QC, GSEA (GO/KEGG), pathview, STRING |
 | [`analysis_from_geo_data/GSE267844/`](analysis_from_geo_data/GSE267844) | [GSE267844](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE267844) | FPKM table deposited in GEO (rat) | limma-trend, QC, GSEA (GO/KEGG), pathview, STRING |
 | [`analysis_from_geo_data/GSE325554/`](analysis_from_geo_data/GSE325554) | [GSE325554](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE325554) | Visium spatial counts (mouse) | Hippocampus pseudobulk, then DESeq2, QC, GSEA (GO/KEGG), pathview, STRING |
+| [`analysis_from_geo_data/GSE216146/`](analysis_from_geo_data/GSE216146) | [GSE216146](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE216146) | 10x single-cell counts (mouse) | Hippocampus pseudobulk (choroid plexus left out), then DESeq2 with batch, QC, GSEA (GO/KEGG), pathview, STRING |
 | [`meta_analysis/`](meta_analysis) | all five | DE results of the five DE projects | DEG table and overlap across datasets, genes matched by 1:1 mouse–rat orthologs; random-effects meta-analysis per gene |
 
 ```
@@ -22,6 +23,7 @@ GEO counts (GSE178812) ───────────────────
 GEO normalized counts (GSE236404) ───────────────────────────────► GSE236404 ─► DE (limma) + enrichment
 GEO FPKM (GSE267844) ────────────────────────────────────────────► GSE267844 ─► DE (limma) + enrichment
 GEO Visium (GSE325554) ──► hippocampus pseudobulk ───────────────► GSE325554 ─► DE + enrichment
+GEO scRNA-seq (GSE216146) ──► sample pseudobulk ─────────────────► GSE216146 ─► DE + enrichment
 DE results of the five projects ─────────────────────────────────► meta_analysis ─► DEG table, overlap, meta-analysis
 ```
 
@@ -38,6 +40,7 @@ with figures and tables:
 | `GSE236404` | [GSE236404: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE236404/reports/report.html) |
 | `GSE267844` | [GSE267844: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE267844/reports/report.html) |
 | `GSE325554` | [GSE325554: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE325554/reports/report.html) |
+| `GSE216146` | [GSE216146: differential expression and enrichment](https://arlindomatias.github.io/bulk-rna-seq/analysis_from_geo_data/GSE216146/reports/report.html) |
 | `meta_analysis` | [Chemotherapy DEGs across datasets](https://arlindomatias.github.io/bulk-rna-seq/meta_analysis/reports/report.html) |
 
 The reports are built by the `report` rule of each Snakefile (`reports/report.html`) and published with
@@ -70,6 +73,7 @@ scripts/
 │   ├── 01_prepare_geo.R                   # GEO count table + series matrix -> DESeq2 object
 │   ├── 01_prepare_geo_normalized.R        # GEO normalized/FPKM table (+ sample sheet) -> SummarizedExperiment
 │   ├── 01_prepare_visium.R                # Visium Space Ranger outputs -> region pseudobulk -> DESeq2 object
+│   ├── 01_prepare_scrna.R                 # single-cell counts + cell table -> sample pseudobulk -> DESeq2 object
 │   ├── 02_differential_expression_and_qc.R  # DESeq2
 │   ├── 02_differential_expression_limma.R   # limma-trend (normalized values only)
 │   ├── 03_enrichment.R                    # GSEA GO/KEGG, pathview, STRING
@@ -87,7 +91,7 @@ scripts/
 ```
 
 The DE projects run the same scripts (GSE236404 and GSE267844 swap the prepare and DE steps for their limma
-versions, `de.method: limma`; GSE325554 has its own Visium prepare step); everything specific to a dataset (input, groups, gene identifier type,
+versions, `de.method: limma`; GSE325554 and GSE216146 have their own Visium and single-cell prepare steps); everything specific to a dataset (input, groups, gene identifier type,
 cutoffs, filter, enrichment settings, seed) is in its `config.yaml`. Each project keeps its own complete
 `Snakefile`.
 
@@ -107,6 +111,10 @@ cutoffs, filter, enrichment settings, seed) is in its `config.yaml`. Each projec
   10x Visium spatial transcriptomics. The series also has PTX + ABT263 and PTX + ganciclovir groups. The
   hippocampal spots of each section are summed (pseudobulk) and analysed with DESeq2.
   Its spatial, spot-level analysis is in the separate [spatial-transcriptomics](https://github.com/arlindomatias/spatial-transcriptomics) repository.
+- **GSE216146**: hippocampus of 9-week-old female C57BL/6J mice, cisplatin (CIS, n = 3) vs PBS (n = 3), day 22,
+  10x single-cell RNA-seq. The series also tests 40 Hz sensory stimulation (GENUS) in both groups; the
+  stimulated groups are not used. PMID 38446899. The cells of each sample (except choroid plexus and ependymal
+  cells) are summed (pseudobulk) and analysed with DESeq2, with batch as a covariate.
 
 ## Projects
 
@@ -202,7 +210,19 @@ cd analysis_from_geo_data/GSE325554
 snakemake --use-conda --cores 2
 ```
 
-### 7. `meta_analysis`: DEGs across datasets and meta-analysis
+### 7. `GSE216146`: single-cell hippocampus pseudobulk
+
+`01_prepare_scrna.R` reads the raw 10x counts and the authors' cell table from `$DATA/GSE216146`, leaves out
+choroid plexus and ependymal cells (their share follows the dissection: `plots/cell_composition.png`) and sums
+the counts of the remaining cells per sample; DESeq2 uses `~ batch + group` (the samples were sequenced in two
+batches, each with every group). The meta-analysis does not include this dataset yet.
+
+```bash
+cd analysis_from_geo_data/GSE216146
+snakemake --use-conda --cores 2
+```
+
+### 8. `meta_analysis`: DEGs across datasets and meta-analysis
 
 Collects the DEGs of the five DE projects (same DEG rule as each project, read from its `de_summary.tsv`)
 into `results/all_degs.csv`: one row per gene and dataset where it is a DEG, with symbol, Entrez ID, Ensembl ID,
@@ -267,8 +287,9 @@ All datasets are public on NCBI GEO. Please cite the original authors of
 [GSE295281](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE295281),
 [GSE178812](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178812),
 [GSE236404](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE236404),
-[GSE267844](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE267844) and
-[GSE325554](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE325554) when using these data.
+[GSE267844](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE267844),
+[GSE325554](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE325554) and
+[GSE216146](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE216146) when using these data.
 
 ## License
 

@@ -1,0 +1,91 @@
+# ============================================================
+# Dataset configuration. Same structure as ../GSE178812/config.yaml, so the shared scripts in
+# ../../scripts/de/ can run it. The input is single-cell RNA-seq (10x): the counts of the cells of each
+# sample are summed (pseudobulk, 01_prepare_scrna.R) and analysed with DESeq2.
+# ============================================================
+
+dataset: GSE216146
+title: "Cisplatin vs PBS, mouse hippocampus (scRNA-seq pseudobulk)"
+
+# GEO supplementary files (Cell Ranger 5.0.0 raw counts + the authors' Scanpy cell annotation),
+# read from $DATA/<raw_dir>. The series matrix gives the GEO accessions and titles.
+input:
+  geo_accession: GSE216146
+  raw_dir: GSE216146
+  matrix_file: GSE216146_expression_matrix.mtx.gz    # cells × genes, raw counts
+  genes_file: GSE216146_genes.tsv.gz                 # gene symbols, matrix column order
+  cells_file: GSE216146_cell_metadata.tsv.gz         # one row per cell, matrix row order
+  series_matrix_url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE216nnn/GSE216146/matrix/GSE216146_series_matrix.txt.gz
+
+# Columns of the cell table. Conditions (GEO): PN = PBS no stimulation, PS = PBS + 40 Hz stimulation (GENUS),
+# CN = cisplatin no stimulation, CS = cisplatin + GENUS. Batch: D20 (replicate 1, one animal per sample) and
+# D21 (replicates 2-3, two animals pooled per sample).
+scrna:
+  sample_column: biosample
+  condition_column: pathology
+  batch_column: batch
+  cell_type_column: MajorCellType
+  # Cell types left out of the pseudobulk: the choroid plexus (and ependymal cells lining the ventricles)
+  # vary from 2% to 38% of the cells between samples, i.e. with the dissection, not with the treatment.
+  exclude_cell_types: ["Choroid Plexus", "Ependymal"]
+
+geo:
+  exclude_conditions: ["PS", "CS"]   # only the unstimulated groups (cisplatin vs PBS)
+
+# Gene identifiers of the count table: ENSEMBL or SYMBOL. Sets the GO keyType and the Entrez mapping for KEGG.
+gene_id_type: SYMBOL
+
+samples:
+  id_column: sample           # D20-6407, D21-2746, ...
+  condition_column: condition
+  label_column: label         # PN1, PN2, CN1, ... (condition + GEO replicate)
+
+# Raw value in `condition_column` -> label used in the model (valid R names).
+groups:
+  labels:
+    PN: PBS
+    CN: CIS
+  reference: PBS
+  treatment: CIS
+  colors:
+    PBS: "#3399FF"
+    CIS: "#CC0000"
+
+# Columns added to the model before the group (~ cov1 + cov2 + group). Batch is not nested in group
+# (each group has one D20 and two D21 samples).
+covariates: [batch]
+
+# Sample ids removed from the analysis.
+exclude_samples: []
+
+filter:
+  min_count: 10
+  min_samples: 3      # group size
+
+de:
+  fit_type: local
+  padj: 0.05          # also the `alpha` of DESeq2 results() (independent filtering)
+  pvalue_fallback: 0.01  # used on the unadjusted p-value only when no gene has padj < padj (exploratory)
+  lfc: 0.5            # minimum |log2FC| for a DEG
+
+plots:
+  heatmap_max_genes: 60
+  marker_genes: []        # all mice are female
+
+enrichment:
+  organism_kegg: mmu
+  orgdb: org.Mm.eg.db
+  min_gs_size: 10
+  max_gs_size: 800
+  pvalue_cutoff: 0.05
+  string_version: "12.0"
+  string_species: 10090
+  string_score: 700
+  string_cache: cache/
+  # Pathview maps and single-pathway GSEA plots: the `top_n` most significant pathways/terms
+  # (an explicit list in pathview_pathways overrides the top N).
+  pathview_pathways: []
+  pathview_top_n: 3
+  gsea_plot_top_n: 3
+
+seed: 123

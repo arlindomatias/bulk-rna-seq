@@ -1,0 +1,7 @@
+sample,GEO_ID,title,condition,batch,cells_total,cells_excluded,cells_used,umi_used,median_umi_per_cell
+D20-6409,GSM6659282,"Cisplatin nonstim, replicate 1",CN,D20,1930,225,1705,9256124,3279
+D21-2750,GSM6659288,"Cisplatin nonstim, replicate 2",CN,D21,2709,1045,1664,11374675,6537.5
+D21-2751,GSM6659289,"Cisplatin nonstim, replicate 3",CN,D21,1110,145,965,7038351,7240
+D20-6407,GSM6659280,"PBS nonstim, replicate 1",PN,D20,1265,40,1225,7306440,3595
+D21-2746,GSM6659284,"PBS nonstim, replicate 2",PN,D21,2772,160,2612,15925368,5802.5
+D21-2747,GSM6659285,"PBS nonstim, replicate 3",PN,D21,1952,217,1735,12645091,6973
